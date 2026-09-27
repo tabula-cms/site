@@ -39,15 +39,17 @@ Exists now:
 | `src/routeData.ts` | Route data middleware that applies a page's `lang` frontmatter to its `<html lang>` — see Conventions |
 | `src/content/docs/index.mdx` | Landing page content — the only committed page in `src/content/docs/`; everything else there is generated (see below) |
 | `public/favicon.svg` | Placeholder favicon |
-| `scripts/fetch-docs.mjs` | Stub for now (prints a notice, exits 0); the real importer arrives with issue #3 |
+| `scripts/lib/docs-transform.mjs` | Pure functions used by `fetch-docs.mjs`: frontmatter building/serialisation, link rewriting, `sidebar.order` from `docs/INDEX.md`, `editUrl` mapping, back-link removal. No filesystem or network access — this is what `test/docs-transform.test.mjs` unit-tests directly. |
+| `scripts/fetch-docs.mjs` | Imports `docs/{editor,install,qa,dev}` from `tabula-cms/tabula` into the gitignored `src/content/docs/{editor,install,qa,dev}/` (issue #3) — obtains the source (local dir or a sparse git clone), runs the transform, writes the output, prints a summary. See Conventions for the rules it implements. |
+| `scripts/check-links.mjs` (`npm run check:links`; also runs automatically after `npm run build` via `postbuild`) | Walks the built `dist/` and fails if any internal link or `#anchor` resolves to nothing. Replaces `starlight-links-validator`, which cannot validate this site's relative-link convention — see Conventions. |
 | `test/smoke.test.mjs` | `node --test` check of `astro.config.mjs`'s `site`/`base` defaults and env overrides |
+| `test/docs-transform.test.mjs` | `node --test` fixture-based unit tests for `scripts/lib/docs-transform.mjs` (pure functions only, no network) |
 | `package.json`, `package-lock.json` | npm scripts and locked dependencies |
 
-Arrives with issues #3–#4:
+Arrives with issue #4:
 
 | Path | Purpose |
 |---|---|
-| `scripts/fetch-docs.mjs` (real implementation) | Imports `docs/` from `tabula-cms/tabula` into gitignored `src/content/docs/{editor,install,qa,dev}/` |
 | `.github/workflows/ci.yml`, `.github/workflows/deploy.yml` | Build check, GitHub Pages deploy, daily scheduled rebuild |
 
 Later (#7–#9):
@@ -135,15 +137,65 @@ on.
   page's frontmatter, pointing at the matching file in `tabula-cms/tabula` (mapping
   `index.md` back to `README.md`). The landing page (`src/content/docs/index.mdx`) isn't
   imported from anywhere, so it sets `editUrl: false` and shows no edit link at all.
+- Internal links inside imported pages are always emitted **relative**, computed from each
+  page's own URL (`README.md` -> `/<folder>/`, `name.md` -> `/<folder>/<slug>/`), never with a
+  leading slash: `path.posix.relative(fromUrl, toUrl) + '/'` (`./` when the two pages are the
+  same), with `#anchor` appended verbatim — see `relativeHref()`/`rewriteLink()` in
+  `scripts/lib/docs-transform.mjs`. This is the same reason as the index.mdx hero links above:
+  Starlight does not prefix Markdown body links with `base` either. A link that leaves `docs/`,
+  or lands in `docs/INDEX.md` (skipped, not published), becomes an absolute
+  `https://github.com/tabula-cms/tabula/blob/<TABULA_REF>/…` link instead; a link into
+  `docs/audits/` or `docs/design/` (internal-only, and not even in the public `tabula-cms/tabula`
+  tree, so likely a 404 on GitHub) does the same but also logs a warning, counted in
+  `fetch-docs.mjs`'s summary (see issue #3). A page in one of the four imported folders that
+  isn't Markdown (none exist today) is not treated as a page either, for the same absolute-link
+  reason — `classifyRepoPath()` requires a `.md` extension. Link rewriting skips fenced code
+  blocks (` ``` `/`~~~`, indentation and list-item nesting allowed) and inline code spans,
+  so example Markdown quoted in the docs is never touched. Known limits: a closing fence must be
+  the same length as the opening one, an unclosed fence is not treated as code, and 4-space
+  indented code blocks are not detected (none of these occur in Tabula's docs today); a reference-style link
+  definition (`[label]: url`), which this transform doesn't understand, is left alone and logged
+  as a warning instead of silently mismatching.
+- The sidebar replaces Tabula's own in-page navigation line. On the first non-blank line after
+  the heading, when its first ` · `/` — `/` | `-separated segment is a leading `[←…](…)` link,
+  every segment that is *pure navigation* is dropped: a link whose label starts with `←`; a link
+  whose label ends with `→` (optionally preceded by `Далі:`, `Next:`, or `Далі —`); or any link
+  (regardless of label) targeting `README.md` or `../INDEX.md`. Surviving segments are rejoined
+  with ` · ` and go through normal link rewriting — several real Tabula pages put a genuine
+  cross-reference on this line (e.g. `docs/dev/architecture.md`'s `[← Developer docs](README.md)
+  · Deep reference: [\`CLAUDE.md\`](../../CLAUDE.md)`, where only the leading back-link is
+  navigation), and only the navigation itself should disappear. A line with no leading `←` link
+  is never touched. When nothing survives, the whole line is dropped, along with the blank
+  line(s) that leaves at the top — see `removeBackLink()` in `scripts/lib/docs-transform.mjs`.
+- `sidebar.order` for an imported page comes from its 1-based first-appearance rank as
+  `](<folder>/<file>)` in `docs/INDEX.md` (`index.md` is always `0`, overriding whatever rank
+  it computes to); pages missing from `INDEX.md` sort after the known ones, alphabetically.
+  Gaps in the numbering (e.g. `README.md`'s own rank never being used) are harmless — Starlight
+  only needs a consistent relative order.
+- `lang: en` is set only on pages imported from `docs/dev/`; nothing else keys off folder names,
+  so the rule is really "the import script sets `lang`", not "the `dev/` folder is special" —
+  see the per-page `<html lang>` bullet above.
+- Link checking is `scripts/check-links.mjs`, run automatically after every `npm run build` via
+  npm's `postbuild` hook (also runnable on its own as `npm run check:links`), not
+  `starlight-links-validator`: that plugin's `errorOnRelativeLinks` option is all-or-nothing
+  (error on every relative link, or silently skip validating every relative link *and its
+  anchor* — confirmed by reading its source and by a build with a deliberately broken relative
+  link and anchor under `errorOnRelativeLinks: false`, which reported no errors at all). Since
+  this site's whole link convention is relative links, that plugin cannot validate them, so
+  `check-links.mjs` walks the built `dist/` HTML directly instead: every `<a href>` that isn't a
+  URI scheme (`http(s):`, `mailto:`, `tel:`, …) or a protocol-relative `//host/...` URL must
+  resolve to a file under `dist/`, and any `#fragment` — including a bare same-page one — must
+  match an `id` on the target page.
 
 ## Commands
 
 ```sh
 nvm use
 npm ci
-npm run docs:fetch   # stub until #3; #3 adds TABULA_DOCS_DIR for a local Tabula checkout
+TABULA_DOCS_DIR=../tabula/docs npm run docs:fetch   # or clone mode — see CONTRIBUTING.md
 npm run dev
-npm run build
+npm run build         # runs check-links.mjs afterwards via postbuild; fails on a broken link
+npm run check:links   # same check, standalone, without rebuilding
 npm test
 ```
 

@@ -62,15 +62,28 @@ Requires Node.js 22 (Astro 7 requires `>=22.12.0`; see `.nvmrc`).
 ```sh
 nvm use
 npm ci
-npm run docs:fetch   # stub until #3; #3 adds TABULA_DOCS_DIR for a local Tabula checkout
+TABULA_DOCS_DIR=../tabula/docs npm run docs:fetch
 npm run dev
 npm run build
 ```
 
-`docs:fetch` will copy documentation from a local checkout of `tabula-cms/tabula` (or, in CI,
-fetch it from GitHub) into the gitignored `src/content/docs/{editor,install,qa,dev}/`. The
-script itself arrives with issue #3 — until then it is a stub that prints a notice and exits
-successfully, so the commands above do not crash on a fresh clone.
+`docs:fetch` (`scripts/fetch-docs.mjs`) copies `editor/`, `install/`, `qa/`, `dev/` from
+`tabula-cms/tabula`'s `docs/` into the gitignored `src/content/docs/{editor,install,qa,dev}/`,
+rewriting frontmatter and links along the way (see CLAUDE.md's Conventions for the rules). It
+never edits the source text. Environment variables:
+
+| Variable | Default | Meaning |
+|---|---|---|
+| `TABULA_DOCS_DIR` | — | Path to a local checkout's `docs/` folder. When set, no `git` is used at all — the fastest loop for offline/local development. |
+| `TABULA_REPO` | `https://github.com/tabula-cms/tabula.git` | Cloned when `TABULA_DOCS_DIR` is not set. A local path (e.g. `../tabula`) also works, which is how clone mode itself is tested offline. |
+| `TABULA_REF` | `main` | Branch/tag to clone or to point `editUrl` and GitHub links at. `deploy.yml`'s manual `workflow_dispatch` can pass `develop` for a preview build. |
+| `TABULA_DOCS_TOKEN` | — | Fine-grained PAT (contents: read, `tabula-cms/tabula` only), needed for clone mode only while that repository is private — either set this, or use `TABULA_DOCS_DIR` instead. Passed to `git` through the environment (`GIT_CONFIG_*`, scoped to `github.com`), never argv, never the URL, never logged. Ignored for a local `TABULA_REPO` path. |
+
+`npm run build` runs `scripts/check-links.mjs` automatically afterwards, via npm's `postbuild`
+hook, and fails the build if any internal link or `#anchor` is broken. The same check can be run
+on its own, without rebuilding, as `npm run check:links`. It replaces
+`starlight-links-validator`, whose `errorOnRelativeLinks` option cannot validate this site's
+relative-link convention (see the comment at the top of `scripts/check-links.mjs`).
 
 ## Repository settings that are manual
 
