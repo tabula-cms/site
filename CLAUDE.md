@@ -243,6 +243,9 @@ npm test
 [`tabula-cms/tabula`](https://github.com/tabula-cms/tabula): default branch `develop`, `main`
 is what's released. Its `docs/` folder layout: `INDEX.md`, `editor/`, `install/`, `qa/`,
 `dev/`, `issues/` — `INDEX.md` and `issues/` are internal and are not published on this site.
+A folder may be absent at the imported ref (Tabula's `main` had no `docs/qa/` before its first
+release while `develop` did): `fetch-docs.mjs` then skips it with a warning and the sidebar
+hides the group; it only fails when none of the four folders exists.
 Page language: `editor/`, `install/`, `qa/` are Ukrainian; `dev/` is English, imported with
 `lang: en` in frontmatter — see the per-page `<html lang>` bullet in Conventions for how that
 reaches the rendered page.
