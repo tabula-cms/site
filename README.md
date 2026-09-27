@@ -8,8 +8,8 @@
 
 ## Стан
 
-Каркасу сайту ще немає. Далі за планом: каркас на Astro Starlight, імпорт документації, CI та
-деплой на GitHub Pages, тексти головної сторінки, каталог шкіл. Повний план — в
+Каркас сайту на Astro Starlight готовий. Далі за планом: імпорт документації (issue #3), CI та
+деплой на GitHub Pages (issue #4), тексти головної сторінки, каталог шкіл. Повний план — в
 [issue #10](https://github.com/tabula-cms/site/issues/10).
 
 До появи власного домену сайт житиме на
@@ -17,11 +17,12 @@
 
 ## Як запустити локально
 
-Код сайту зʼявиться з issue #2–#4; тоді команди будуть такими:
+Потрібен Node.js 22 (Astro 7 цього вимагає); версія зафіксована в `.nvmrc`.
 
 ```sh
+nvm use
 npm ci
-TABULA_DOCS_DIR=../tabula/docs npm run docs:fetch
+npm run docs:fetch   # заглушка до issue #3; issue #3 додасть TABULA_DOCS_DIR
 npm run dev
 npm run build
 ```
