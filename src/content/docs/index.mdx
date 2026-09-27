@@ -1,6 +1,6 @@
 ---
-title: Tabula
-description: Tabula — безкоштовна, відкрита CMS для українських шкіл, яку кожна школа встановлює й веде сама.
+title: Сайт закладу освіти, який школа веде самостійно
+description: "Вільна система з відкритим кодом для сайту школи: новини, документи, інформаційна відкритість за статтею 30 Закону «Про освіту», фотогалереї, колектив. Встановлюється на власний сервер закладу і не потребує ні абонплати, ні програміста в штаті."
 template: splash
 # The landing page isn't imported from tabula-cms/tabula, so it has no source file to edit
 # there — Starlight's default editLink would otherwise point at this repository's own
@@ -8,41 +8,131 @@ template: splash
 # the reader's perspective. Every imported doc page gets its own absolute editUrl from the
 # import script (#3) instead of a site-wide editLink.baseUrl — see astro.config.mjs.
 editUrl: false
-hero:
-  tagline: Tabula — безкоштовний, відкритий сайт і CMS для школи, який школа встановлює й веде сама.
-  actions:
-    - text: Як користуватися
-      # Relative (no leading slash) so the link resolves under both the default base
-      # (/site/) and the custom-domain base (/) — see astro.config.mjs. Starlight does not
-      # rewrite frontmatter link fields for the configured `base` itself.
-      link: editor/
-      icon: right-arrow
-      variant: primary
-    - text: Як встановити
-      link: install/
-      icon: right-arrow
-      variant: minimal
 ---
 
-import { Card, CardGrid } from '@astrojs/starlight/components';
+<div class="landing-page">
 
-<CardGrid>
-	<Card title="Для кого" icon="puzzle">
-		Для шкіл, які хочуть свій сайт і систему керування контентом без залежності від сторонніх
-		сервісів — і для тих, хто ці школи технічно підтримує.
-	</Card>
-	<Card title="Що всередині" icon="open-book">
-		Сайт школи та адмінка для редактора, встановлення на власному сервері, резервні копії й
-		оновлення.
-	</Card>
-	<Card title="Відкритий код" icon="github">
-		Ліцензія AGPL-3.0. Код і документація відкриті на
-		[GitHub](https://github.com/tabula-cms/tabula).
-	</Card>
-	<Card title="Документація" icon="document">
-		Чотири розділи: посібник редактора, встановлення, тестування та документація для
-		розробників.
-	</Card>
-</CardGrid>
+<div class="landing-hero">
+	<p class="eyebrow">Tabula</p>
+	{/* id="_top" — Starlight's SkipLink always targets #_top; PageTitle (which would
+	    normally provide it) is suppressed on this page, see src/components/PageTitle.astro. */}
+	<h1 id="_top">Сайт закладу освіти, який школа веде самостійно</h1>
+	<p class="subtitle">
+		Вільна система з відкритим кодом для сайту школи: новини, документи, інформаційна
+		відкритість за статтею 30 Закону «Про освіту», фотогалереї, колектив. Встановлюється на
+		власний сервер закладу і не потребує ні абонплати, ні програміста в штаті.
+	</p>
+	<div class="hero-actions">
+		<a class="button primary" href="editor/">Посібник для редактора</a>
+		<a class="button secondary" href="install/">Інструкція зі встановлення</a>
+	</div>
+</div>
 
-*Тексти головної — тимчасові; остаточні зʼявляться з issue #5.*
+<section class="landing-section">
+	<h2>Для кого</h2>
+	<div class="for-whom-grid">
+		<div class="for-whom-item">
+			<h3>Керівництву та редакторам сайту</h3>
+			<p>
+				Наповнення і ведення сайту через адміністративну панель у браузері: новини,
+				сторінки, документи, фотографії, колектив. Без програмування і без сторонньої
+				допомоги.
+			</p>
+			<a href="editor/">Посібник для редактора <span aria-hidden="true">→</span></a>
+		</div>
+		<div class="for-whom-item">
+			<h3>Відповідальному за технічну частину</h3>
+			<p>
+				Учитель інформатики або системний адміністратор встановлює систему за покроковою
+				інструкцією: сервер, домен, встановлення, оновлення, резервне копіювання.
+			</p>
+			<a href="install/">Інструкція зі встановлення <span aria-hidden="true">→</span></a>
+		</div>
+		<div class="for-whom-item">
+			<h3>Розробникам</h3>
+			<p>
+				Відкритий код під ліцензією AGPL-3.0, опис архітектури й моделі даних, тести,
+				процес випуску версій.
+			</p>
+			<a href="dev/">Документація для розробників <span aria-hidden="true">→</span></a>
+		</div>
+	</div>
+</section>
+
+<section class="landing-section">
+	<h2>Можливості</h2>
+	<div class="capabilities-list">
+		<a class="capability-row" href="editor/novyny/">
+			<span class="capability-term">Новини й публікації</span>
+			<span class="capability-desc">Стрічки публікацій, автори, перевірка перед оприлюдненням, архів.</span>
+		</a>
+		<a class="capability-row" href="editor/storinky/">
+			<span class="capability-term">Сторінки</span>
+			<span class="capability-desc">Текстовий редактор із блоками, файли, головна сторінка.</span>
+		</a>
+		<a class="capability-row" href="editor/dokumenty/">
+			<span class="capability-term">Документи</span>
+			<span class="capability-desc">Бібліотека документів із розділами та групами.</span>
+		</a>
+		<a class="capability-row" href="editor/prozorist/">
+			<span class="capability-term">Інформаційна відкритість</span>
+			<span class="capability-desc">Контрольний список за статтею 30 і готова сторінка «Прозорість».</span>
+		</a>
+		<a class="capability-row" href="editor/foto/">
+			<span class="capability-term">Фотогалереї</span>
+			<span class="capability-desc">Альбоми та галереї.</span>
+		</a>
+		<a class="capability-row" href="editor/kolektyv/">
+			<span class="capability-term">Колектив</span>
+			<span class="capability-desc">Сторінки працівників закладу.</span>
+		</a>
+		<a class="capability-row" href="editor/menu/">
+			<span class="capability-term">Меню</span>
+			<span class="capability-desc">Конструктор структури сайту.</span>
+		</a>
+		<a class="capability-row" href="editor/bekapy/">
+			<span class="capability-term">Резервні копії</span>
+			<span class="capability-desc">Створення і відновлення з адміністративної панелі.</span>
+		</a>
+		<a class="capability-row" href="editor/poshuk-i-seo/">
+			<span class="capability-term">Пошук і SEO</span>
+			<span class="capability-desc">Пошук по сайту, карта сайту, RSS, попередній перегляд посилань.</span>
+		</a>
+		<a class="capability-row" href="editor/korystuvachi/">
+			<span class="capability-term">Користувачі та ролі</span>
+			<span class="capability-desc">Адміністратор, редактор, майстер першого налаштування.</span>
+		</a>
+	</div>
+</section>
+
+<section class="landing-section">
+	<h2>Що потрібно для роботи</h2>
+	<p>
+		Tabula не є хостингом чи сервісом за передплатою. Це програмне забезпечення, яке заклад
+		встановлює на власному сервері. Для роботи потрібні:
+	</p>
+	<ul>
+		<li>віртуальний сервер (VPS) у будь-якого хостинг-провайдера;</li>
+		<li>доменне імʼя закладу;</li>
+		<li>
+			відповідальна особа, яка раз на кілька місяців за інструкцією встановлює оновлення і
+			перевіряє резервні копії.
+		</li>
+	</ul>
+	<p>
+		Система не передбачає абонплати, платних версій і реклами. Код відкритий: його можна
+		перевірити, доопрацювати і передати іншому закладу.
+	</p>
+</section>
+
+<section class="landing-section landing-quiet">
+	<h2>Про проєкт</h2>
+	<p>
+		Tabula створена в Корольовському академічному ліцеї міста Житомира як відповідь на
+		просте питання: як школі без програміста в штаті мати сайт, що відповідає вимогам закону
+		і не потребує абонплати.
+	</p>
+	<p><a href="pro-proiekt/">Історія проєкту <span aria-hidden="true">→</span></a></p>
+</section>
+
+</div>

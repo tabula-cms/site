@@ -118,7 +118,13 @@ other explanation, check **Actions → Deploy → "..."** for a disabled/re-enab
 
 ## Privacy
 
-Never use a real school's name, city, staff name, or domain anywhere in this repository —
-issues, code, comments, commit messages, or screenshots. The only example school allowed is
-the fictitious «Вигаданий ліцей № 0». Screenshots for documentation or issues come only from
-the fixture school (issue #6), never from a real installation.
+Never use a real school's name, city, staff name, or domain in examples, issues, code,
+comments, commit messages, or screenshots. The only example school allowed is the fictitious
+«Вигаданий ліцей № 0». Screenshots for documentation or issues come only from Tabula's demo
+site (issue #6), never from a real installation.
+
+One deliberate exception, decided by the project owner: the origin story of Tabula (the
+«Про проєкт» block on the landing page and `src/content/docs/pro-proiekt.md`) names the lyceum
+where the system was created and the two people who initiated it. Nothing else about that
+school — its domain, pupils, staff, content, or screenshots of its live site — belongs in this
+repository.
