@@ -1,0 +1,83 @@
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+  schedule:
+    # 03:30 UTC = 06:30 Kyiv in summer (EEST), 05:30 in winter (EET) — before schools' day
+    # starts either way. Keeps the site's Tabula docs current within a day even when nothing
+    # changes in this repository.
+    - cron: '30 3 * * *'
+  workflow_dispatch:
+    inputs:
+      tabula_ref:
+        description: Tabula ref to build the docs from
+        type: string
+        default: main
+  # A later hook from Tabula's own release workflow; the sender side lives in tabula-cms/tabula
+  # and is out of scope here.
+  repository_dispatch:
+    types: [tabula-docs-updated]
+
+# One deploy at a time: a half-finished deploy to GitHub Pages is worse than a queued one, so
+# unlike CI this never cancels a run already in flight.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+# The narrowest permissions each job actually needs (least privilege): `deploy` alone holds
+# the Pages-write and OIDC (id-token) credentials, so `build` never carries a credential it
+# has no use for. actions/configure-pages (in `build`) only reads the Pages configuration —
+# confirmed against actions/configure-pages' own usage docs and the Pages deploy-workflow
+# permissions discussion (github/actions community) — so `pages: read` is enough there.
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          # This job only reads the checkout; it never pushes back with the runner's token.
+          persist-credentials: false
+
+      - name: Install, import docs, test, build
+        uses: ./.github/actions/build-site
+        with:
+          # push/schedule/repository_dispatch runs have no `inputs` context, so this is always
+          # "main" for them; workflow_dispatch can pass e.g. "develop" for a one-off preview,
+          # which the next scheduled run against "main" overwrites again.
+          tabula-ref: ${{ inputs.tabula_ref || 'main' }}
+          docs-token: ${{ secrets.TABULA_DOCS_TOKEN }}
+          site-url: ${{ vars.SITE_URL || 'https://tabula-cms.github.io' }}
+          site-base: ${{ vars.SITE_BASE || '/site' }}
+          # Deploy never runs against a fork, so there's no fork-PR case to fall back for: a
+          # docs import failure here must fail the run rather than silently ship a partial
+          # site to production.
+          allow-import-skip: 'false'
+
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d # v6.0.0
+
+      - name: Upload site artifact
+        uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1

@@ -110,8 +110,11 @@ function cloneDocsSparse({ repo, ref, token, destination }) {
 		);
 	}
 
+	// With --filter=blob:none the clone has no file contents yet; sparse-checkout fetches
+	// docs/ from the promisor remote, so it needs the same auth header as the clone did.
 	const sparse = spawnSync('git', ['-C', destination, 'sparse-checkout', 'set', 'docs'], {
 		stdio: ['ignore', 'pipe', 'pipe'],
+		env: gitEnv,
 	});
 	if (sparse.status !== 0) {
 		throw new Error(`git sparse-checkout of docs/ failed:\n${redact(sparse.stderr?.toString())}`);
@@ -145,8 +148,15 @@ function run(docsDir, ref) {
 
 	for (const folder of IMPORTED_FOLDERS) {
 		const sourceFolderDir = path.join(docsDir, folder);
+		const outDir = path.join(contentDocsDir, folder);
 		if (!existsSync(sourceFolderDir)) {
-			throw new Error(`source folder not found: ${sourceFolderDir}`);
+			// A folder can be missing at the chosen ref (e.g. Tabula's main did not have docs/qa/
+			// before its first release while develop already did). Skip it with a warning; the
+			// sidebar in astro.config.mjs hides a group whose folder is absent. Remove stale
+			// output so a folder that disappeared upstream disappears from the site too.
+			rmSync(outDir, { recursive: true, force: true });
+			stats.warnings.push(`source folder not found at ref ${ref}, skipped: docs/${folder}`);
+			continue;
 		}
 
 		const fileNames = readdirSync(sourceFolderDir, { withFileTypes: true })
@@ -155,7 +165,6 @@ function run(docsDir, ref) {
 			.sort();
 
 		const order = computeOrder(indexMd, folder, fileNames);
-		const outDir = path.join(contentDocsDir, folder);
 		rmSync(outDir, { recursive: true, force: true });
 		mkdirSync(outDir, { recursive: true });
 
@@ -167,6 +176,10 @@ function run(docsDir, ref) {
 		}
 
 		pagesPerFolder[folder] = fileNames.length;
+	}
+
+	if (Object.keys(pagesPerFolder).length === 0) {
+		throw new Error(`none of docs/{${IMPORTED_FOLDERS.join(',')}} found in ${docsDir}`);
 	}
 
 	printSummary(pagesPerFolder, stats);

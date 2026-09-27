@@ -1,0 +1,98 @@
+name: Build site
+description: >-
+  Installs dependencies, imports Tabula's docs, runs the test suite, and builds the Astro
+  site. Checkout is left to the calling workflow, so this action only needs the checked-out
+  working directory to already be in place.
+
+inputs:
+  tabula-ref:
+    description: Tabula (tabula-cms/tabula) ref to import docs/ from.
+    required: false
+    default: main
+  docs-token:
+    description: >-
+      Fine-grained PAT for cloning tabula-cms/tabula while it is still private. Leave empty
+      once that repository is public.
+    required: false
+    default: ''
+  site-url:
+    description: Value for astro.config.mjs's `site` (the SITE_URL environment variable).
+    required: true
+  site-base:
+    description: Value for astro.config.mjs's `base` (the SITE_BASE environment variable).
+    required: true
+  allow-import-skip:
+    description: >-
+      When "true" AND docs-token is empty, a failed docs import falls back to a notice and a
+      landing-page-only build instead of failing the step. Callers must only pass "true" for a
+      run that genuinely cannot have the token — ci.yml computes this per-run (fork PRs and
+      Dependabot PRs get no Actions secrets at all); a same-repo PR must keep this "false" so a
+      real import failure still fails CI. The deploy workflow always passes "false": it never
+      runs against a fork and must not silently ship a partial site to production.
+    required: false
+    default: 'false'
+
+runs:
+  using: composite
+  steps:
+    - name: Set up Node.js
+      uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+      with:
+        node-version-file: .nvmrc
+        cache: npm
+
+    - name: Install dependencies
+      shell: bash
+      run: npm ci
+
+    - name: Import Tabula docs
+      shell: bash
+      env:
+        TABULA_REF: ${{ inputs.tabula-ref }}
+        TABULA_DOCS_TOKEN: ${{ inputs.docs-token }}
+        ALLOW_IMPORT_SKIP: ${{ inputs.allow-import-skip }}
+      run: |
+        # tabula-cms/tabula is still private (see CONTRIBUTING.md), so a fork PR or a
+        # Dependabot PR — neither gets Actions secrets — has no TABULA_DOCS_TOKEN and cannot
+        # clone it. ci.yml passes allow-import-skip: 'true' only for those two cases; a
+        # same-repo PR always gets 'false', so a real import failure there still fails CI
+        # rather than quietly turning green. This fires only when the clone actually fails
+        # (not merely because the token happens to be empty); once tabula-cms/tabula is
+        # public the clone succeeds anonymously and this branch stops being reachable, so
+        # ci.yml's allow-import-skip and this input should both be removed at that point
+        # (see CONTRIBUTING.md).
+        if npm run docs:fetch; then
+          exit 0
+        fi
+        if [ "$ALLOW_IMPORT_SKIP" = "true" ] && [ -z "$TABULA_DOCS_TOKEN" ]; then
+          echo "::notice::Docs import skipped: no TABULA_DOCS_TOKEN and tabula-cms/tabula is not reachable anonymously. Building the landing page only."
+          # Read by the Build step below: the landing page alone has none of the
+          # editor/install/qa/dev folders, so the postbuild link check must not run.
+          echo "DOCS_IMPORT_SKIPPED=true" >> "$GITHUB_ENV"
+          exit 0
+        fi
+        echo "::error::Docs import failed"
+        exit 1
+
+    - name: Test
+      shell: bash
+      run: npm test
+
+    - name: Build
+      shell: bash
+      env:
+        SITE_URL: ${{ inputs.site-url }}
+        SITE_BASE: ${{ inputs.site-base }}
+      run: |
+        if [ "$DOCS_IMPORT_SKIPPED" = "true" ]; then
+          # scripts/check-links.mjs (npm's postbuild hook) walks dist/ expecting the
+          # imported editor/install/qa/dev pages and their cross-links to exist; on a
+          # landing-page-only build it would fail on links that only resolve once those
+          # folders are imported. `npm run build --ignore-scripts` still runs the named
+          # "build" script itself, it only skips npm's pre/post lifecycle scripts (i.e.
+          # postbuild here), so the link check is the only thing this skips.
+          echo "::notice::Link check skipped: documentation was not imported"
+          npm run build --ignore-scripts
+        else
+          npm run build
+        fi
