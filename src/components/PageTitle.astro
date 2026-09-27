@@ -1,0 +1,22 @@
+---
+// Override of Starlight's default PageTitle (registered in astro.config.mjs).
+//
+// `template: splash` pages on this site (the landing and the about page, issue #5) write
+// their own top heading directly in the MDX/Markdown body — the landing's hand-styled hero
+// `<h1>` and the about page's own raw `<h1 id="_top">Про проєкт</h1>` (not a `# ...` Markdown
+// heading — see below) — instead of relying on the `hero` frontmatter or on Starlight
+// auto-rendering `title` as a heading. Rendering the default PageTitle on top of that would
+// duplicate the heading (and, on the landing page, put it in the wrong place — before the
+// eyebrow line instead of after it). Every other page (all `template: doc` pages: editor/,
+// install/, qa/, dev/) is unaffected and keeps Starlight's default title.
+//
+// Starlight's SkipLink always targets `#_top`, which PageTitle (or Hero) would normally
+// provide. Since this component renders nothing on `template: splash` pages, any such page
+// must instead carry `id="_top"` on its own top heading itself — a Markdown `# Heading` can't
+// take an id, which is why both pages here write a raw `<h1 id="_top">` instead.
+import Default from '@astrojs/starlight/components/PageTitle.astro';
+
+const isSplash = Astro.locals.starlightRoute.entry.data.template === 'splash';
+---
+
+{!isSplash && <Default />}

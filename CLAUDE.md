@@ -37,7 +37,11 @@ Exists now:
 | `tsconfig.json` | `astro/tsconfigs/strict` |
 | `src/content.config.ts` | Starlight's `docs` collection (`docsLoader()` + `docsSchema()`, extended with an optional `lang` field) |
 | `src/routeData.ts` | Route data middleware that applies a page's `lang` frontmatter to its `<html lang>` — see Conventions |
-| `src/content/docs/index.mdx` | Landing page content — the only committed page in `src/content/docs/`; everything else there is generated (see below) |
+| `src/content/docs/index.mdx` | Landing page content (issue #5) — hand-written `template: splash` MDX sections styled by `src/styles/site.css`, no `hero` frontmatter and no Starlight `CardGrid`/`Card` |
+| `src/content/docs/pro-proiekt.md` | About-the-project page (issue #5), `template: splash`, hidden from the sidebar, its content column narrowed by `src/styles/site.css`'s `.prose-narrow` |
+| `src/styles/site.css` | `customCss` for the Starlight config (issue #5): the deep ink-blue accent palette (`--sl-color-accent*`, light/dark) and the layout/typography for the hand-written landing and about pages — see Conventions |
+| `src/components/Footer.astro` | `Footer` component override (issue #5): a quiet, site-wide link row + tagline; still renders Starlight's default footer (edit link, pagination) above it on `template: doc` pages — see Conventions |
+| `src/components/PageTitle.astro` | `PageTitle` component override (issue #5): suppressed on `template: splash` pages, which write their own top heading in the body — see Conventions |
 | `public/favicon.svg` | Placeholder favicon |
 | `scripts/lib/docs-transform.mjs` | Pure functions used by `fetch-docs.mjs`: frontmatter building/serialisation, link rewriting, `sidebar.order` from `docs/INDEX.md`, `editUrl` mapping, back-link removal. No filesystem or network access — this is what `test/docs-transform.test.mjs` unit-tests directly. |
 | `scripts/fetch-docs.mjs` | Imports `docs/{editor,install,qa,dev}` from `tabula-cms/tabula` into the gitignored `src/content/docs/{editor,install,qa,dev}/` (issue #3) — obtains the source (local dir or a sparse git clone), runs the transform, writes the output, prints a summary. See Conventions for the rules it implements. |
@@ -127,24 +131,70 @@ happens in each workflow, not in the composite action. Both checkouts pass
 
 ## Conventions
 
+- Landing (`src/content/docs/index.mdx`) and about (`src/content/docs/pro-proiekt.md`) page
+  content (issue #5): hand-written `template: splash` MDX/Markdown sections with plain classed
+  `<div>`/`<section>` markup, styled in `src/styles/site.css` — not Starlight's `hero`
+  frontmatter or `CardGrid`/`Card` components, which read as decorative for this site's
+  audience (education-department officials, principals, the installing teacher). Internal
+  links inside these two pages follow the same relative-link convention as imported pages (no
+  leading slash; `../` from `/pro-proiekt/`) — see the link-convention bullet below.
+- Accent palette (issue #5): `src/styles/site.css` overrides only `--sl-color-accent-low`,
+  `--sl-color-accent` and `--sl-color-accent-high` (dark mode in `:root`, light mode in
+  `:root[data-theme='light']`), following Starlight's own theme-colour convention (see
+  https://starlight.astro.build/guides/css-and-tailwind/#theming). Target colours: light-mode
+  accent ≈ `#1f3d63`, dark-mode accent ≈ `#8fb3e0` — both give ≥5.7:1 contrast against this
+  site's own background and against the button/text pairing used on the landing page (AA
+  minimum is 4.5:1). The neutral gray scale is untouched. `--tabula-accent-hover` is a small
+  extra custom property (not a Starlight one) for the landing page's own button hover state,
+  because Starlight's `-high`/`-low` accent steps aren't reliably *lighter* than the base accent
+  in both themes.
+- Site-wide footer override (issue #5): `src/components/Footer.astro` replaces Starlight's
+  `Footer` (registered via `components.Footer` in `astro.config.mjs`). It renders Starlight's
+  own default footer (`@astrojs/starlight/components/Footer.astro`, imported directly) above
+  its own content only on `template: doc` pages, so "Edit this page" and prev/next pagination
+  are preserved there; `template: splash` pages (landing, about) get only the quiet link
+  row + tagline, since they have no edit link or pagination to show. The footer's "Про проєкт"
+  link is the one internal link on the site that can't be written relative — the footer renders
+  at every page depth (`/`, `/editor/`, `/editor/novyny/`, ...) — so it's built from
+  `import.meta.env.BASE_URL` (Astro's resolved `base`) joined with `pro-proiekt/`;
+  `scripts/check-links.mjs` resolves an absolute (leading-slash) href directly against its own
+  base-prefixed page map, so this doesn't need special-casing there.
+- `PageTitle` component override (issue #5): `src/components/PageTitle.astro` replaces
+  Starlight's default (registered via `components.PageTitle`), rendering nothing on
+  `template: splash` pages — those pages write their own top heading in the body as a raw
+  `<h1 id="_top">` (the landing's hero `<h1>`, the about page's own
+  `<h1 id="_top">Про проєкт</h1>` — not a `# ...` Markdown heading, which can't carry an id),
+  and the default `PageTitle` would otherwise duplicate it (and, on the landing page, render in
+  the wrong place — before the hand-written eyebrow line instead of after it). Starlight's
+  `SkipLink` always targets `#_top`, which `PageTitle`/`Hero` would normally provide; any future
+  `template: splash` page must carry `id="_top"` on its own top heading itself, or the skip link
+  (and `check-links.mjs`'s anchor check) will break. `template: doc` pages are unaffected.
+  Starlight also still renders the (now-empty) `.content-panel` that would have held
+  `PageTitle` on these pages; `src/styles/site.css` collapses it and the hairline after it.
 - Languages: user-facing text is Ukrainian; developer-facing files and code are English.
 - Acceptance criteria: Gherkin keywords in English, scenario text in Ukrainian (Ukrainian
   issues) or English (English specs).
 - Third-party GitHub Actions are pinned by full commit SHA with a `# vX.Y.Z` comment next to
   it; Dependabot keeps both current.
-- No real school, city, person, or domain anywhere in this repository. The only example school
-  is the fictitious «Вигаданий ліцей № 0»; screenshots come only from the fixture school.
+- No real school, city, person, or domain in examples, issues, code, comments, commit messages
+  or screenshots. The only example school is the fictitious «Вигаданий ліцей № 0»; screenshots
+  come only from Tabula's demo site. **One deliberate exception** (owner's decision,
+  2026-09-27): the project's origin story — the «Про проєкт» block on the landing page and
+  `src/content/docs/pro-proiekt.md` — names the lyceum where Tabula was created and the two
+  people who initiated it. Nothing else about that school (its domain, pupils, staff, content,
+  screenshots of its live site) goes anywhere in this repository.
 - Documentation text is never edited in this repository — fix it in `tabula-cms/tabula`.
 - Generated doc folders (`src/content/docs/{editor,install,qa,dev}/`) are gitignored and never
-  committed; `src/content/docs/index.mdx` (the landing page) is the only content file
-  committed.
+  committed; `src/content/docs/index.mdx` (the landing page) and `src/content/docs/pro-proiekt.md`
+  (the about page) are the two committed content pages — everything else under
+  `src/content/docs/` is generated.
 - Node: 22 (Astro 7 requires `>=22.12.0`); see `.nvmrc` and `package.json`'s `engines.node`.
 - `astro.config.mjs`'s `site`/`base` default to the GitHub Pages project URL
   (`https://tabula-cms.github.io` / `/site`) and are overridden by the `SITE_URL`/`SITE_BASE`
   repository variables in CI; the custom domain later sets `SITE_BASE=/`. Internal links in
-  `src/content/docs/index.mdx` (e.g. the hero actions) are written without a leading slash
-  (`editor/`, not `/editor/`) so they resolve under either base — Starlight does not rewrite
-  frontmatter link fields for the configured `base` itself.
+  `src/content/docs/index.mdx` — the hero buttons and all other landing links — are written
+  without a leading slash (`editor/`, not `/editor/`) so they resolve under either base —
+  Starlight does not rewrite frontmatter link fields for the configured `base` itself.
 - The sidebar's four groups (`editor`, `install`, `qa`, `dev`) are only added to
   `astro.config.mjs`'s `sidebar` array when the matching `src/content/docs/<dir>` folder
   exists (checked with `node:fs`'s `existsSync`). This is cosmetic, not a build requirement —

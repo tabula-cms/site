@@ -1,0 +1,297 @@
+/* Tabula site styling (issue #5): a restrained, "institutional" palette and the hand-written
+ * landing/about page layout. Registered via `customCss` in astro.config.mjs.
+ *
+ * Readers of this site are education-department officials, school principals and the
+ * teacher/administrator who installs Tabula — the goal is a plain, confident, low-decoration
+ * look, not a marketing page. No external fonts or scripts; Starlight's own system font stack
+ * is kept as-is.
+ */
+
+/* ---------------------------------------------------------------------------------------------
+ * 1. Palette — deep ink-blue accent instead of Starlight's default violet/blue.
+ *
+ * Values follow Starlight's own theme-colour convention (see
+ * https://starlight.astro.build/guides/css-and-tailwind/#theming): a dark-mode scale in
+ * `:root` and a light-mode override in `:root[data-theme='light']`, `-low`/`-high` being
+ * darker/lighter siblings of the base accent within the same hue. Only the accent scale is
+ * overridden — Starlight's neutral gray scale already reads as a quiet cool gray and needs no
+ * change for this brief.
+ *
+ * Target colours (from the design brief): light-mode accent ≈ #1f3d63 (hsl(213, 52%, 25%)),
+ * dark-mode accent ≈ #8fb3e0 (hsl(213, 57%, 72%)). Measured contrast: accent text against
+ * this site's own `--sl-color-bg` is 8.2:1 in dark mode and 11.1:1 in light mode; the button
+ * pairing (accent background + `--sl-color-text-invert` text) is 5.9:1 in dark mode and 11.1:1
+ * in light mode — both comfortably above the AA text minimum (4.5:1).
+ * --------------------------------------------------------------------------------------------- */
+:root {
+	/* Dark mode (Starlight's default `data-theme`). */
+	--sl-color-accent-low: hsl(213, 45%, 21%);
+	--sl-color-accent: hsl(213, 57%, 72%); /* #8fb3e0 */
+	--sl-color-accent-high: hsl(213, 70%, 88%);
+
+	/* A slightly lighter/darker step of the accent for hover states on our own hero buttons
+	 * (Starlight's own accent-high/-low steps aren't a good fit for hover: in light mode
+	 * accent-high is *darker* than accent, and the brief asks for hover to be lighter). */
+	--tabula-accent-hover: hsl(213, 55%, 78%);
+}
+
+:root[data-theme='light'] {
+	--sl-color-accent-high: hsl(213, 65%, 16%);
+	--sl-color-accent: hsl(213, 52%, 25%); /* #1f3d63 */
+	--sl-color-accent-low: hsl(213, 60%, 93%);
+
+	--tabula-accent-hover: hsl(213, 50%, 32%);
+}
+
+/* Starlight still renders the first `.content-panel` that would normally hold `PageTitle` on
+ * every page; our override (src/components/PageTitle.astro) leaves it empty on
+ * `template: splash` pages, but its padding and the hairline before the next panel remain
+ * unless collapsed here. */
+.content-panel:has(> .sl-container:empty) {
+	display: none;
+}
+
+.content-panel:has(> .sl-container:empty) + .content-panel {
+	border-top: 0;
+}
+
+/* ---------------------------------------------------------------------------------------------
+ * 2. Shared typography for the hand-written landing/about content.
+ * --------------------------------------------------------------------------------------------- */
+.landing-page,
+.prose-narrow {
+	font-size: 1.0625rem;
+}
+
+.landing-page h2,
+.prose-narrow h2 {
+	font-size: 1.5rem;
+	font-weight: 600;
+	line-height: var(--sl-line-height-headings);
+}
+
+/* ---------------------------------------------------------------------------------------------
+ * 3. Landing page (src/content/docs/index.mdx).
+ * --------------------------------------------------------------------------------------------- */
+
+.landing-hero {
+	max-width: 52rem;
+}
+
+.landing-hero .eyebrow {
+	margin: 0;
+	font-size: var(--sl-text-sm);
+	font-weight: 600;
+	letter-spacing: 0.09em;
+	text-transform: uppercase;
+	color: var(--sl-color-accent);
+}
+
+.landing-hero h1 {
+	margin: 0.75rem 0 0;
+	font-size: 2rem;
+	font-weight: 600;
+	line-height: 1.15;
+	color: var(--sl-color-white);
+}
+
+@media (min-width: 50rem) {
+	.landing-hero h1 {
+		font-size: 2.75rem;
+	}
+}
+
+.landing-hero .subtitle {
+	margin-top: 1.25rem;
+	max-width: 68ch;
+	color: var(--sl-color-gray-2);
+}
+
+.landing-hero .hero-actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 1rem;
+	margin-top: 2rem;
+}
+
+/* Plain, quiet buttons — deliberately not Starlight's pill-shaped `sl-link-button`, to keep
+ * the restrained/institutional tone the brief asks for. */
+.landing-hero .button {
+	display: inline-flex;
+	align-items: center;
+	border-radius: 0.25rem;
+	padding: 0.625rem 1.25rem;
+	font-size: var(--sl-text-sm);
+	font-weight: 600;
+	text-decoration: none;
+	border: 1px solid transparent;
+}
+
+.landing-hero .button.primary {
+	background: var(--sl-color-accent);
+	color: var(--sl-color-text-invert);
+}
+
+.landing-hero .button.primary:hover {
+	background: var(--tabula-accent-hover);
+}
+
+.landing-hero .button.secondary {
+	border-color: var(--sl-color-accent);
+	color: var(--sl-color-accent);
+	background: transparent;
+}
+
+.landing-hero .button.secondary:hover {
+	background: var(--sl-color-accent-low);
+}
+
+/* Generic section wrapper: thin top hairline + generous margin, per the brief. Not applied to
+ * the hero itself (it's the first thing on the page). */
+.landing-section {
+	margin-top: 4rem;
+	padding-top: 2.5rem;
+	border-top: 1px solid var(--sl-color-hairline);
+}
+
+.landing-section > p,
+.landing-section > ul,
+.landing-section > ol {
+	max-width: 68ch;
+}
+
+/* "Для кого" — three columns, one on phones, separated by whitespace and (from tablet up) a
+ * subtle left rule instead of card boxes. */
+.for-whom-grid {
+	display: grid;
+	grid-template-columns: 1fr;
+	gap: 2rem;
+	margin-top: 1.5rem;
+}
+
+/* Starlight's generic vertical-rhythm rule (`:not(...) + :not(...) { margin-top: 1rem }`)
+ * matches `.for-whom-item + .for-whom-item` and pushes columns 2–3 down relative to column 1;
+ * the grid's own `gap` already provides the spacing. */
+.for-whom-item {
+	margin-top: 0;
+}
+
+@media (min-width: 50rem) {
+	.for-whom-grid {
+		grid-template-columns: repeat(3, 1fr);
+		gap: 0 2.5rem;
+	}
+
+	.for-whom-item + .for-whom-item {
+		border-inline-start: 1px solid var(--sl-color-hairline);
+		padding-inline-start: 2.5rem;
+	}
+}
+
+.for-whom-item h3 {
+	margin: 0;
+	font-size: 1.125rem;
+	font-weight: 600;
+}
+
+.for-whom-item p {
+	margin-top: 0.75rem;
+	color: var(--sl-color-gray-2);
+}
+
+.for-whom-item a {
+	display: inline-block;
+	margin-top: 0.75rem;
+	font-weight: 600;
+}
+
+/* "Можливості" — a two-column (one on phones) grid of link rows: bold term, short
+ * description, the whole row links to the guide page. */
+.capabilities-list {
+	display: grid;
+	grid-template-columns: 1fr;
+	gap: 0;
+	margin-top: 1.5rem;
+	border-top: 1px solid var(--sl-color-hairline);
+}
+
+@media (min-width: 50rem) {
+	.capabilities-list {
+		grid-template-columns: 1fr 1fr;
+	}
+}
+
+.capability-row {
+	display: block;
+	padding: 0.9rem 0;
+	border-bottom: 1px solid var(--sl-color-hairline);
+	text-decoration: none;
+	color: var(--sl-color-gray-1);
+}
+
+@media (min-width: 50rem) {
+	.capability-row:nth-child(odd) {
+		padding-inline-end: 1.5rem;
+	}
+
+	.capability-row:nth-child(even) {
+		padding-inline-start: 1.5rem;
+		border-inline-start: 1px solid var(--sl-color-hairline);
+	}
+}
+
+.capability-row:hover .capability-term {
+	color: var(--sl-color-accent);
+}
+
+.capability-term {
+	font-weight: 600;
+	color: var(--sl-color-white);
+}
+
+.capability-desc {
+	display: block;
+	margin-top: 0.25rem;
+	font-size: var(--sl-text-sm);
+	color: var(--sl-color-gray-3);
+}
+
+/* "Що потрібно для роботи" — plain heading + paragraph + list + paragraph; no extra styling
+ * beyond the section rhythm above and Starlight's own list/paragraph rules. */
+
+/* "Про проєкт" quiet block — light accent tint background with a left accent border, instead
+ * of the top hairline used by the other sections. */
+.landing-quiet {
+	border-top: none;
+	background: var(--sl-color-accent-low);
+	border-inline-start: 3px solid var(--sl-color-accent);
+	border-radius: 0.125rem;
+	padding: 1.75rem 2rem;
+}
+
+.landing-quiet h2 {
+	margin-top: 0;
+}
+
+.landing-quiet a {
+	font-weight: 600;
+}
+
+/* ---------------------------------------------------------------------------------------------
+ * 4. About page (src/content/docs/pro-proiekt.md) — narrower measure for a long-form page.
+ * --------------------------------------------------------------------------------------------- */
+.prose-narrow {
+	max-width: 72ch;
+}
+
+/* The page's own `<h1 id="_top">` is followed by the first `## ...` heading's
+ * `.sl-heading-wrapper` (Starlight wraps every Markdown heading with its anchor-link — see
+ * @astrojs/starlight/dist/style/anchor-links.css). That file's own "heading after
+ * non-heading" rule (which gives every later h2 its generous top margin) only matches a
+ * wrapper preceded by a *non*-heading element, so h1 -> wrapper falls back to a much smaller
+ * margin. `1.5em` here matches that rule exactly, including its em base (the wrapper's own
+ * font-size, not the possibly-smaller size we give the heading text itself below) — so it
+ * tracks the same value at every breakpoint instead of hard-coding a pixel figure. */
+.prose-narrow h1 + .sl-heading-wrapper {
+	margin-top: 1.5em;
+}

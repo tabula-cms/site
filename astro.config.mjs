@@ -53,6 +53,22 @@ export default defineConfig({
 			lastUpdated: false,
 			social: [{ icon: 'github', label: 'GitHub', href: 'https://github.com/tabula-cms/tabula' }],
 			sidebar,
+			// Restrained institutional palette (deep ink-blue accent) and landing/about-page
+			// typography — see CLAUDE.md's Conventions and issue #5.
+			customCss: ['./src/styles/site.css'],
+			components: {
+				// The landing (index.mdx) and about (pro-proiekt.md) pages are hand-written
+				// `template: splash` pages that write their own top heading directly in the
+				// body as a raw `<h1 id="_top">` (the landing's custom hero h1, the about
+				// page's own `<h1 id="_top">Про проєкт</h1>`) — Starlight's automatic
+				// PageTitle would otherwise duplicate it. See src/components/PageTitle.astro
+				// and CLAUDE.md.
+				PageTitle: './src/components/PageTitle.astro',
+				// Quiet, site-wide footer (issue #5) that still preserves the default
+				// edit-link/pagination footer on ordinary doc pages — see
+				// src/components/Footer.astro and CLAUDE.md.
+				Footer: './src/components/Footer.astro',
+			},
 		}),
 	],
 });

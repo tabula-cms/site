@@ -1,0 +1,87 @@
+---
+// Override of Starlight's default Footer (registered in astro.config.mjs), issue #5.
+//
+// Doc pages (`template: doc`) keep Starlight's own footer content — edit link, last-updated,
+// pagination — rendered above our links. Splash pages (the landing and the about page) have
+// no edit link or pagination, so the default footer would render an empty wrapper there; skip
+// it entirely on those.
+//
+// The "Про проєкт" link is the one internal link here, and unlike every other internal link
+// on this site it can't be written relative (`../pro-proiekt/`, `pro-proiekt/`, ...) — this
+// footer renders on every page at every depth (`/`, `/editor/`, `/editor/novyny/`, ...), so a
+// single relative path can't be correct at all of them. `import.meta.env.BASE_URL` is Astro's
+// own resolved `base` (see astro.config.mjs: `/site` by default, `/` once the custom domain
+// sets `SITE_BASE=/`) and is safe to join directly: check-links.mjs resolves an absolute
+// (leading-slash) href without any base-stripping of its own, because dist/'s own file layout
+// is already base-prefixed to match.
+import Default from '@astrojs/starlight/components/Footer.astro';
+
+const isSplash = Astro.locals.starlightRoute.entry.data.template === 'splash';
+
+const base = import.meta.env.BASE_URL;
+const baseWithSlash = base.endsWith('/') ? base : `${base}/`;
+const aboutHref = `${baseWithSlash}pro-proiekt/`;
+
+const links = [
+	{ text: 'Репозиторій на GitHub', href: 'https://github.com/tabula-cms/tabula' },
+	{ text: 'Ліцензія AGPL-3.0', href: 'https://github.com/tabula-cms/tabula/blob/main/LICENSE' },
+	{ text: 'Повідомити про помилку', href: 'https://github.com/tabula-cms/tabula/issues/new/choose' },
+	{ text: 'Повідомити про вразливість', href: 'https://github.com/tabula-cms/tabula/security/policy' },
+	{ text: 'Про проєкт', href: aboutHref },
+];
+---
+
+{!isSplash && <Default />}
+
+<footer class="site-footer not-content">
+	<nav class="site-footer-links" aria-label="Про сайт">
+		{
+			links.map(({ text, href }, index) => (
+				<>
+					{index > 0 && <span class="site-footer-sep" aria-hidden="true">·</span>}
+					<a href={href}>{text}</a>
+				</>
+			))
+		}
+	</nav>
+	<p class="site-footer-tagline">
+		Tabula — вільне програмне забезпечення з відкритим кодом для закладів освіти України.
+	</p>
+</footer>
+
+<style>
+	@layer starlight.components {
+		.site-footer {
+			margin-top: 2rem;
+			padding-top: 1.5rem;
+			border-top: 1px solid var(--sl-color-hairline);
+			font-size: var(--sl-text-xs);
+			color: var(--sl-color-gray-3);
+		}
+
+		.site-footer-links {
+			display: flex;
+			flex-wrap: wrap;
+			align-items: baseline;
+			gap: 0.5rem;
+		}
+
+		.site-footer-links a {
+			color: var(--sl-color-gray-2);
+			text-decoration: none;
+		}
+
+		.site-footer-links a:hover {
+			color: var(--sl-color-accent);
+			text-decoration: underline;
+		}
+
+		.site-footer-sep {
+			color: var(--sl-color-gray-5);
+		}
+
+		.site-footer-tagline {
+			margin-top: 0.5rem;
+		}
+	}
+</style>
