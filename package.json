@@ -9,10 +9,12 @@
   "scripts": {
     "dev": "astro dev",
     "build": "astro build",
+    "postbuild": "node scripts/check-links.mjs",
     "preview": "astro preview",
     "astro": "astro",
     "test": "node --test",
-    "docs:fetch": "node scripts/fetch-docs.mjs"
+    "docs:fetch": "node scripts/fetch-docs.mjs",
+    "check:links": "node scripts/check-links.mjs"
   },
   "dependencies": {
     "@astrojs/starlight": "^0.42.4",
