@@ -110,8 +110,11 @@ function cloneDocsSparse({ repo, ref, token, destination }) {
 		);
 	}
 
+	// With --filter=blob:none the clone has no file contents yet; sparse-checkout fetches
+	// docs/ from the promisor remote, so it needs the same auth header as the clone did.
 	const sparse = spawnSync('git', ['-C', destination, 'sparse-checkout', 'set', 'docs'], {
 		stdio: ['ignore', 'pipe', 'pipe'],
+		env: gitEnv,
 	});
 	if (sparse.status !== 0) {
 		throw new Error(`git sparse-checkout of docs/ failed:\n${redact(sparse.stderr?.toString())}`);
