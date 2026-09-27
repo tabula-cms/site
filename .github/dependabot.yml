@@ -12,9 +12,17 @@ updates:
 
   # Actions in .github/workflows/ are pinned by commit SHA (see CONTRIBUTING.md) so a
   # compromised tag or a silently changed release cannot run in CI. Dependabot updates
-  # both the SHA and the `# vX.Y.Z` comment next to it.
+  # both the SHA and the `# vX.Y.Z` comment next to it. A single `directory: "/"` entry only
+  # scans .github/workflows/ and an action.yml at the repository root — it does not walk into
+  # subdirectories for composite actions — so the (singular) `directory` key can't reach
+  # .github/actions/build-site/action.yml on its own. `directories` (plural) supports globs,
+  # unlike `directory`, so one entry covers both: the workflows via "/" and every composite
+  # action folder under .github/actions/ via the glob (add a new .github/actions/<name>/
+  # folder and it's picked up automatically, no dependabot.yml change needed).
   - package-ecosystem: "github-actions"
-    directory: "/"
+    directories:
+      - "/"
+      - "/.github/actions/*"
     schedule:
       interval: "weekly"
     groups:

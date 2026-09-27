@@ -1,0 +1,50 @@
+name: CI
+
+# A PR is checked before merge; a push to main is the already-merged result. Squash merges are
+# allowed (see CONTRIBUTING.md), so a push here re-tests the exact commit that landed on main.
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+# A newer push cancels a run that is no longer relevant — nobody needs the result of a
+# superseded commit. Only for pull_request: two pushes to main back-to-back (e.g. two merges in
+# quick succession) share no PR and must each still get their own green/red build check on main,
+# so cancel-in-progress is false there.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: read
+
+jobs:
+  # This job is named "build" on purpose: it's the required status check configured in branch
+  # protection on main (see CONTRIBUTING.md's "Repository settings that are manual").
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          # This job only reads the checkout; it never pushes back with the runner's token.
+          persist-credentials: false
+
+      - name: Install, import docs, test, build
+        uses: ./.github/actions/build-site
+        with:
+          # CI always builds against Tabula's main (its released state), matching the deploy
+          # workflow's default. A develop preview is only ever a manual deploy dispatch.
+          tabula-ref: main
+          docs-token: ${{ secrets.TABULA_DOCS_TOKEN }}
+          site-url: ${{ vars.SITE_URL || 'https://tabula-cms.github.io' }}
+          site-base: ${{ vars.SITE_BASE || '/site' }}
+          # Only a fork PR or a Dependabot PR gets no Actions secrets at all, so only those
+          # two may fall back to a landing-page-only build when the docs import fails; a
+          # same-repo PR keeps this 'false' and must fail CI on a real import failure, even
+          # if TABULA_DOCS_TOKEN happens to be unset there too. Once tabula-cms/tabula is
+          # public (see CONTRIBUTING.md), remove this input and the fallback in
+          # .github/actions/build-site/action.yml entirely — the clone will then succeed
+          # anonymously and there is no fork case left to handle.
+          allow-import-skip: >-
+            ${{ (github.event.pull_request.head.repo.fork == true || github.actor ==
+            'dependabot[bot]') && 'true' || 'false' }}

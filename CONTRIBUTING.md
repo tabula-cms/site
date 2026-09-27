@@ -87,14 +87,34 @@ relative-link convention (see the comment at the top of `scripts/check-links.mjs
 
 ## Repository settings that are manual
 
-These are set once in GitHub's UI, not in code:
+These are set once in GitHub's UI, not in code, in this order:
 
-- Repository visibility: public. On the free organization plan, a private repository has
-  neither branch protection nor GitHub Pages; both require the repository to be public.
-- Pages source: GitHub Actions.
-- Repository variables: `SITE_URL`, `SITE_BASE`.
-- Repository secret: `TABULA_DOCS_TOKEN`, needed only while `tabula-cms/tabula` is private.
-- Branch protection on `main`: require the `build` status check before merging.
+1. **Repository visibility: public.** On the free organization plan, a private repository has
+   neither branch protection nor GitHub Pages; both require the repository to be public.
+2. **Settings → Pages → Source: GitHub Actions.** (Requires step 1 first.)
+3. **Settings → Secrets and variables → Actions → Secrets: `TABULA_DOCS_TOKEN`.** A
+   fine-grained personal access token scoped to `contents: read` on `tabula-cms/tabula` only,
+   needed only while that repository is private (see `docs:fetch` in "Running locally" above).
+   Also add the same value under **Settings → Secrets and variables → Dependabot → Secrets**
+   (a separate secret store from the Actions one above) so Dependabot's own update runs have
+   it too. Fine-grained PATs expire — pick the longest expiry GitHub allows and set a calendar
+   reminder to rotate it, or note the expiry date somewhere it will be seen: an expired token
+   makes `deploy.yml` fail hard (see MINOR note below and CLAUDE.md's deploy model — deploy
+   never falls back to a landing-page-only build). Delete this secret from both stores once
+   `tabula-cms/tabula` is public — the clone then works anonymously and CI's `allow-import-skip`
+   fallback (see CLAUDE.md) and this token both go away together.
+4. **Settings → Secrets and variables → Actions → Variables: `SITE_URL`, `SITE_BASE`.**
+   Optional for now (both default to the GitHub Pages project URL,
+   `https://tabula-cms.github.io` / `/site` — see `astro.config.mjs`). Required once the custom
+   domain arrives: `SITE_URL=https://<domain>`, `SITE_BASE=/`.
+5. **Settings → Branches → add a protection rule for `main`:** require a pull request before
+   merging, require the `build` status check to pass, disallow force pushes. The `build` check
+   only appears in the list of available checks after it has run at least once — open any PR
+   first, let CI run, then add the rule.
+
+GitHub also disables a scheduled workflow automatically in a public repository after 60 days
+with no repository activity (commits, PRs, etc.). If the daily deploy stops running with no
+other explanation, check **Actions → Deploy → "..."** for a disabled/re-enable prompt.
 
 ## Privacy
 

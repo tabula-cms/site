@@ -45,12 +45,9 @@ Exists now:
 | `test/smoke.test.mjs` | `node --test` check of `astro.config.mjs`'s `site`/`base` defaults and env overrides |
 | `test/docs-transform.test.mjs` | `node --test` fixture-based unit tests for `scripts/lib/docs-transform.mjs` (pure functions only, no network) |
 | `package.json`, `package-lock.json` | npm scripts and locked dependencies |
-
-Arrives with issue #4:
-
-| Path | Purpose |
-|---|---|
-| `.github/workflows/ci.yml`, `.github/workflows/deploy.yml` | Build check, GitHub Pages deploy, daily scheduled rebuild |
+| `.github/workflows/ci.yml` | CI: the `build` job that branch protection requires (issue #4) |
+| `.github/workflows/deploy.yml` | Deploy: `main`/schedule/manual/`repository_dispatch` triggers, `build` + `deploy` jobs to GitHub Pages (issue #4) |
+| `.github/actions/build-site/action.yml` | Composite action shared by both workflows — setup-node, `npm ci`, docs import, `npm test`, `npm run build` (checkout stays in the calling workflow; issue #4) |
 
 Later (#7–#9):
 
@@ -85,6 +82,48 @@ here). The site builds from `tabula-cms/tabula`'s `main` (its released state), n
 the next scheduled run against `main`. `SITE_URL` and `SITE_BASE` are repository variables
 consumed by the build. See `CONTRIBUTING.md` for the manual repository settings this depends
 on.
+
+Both workflows share `.github/actions/build-site/` (a composite action: setup-node, `npm ci`,
+docs import, `npm test`, `npm run build`) so their build steps can't drift apart; checkout
+happens in each workflow, not in the composite action. Both checkouts pass
+`persist-credentials: false` (neither job pushes back to the repository).
+
+- **`ci.yml`** — `pull_request` and `push: branches: [main]`; one job, named exactly `build`
+  (branch protection's required check); `concurrency: cancel-in-progress` is true only for
+  `pull_request` runs, so two pushes to `main` in a row (e.g. two merges back-to-back) each
+  still get their own build check rather than one being cancelled. `TABULA_REF` is always
+  `main`. `tabula-cms/tabula` is still private (see CONTRIBUTING.md), and only a fork PR
+  (`github.event.pull_request.head.repo.fork == true`) or a Dependabot PR
+  (`github.actor == 'dependabot[bot]'`) has no access to the `TABULA_DOCS_TOKEN` secret at
+  all — ci.yml computes `allow-import-skip` from exactly that condition and passes it to the
+  composite action. Only for those two cases does a failed `npm run docs:fetch` fall back —
+  `::notice::` plus a landing-page-only build (which also sets `DOCS_IMPORT_SKIPPED=true` so
+  the Build step passes `--ignore-scripts` and skips the postbuild link check, which would
+  otherwise fail on links into the never-imported `editor/install/qa/dev` folders) — instead of
+  failing the job. A same-repo PR always has `allow-import-skip: 'false'`, so an import failure
+  there fails CI even if `TABULA_DOCS_TOKEN` happens to be unset. Once `tabula-cms/tabula` is
+  public, remove `allow-import-skip` from `ci.yml` and the input from
+  `.github/actions/build-site/action.yml` entirely — the clone then succeeds anonymously and
+  there is no fork case left to handle. `SITE_URL`/`SITE_BASE` come from repository variables,
+  defaulting to the GitHub Pages project URL.
+- **`deploy.yml`** — triggers: `push: branches: [main]`; `schedule: '30 3 * * *'` (03:30 UTC =
+  06:30 Kyiv in summer/EEST, 05:30 in winter/EET, before schools' day starts either way);
+  `workflow_dispatch` with a `tabula_ref` string input (default `main`); `repository_dispatch:
+  types: [tabula-docs-updated]` (a future hook from Tabula's own release workflow — the sender
+  side is out of scope here). `concurrency: group: pages, cancel-in-progress: false` — a
+  half-finished Pages deploy is worse than a queued one, unlike CI's behaviour. Permissions are
+  split per job (least privilege): the workflow-level default is `contents: read`; job `build`
+  adds `pages: read` (all `actions/configure-pages` needs); job `deploy` has `pages: write` and
+  `id-token: write` — the Pages-write and OIDC credentials live only in the job that deploys,
+  never in `build`. Job `build` calls the same composite action with the import step's fallback
+  disabled (`allow-import-skip: 'false'`): deploy never runs against a fork or from Dependabot,
+  so any docs-import failure fails the run outright rather than risk shipping a partial site to
+  production. `build` then runs `actions/configure-pages` and `actions/upload-pages-artifact`
+  (`path: dist`). Job `deploy` (`needs: build`) runs `actions/deploy-pages` in the
+  `github-pages` environment.
+- GitHub disables a scheduled workflow automatically in a public repository after 60 days with
+  no repository activity (commits, PRs, etc.) — if the daily deploy stops running with no other
+  explanation, re-enable it under **Actions → Deploy**.
 
 ## Conventions
 
