@@ -57,18 +57,20 @@ the comment current — an action is never left on a mutable tag.
 
 ## Running locally
 
-The site's code has not landed yet — it arrives with issues #2–#4 (Starlight skeleton, docs
-import, CI and Pages deploy). Once it does, the intended commands are:
+Requires Node.js 22 (Astro 7 requires `>=22.12.0`; see `.nvmrc`).
 
 ```sh
+nvm use
 npm ci
-TABULA_DOCS_DIR=../tabula/docs npm run docs:fetch
+npm run docs:fetch   # stub until #3; #3 adds TABULA_DOCS_DIR for a local Tabula checkout
 npm run dev
 npm run build
 ```
 
-`docs:fetch` copies documentation from a local checkout of `tabula-cms/tabula` (or, in CI,
-fetches it from GitHub) into the gitignored `src/content/docs/{editor,install,qa,dev}/`.
+`docs:fetch` will copy documentation from a local checkout of `tabula-cms/tabula` (or, in CI,
+fetch it from GitHub) into the gitignored `src/content/docs/{editor,install,qa,dev}/`. The
+script itself arrives with issue #3 — until then it is a stub that prints a notice and exits
+successfully, so the commands above do not crash on a fresh clone.
 
 ## Repository settings that are manual
 

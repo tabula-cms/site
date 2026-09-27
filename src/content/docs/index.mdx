@@ -1,0 +1,48 @@
+---
+title: Tabula
+description: Tabula — безкоштовна, відкрита CMS для українських шкіл, яку кожна школа встановлює й веде сама.
+template: splash
+# The landing page isn't imported from tabula-cms/tabula, so it has no source file to edit
+# there — Starlight's default editLink would otherwise point at this repository's own
+# src/content/docs/index.mdx, which is not where this content is meant to be edited from
+# the reader's perspective. Every imported doc page gets its own absolute editUrl from the
+# import script (#3) instead of a site-wide editLink.baseUrl — see astro.config.mjs.
+editUrl: false
+hero:
+  tagline: Tabula — безкоштовний, відкритий сайт і CMS для школи, який школа встановлює й веде сама.
+  actions:
+    - text: Як користуватися
+      # Relative (no leading slash) so the link resolves under both the default base
+      # (/site/) and the custom-domain base (/) — see astro.config.mjs. Starlight does not
+      # rewrite frontmatter link fields for the configured `base` itself.
+      link: editor/
+      icon: right-arrow
+      variant: primary
+    - text: Як встановити
+      link: install/
+      icon: right-arrow
+      variant: minimal
+---
+
+import { Card, CardGrid } from '@astrojs/starlight/components';
+
+<CardGrid>
+	<Card title="Для кого" icon="puzzle">
+		Для шкіл, які хочуть свій сайт і систему керування контентом без залежності від сторонніх
+		сервісів — і для тих, хто ці школи технічно підтримує.
+	</Card>
+	<Card title="Що всередині" icon="open-book">
+		Сайт школи та адмінка для редактора, встановлення на власному сервері, резервні копії й
+		оновлення.
+	</Card>
+	<Card title="Відкритий код" icon="github">
+		Ліцензія AGPL-3.0. Код і документація відкриті на
+		[GitHub](https://github.com/tabula-cms/tabula).
+	</Card>
+	<Card title="Документація" icon="document">
+		Чотири розділи: посібник редактора, встановлення, тестування та документація для
+		розробників.
+	</Card>
+</CardGrid>
+
+*Тексти головної — тимчасові; остаточні зʼявляться з issue #5.*
