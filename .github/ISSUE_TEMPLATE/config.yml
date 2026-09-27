@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Помилка в тексті документації
+    url: https://github.com/tabula-cms/tabula/issues/new/choose
+    about: Тексти документації живуть у репозиторії Tabula — описки й застарілі кроки виправляють там.
+  - name: Повідомити про вразливість
+    url: https://github.com/tabula-cms/tabula/security/policy
+    about: Не відкривайте для вразливості публічне issue — як повідомити приватно, описано в SECURITY.md.

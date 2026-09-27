@@ -1,0 +1,74 @@
+name: Пропозиція
+description: Нова можливість або зміна того, як щось працює на сайті
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Опишіть, **яку проблему** розвʼязує пропозиція і **як перевірити**, що її зроблено.
+        Як саме це реалізувати, вирішимо в обговоренні.
+
+        Пропозицію можна писати українською. Технічна специфікація, якщо вона знадобиться,
+        буде англійською в окремому issue.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Яку проблему це розвʼязує
+      description: Що зараз незручно, неможливо чи забирає забагато часу — і в кого.
+      placeholder: Школа, яка обирає CMS, не може швидко зʼясувати, чи є Tabula в її місті.
+    validations:
+      required: true
+
+  - type: textarea
+    id: story
+    attributes:
+      label: Історія користувача
+      description: Хто, що хоче зробити і навіщо. Якщо ролей кілька — по історії на кожну.
+      value: |
+        Як <роль: відвідувач сайту, школа, розробник>,
+        я хочу <що зробити>,
+        щоб <навіщо це мені>.
+    validations:
+      required: true
+
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Критерії приймання
+      description: |
+        У форматі Gherkin: кожен `Scenario` — одна конкретна ситуація, яку можна перевірити.
+        Ключові слова (`Feature`, `Scenario`, `Given`, `When`, `Then`, `And`) лишайте
+        англійською, текст після них пишіть українською. Додайте стільки сценаріїв, скільки
+        потрібно, — зокрема для помилок.
+      render: gherkin
+      value: |
+        Feature: <коротка назва можливості>
+
+          Scenario: <одна конкретна ситуація>
+            Given <що вже є до початку: роль, дані, сторінка>
+            When <що робить користувач>
+            Then <що він бачить у результаті>
+
+          Scenario: <що буває, коли щось пішло не так>
+            Given <…>
+            When <…>
+            Then <…>
+    validations:
+      required: true
+
+  - type: textarea
+    id: out-of-scope
+    attributes:
+      label: Що не входить
+      description: Необовʼязково. Суміжне, чого ця пропозиція свідомо не стосується.
+    validations:
+      required: false
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Які ще варіанти розглядали
+      description: Необовʼязково. Як обходитеся зараз, що вже пробували.
+    validations:
+      required: false

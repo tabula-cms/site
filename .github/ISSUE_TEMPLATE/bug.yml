@@ -1,0 +1,75 @@
+name: Помилка на сайті
+description: Щось на сайті не працює, як має — посилання, пошук, вигляд сторінки
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Цей шаблон — для самого сайту: битого посилання, сторінки, яка не відкривається,
+        пошуку, який не знаходить очевидне, вигляду на телефоні, неправильного пункту в
+        бічній панелі.
+
+        **Якщо помилка в тексті самої документації** (описка, застарілий крок, неточна
+        інструкція) — це не сюди. Тексти документації живуть у репозиторії Tabula, виправляти
+        їх треба там — [tabula-cms/tabula → нове issue](https://github.com/tabula-cms/tabula/issues/new/choose).
+
+        - **Вразливість** (чужі дані, обхід входу, можливість щось зламати) — не сюди:
+          дивіться [SECURITY.md](https://github.com/tabula-cms/tabula/security/policy).
+        - Перш ніж писати, пошукайте серед відкритих issue — можливо, про це вже повідомили.
+
+  - type: textarea
+    id: summary
+    attributes:
+      label: Що сталося
+      description: Одним-двома реченнями.
+      placeholder: На сторінці «Встановлення» посилання на розділ «Бекапи і відновлення» веде на 404.
+    validations:
+      required: true
+
+  - type: input
+    id: url
+    attributes:
+      label: Адреса сторінки
+      description: Повна адреса сторінки, на якій це видно.
+      placeholder: https://tabula-cms.github.io/site/install/bekapy-i-vidnovlennia/
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Кроки відтворення
+      description: Пронумеровано, з самого початку.
+      placeholder: |
+        1. Відкрити сторінку «Встановлення».
+        2. Натиснути посилання «Бекапи і відновлення» в тексті.
+        3. …
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Очікуваний результат
+      placeholder: Посилання відкриває сторінку про бекапи і відновлення.
+    validations:
+      required: true
+
+  - type: input
+    id: environment
+    attributes:
+      label: Браузер і пристрій
+      description: Необовʼязково. Назва й версія браузера, телефон чи компʼютер.
+      placeholder: Chrome 131, Windows 11 — або Safari, iPhone 13
+    validations:
+      required: false
+
+  - type: textarea
+    id: screenshot
+    attributes:
+      label: Знімок екрана
+      description: >
+        Необовʼязково. Перетягніть файл у це поле.
+        На знімку не має бути персональних даних учнів чи працівників школи.
+    validations:
+      required: false

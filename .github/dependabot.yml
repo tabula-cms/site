@@ -1,0 +1,23 @@
+version: 2
+updates:
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    groups:
+      minor-and-patch:
+        update-types:
+          - "minor"
+          - "patch"
+
+  # Actions in .github/workflows/ are pinned by commit SHA (see CONTRIBUTING.md) so a
+  # compromised tag or a silently changed release cannot run in CI. Dependabot updates
+  # both the SHA and the `# vX.Y.Z` comment next to it.
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    groups:
+      actions:
+        patterns:
+          - "*"
