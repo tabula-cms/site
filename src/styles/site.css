@@ -33,6 +33,16 @@
 	 * (Starlight's own accent-high/-low steps aren't a good fit for hover: in light mode
 	 * accent-high is *darker* than accent, and the brief asks for hover to be lighter). */
 	--tabula-accent-hover: hsl(213, 55%, 78%);
+
+	/* Design pass 2 (landing page bands): a very subtle tint used for the hero and
+	 * "Можливості" full-bleed bands, and nothing else — just enough to separate a band from
+	 * the plain background without reading as decorative. In dark mode a 20% mix with
+	 * `--sl-color-accent-low` over `--sl-color-bg` (~ rgb(24,29,38) vs a base bg of
+	 * ~ rgb(23,24,28)) is only barely lighter, matching the brief's "slightly lighter than
+	 * --sl-color-bg". Body text (`--sl-color-gray-2`, ~ rgb(193,195,200)) against it measures
+	 * ≈ 9.6:1 — comfortably above the 4.5:1 AA minimum for body text.
+	 */
+	--tabula-tint-bg: color-mix(in srgb, var(--sl-color-accent-low) 20%, var(--sl-color-bg));
 }
 
 :root[data-theme='light'] {
@@ -41,6 +51,59 @@
 	--sl-color-accent-low: hsl(213, 60%, 93%);
 
 	--tabula-accent-hover: hsl(213, 50%, 32%);
+
+	/* Light mode: a 35% mix with `--sl-color-accent-low` over the white `--sl-color-bg`
+	 * yields a pale blue-gray (~ rgb(245,248,253)). Body text (`--sl-color-gray-2`,
+	 * ~ rgb(53,56,65)) against it measures ≈ 11:1 — comfortably above the 4.5:1 AA minimum. */
+	--tabula-tint-bg: color-mix(in srgb, var(--sl-color-accent-low) 35%, var(--sl-color-bg));
+}
+
+/* Design pass 3 (review round): the header's own border-bottom (PageFrame.astro, Starlight
+ * core) uses `--sl-color-hairline-shade`. An earlier version of this rule switched it to
+ * `--sl-color-hairline` for more contrast in light mode — but `--sl-color-hairline` and
+ * `--sl-color-hairline-shade` both resolve to `--sl-color-gray-6` in light mode (see
+ * `@astrojs/starlight/dist/style/props.css`), so that changed nothing there; it also quietly
+ * changed dark mode's border from Starlight's own near-black `--sl-color-hairline-shade` to
+ * the lighter `--sl-color-hairline`, which wasn't asked for. Using `--sl-color-gray-5` instead,
+ * scoped to light mode only, actually darkens the light-mode line (gray-5 is a step darker than
+ * the gray-6 both hairline tokens resolve to there); dark mode is left untouched (Starlight's
+ * own hairline-shade already reads clearly against `--sl-color-bg-nav` there). Targets the
+ * tag+class selector (`header.header`) rather than plain `.header`, since this component's own
+ * root `<div>` in src/components/Header.astro reuses the same class name for its inner
+ * flex/grid row. */
+:root[data-theme='light'] header.header {
+	border-bottom-color: var(--sl-color-gray-5);
+	box-shadow: 0 1px 0 var(--sl-color-gray-5);
+}
+
+/* Design pass 3 (review round): horizontal-overflow fix, corrected. `.landing-band`'s
+ * full-bleed technique (`margin-inline: calc(50% - 50vw)`, below) depends on `100vw` matching
+ * the viewport's actual rendered width — but `vw` always measures the *full* viewport including
+ * the vertical scrollbar's own width, while the page's centred column is laid out in the
+ * narrower space the scrollbar leaves for content. Measured at 716px:
+ * `document.documentElement.scrollWidth` was 724px — exactly the scrollbar's width (8px) too
+ * wide — on every full-bleed band (`.landing-hero-band`, `.capabilities-band`) and their
+ * `.landing-container` children.
+ *
+ * An earlier version of this fix set `overflow-x: clip` on `:root`. That broke Starlight's own
+ * scroll lock: Starlight sets `overflow: hidden` on `<body>` while the search modal is open
+ * (`[data-search-modal-open]`, in its Search.astro) and while the mobile sidebar popover is
+ * open (`body:has(#starlight__sidebar:popover-open)`, in PageFrame.astro) — that only stops the
+ * page scrolling behind the modal/sidebar when the *root*'s own `overflow` is still `visible`
+ * (an ancestor that already clips/scrolls its own overflow isn't affected by a *descendant*
+ * body's `overflow: hidden` in the same way; a reviewer confirmed the page behind the search
+ * modal kept scrolling with `overflow-x: clip` on `:root`). Scoped instead to just the
+ * sidebar-less pages' own content column — the only place `.landing-band` exists — via
+ * `html:not([data-has-sidebar]) .main-frame`, well below `<body>` in the tree, so it can't
+ * interfere with the scroll lock on any page. Confirmed: search-modal scroll lock still works,
+ * and `document.documentElement.scrollWidth === document.documentElement.clientWidth` — see
+ * this file's own CLAUDE.md Conventions entry for the measured numbers (this comment isn't the
+ * place to keep re-editing a specific measurement every time the environment's scrollbar
+ * changes). Nothing on this site needs genuine page-level horizontal scroll: code blocks scroll
+ * within their own `pre` element, an independent scroll container unaffected by clipping above
+ * it. */
+html:not([data-has-sidebar]) .main-frame {
+	overflow-x: clip;
 }
 
 /* Starlight still renders the first `.content-panel` that would normally hold `PageTitle` on
@@ -53,6 +116,33 @@
 
 .content-panel:has(> .sl-container:empty) + .content-panel {
 	border-top: 0;
+}
+
+/* Design pass 2: a slightly wider reading/band column (72rem) than Starlight's own
+ * sidebar-less default (67.5rem, set by Starlight itself via an inline `html:not(
+ * [data-has-sidebar])` rule in its own Page.astro) for the two hand-written `template: splash`
+ * pages only — `:not([data-has-sidebar])` is exactly the condition Starlight uses to detect
+ * "no sidebar", which today only matches the landing and about pages (every imported doc page
+ * has a sidebar). `--sl-content-pad-x` narrows to 1rem on phones, matching the brief's spacing
+ * spec.
+ *
+ * Design pass 3 (review round): this used to be written as `html:not([data-has-sidebar])`,
+ * same as Starlight's own selector — but that gives the two rules *equal* specificity, so
+ * whichever one the cascade places later wins regardless of which file authored it, and a
+ * reviewer confirmed Starlight's own inline `<style>` (in the document `<head>`) was winning,
+ * silently keeping the sidebar-less pages at Starlight's stock 67.5rem instead of this file's
+ * intended 72rem. `:root:not([data-has-sidebar])` targets the same element (`:root` and `html`
+ * both mean the document root) but adds one pseudo-class worth of specificity over Starlight's
+ * `html:not(...)`, so this now reliably wins regardless of source order. */
+:root:not([data-has-sidebar]) {
+	--sl-content-width: 72rem;
+	--sl-content-pad-x: 1.5rem;
+}
+
+@media (max-width: 37.5rem) {
+	:root:not([data-has-sidebar]) {
+		--sl-content-pad-x: 1rem;
+	}
 }
 
 /* ---------------------------------------------------------------------------------------------
@@ -146,8 +236,109 @@
 	background: var(--sl-color-accent-low);
 }
 
+/* Hero band: full-bleed tint (`.landing-band`) holding a 2-column grid on ≥900px — the hero
+ * text on the left, the "Три кроки" card on the right; below 900px the card drops under the
+ * text, full width (source order already puts it second, so no reordering is needed). */
+/* Design pass 3 (review round): the hero band sat 1.5rem below the header instead of flush
+ * against it — that gap is the first `.content-panel`'s own top padding (Starlight core;
+ * `src/components/PageTitle.astro` empties that panel's content on `template: splash` pages,
+ * see the `.content-panel:has(...)` rules above, but doesn't remove the panel's own padding).
+ * Cancelling it here, on the hero band itself, keeps the fix local to the one element that
+ * needs to sit flush under the header, rather than reaching into Starlight's own panel padding
+ * (which every other page still needs). */
+.landing-hero-band {
+	margin-top: -1.5rem;
+}
+
+.hero-grid {
+	display: grid;
+	grid-template-columns: 1fr;
+	gap: 2.5rem;
+	align-items: start;
+}
+
+@media (min-width: 56.25rem) {
+	.hero-grid {
+		grid-template-columns: 1.3fr 1fr;
+		gap: 3rem;
+	}
+}
+
+/* "Три кроки" card: same bordered-surface language as the other cards below. The shadow is
+ * light-mode only per the brief — dark mode relies on the border alone, since a shadow reads
+ * poorly against a dark tint background. */
+.steps-card {
+	margin-top: 0;
+	background: var(--sl-color-bg);
+	border: 1px solid var(--sl-color-gray-5);
+	border-radius: 0.75rem;
+	padding: 1.5rem;
+}
+
+:root[data-theme='light'] .steps-card {
+	box-shadow: var(--sl-shadow-sm);
+}
+
+/* A `<p>` label, not a second `<h2>` before "Для кого" — see the brief's heading-order note. */
+.steps-label {
+	margin: 0;
+	font-size: var(--sl-text-sm);
+	font-weight: 600;
+	color: var(--sl-color-gray-2);
+}
+
+.steps-list {
+	list-style: none;
+	margin: 1rem 0 0;
+	padding: 0;
+	display: flex;
+	flex-direction: column;
+	gap: 1.25rem;
+}
+
+.step {
+	display: flex;
+	gap: 0.875rem;
+	align-items: flex-start;
+	margin-top: 0;
+}
+
+.step-num {
+	flex-shrink: 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 1.75rem;
+	height: 1.75rem;
+	border-radius: 50%;
+	background: var(--sl-color-accent);
+	/* Same accent-background/invert-text pairing as the hero's own primary button, already
+	 * measured at 5.9:1 (dark) / 11.1:1 (light) — see the palette comment above. */
+	color: var(--sl-color-text-invert);
+	font-size: var(--sl-text-sm);
+	font-weight: 700;
+}
+
+.step-body {
+	margin-top: 0;
+}
+
+.step-title {
+	margin: 0;
+	font-weight: 600;
+}
+
+.step-desc {
+	margin: 0.25rem 0 0;
+	font-size: var(--sl-text-sm);
+	color: var(--sl-color-gray-2);
+}
+
 /* Generic section wrapper: thin top hairline + generous margin, per the brief. Not applied to
- * the hero itself (it's the first thing on the page). */
+ * the hero itself (it's the first thing on the page), and not applied to the full-bleed
+ * bands (`.landing-band`) below — a band's own tint background already separates it from the
+ * sections around it, so it gets no extra hairline (the brief: "Keep the h2 top rule only
+ * where a section is NOT on a tinted band"). */
 .landing-section {
 	margin-top: 4rem;
 	padding-top: 2.5rem;
@@ -160,13 +351,73 @@
 	max-width: 68ch;
 }
 
-/* "Для кого" — three columns, one on phones, separated by whitespace and (from tablet up) a
- * subtle left rule instead of card boxes. */
+@media (max-width: 37.5rem) {
+	.landing-section {
+		margin-top: 2.5rem;
+		padding-top: 1.5rem;
+	}
+}
+
+/* Focus-visible ring for every interactive element on the hand-written landing/about pages
+ * (buttons, card links, capability tiles) — Starlight's own focus style still applies
+ * elsewhere; this just makes sure it reads clearly against the card/tile borders introduced
+ * below. */
+.landing-page a:focus-visible,
+.landing-quiet a:focus-visible {
+	outline: 2px solid var(--sl-color-accent);
+	outline-offset: 2px;
+	border-radius: 4px;
+}
+
+/* Full-bleed tinted band: escapes the page's own centred column to the true viewport edges
+ * (the classic `margin-inline: calc(50% - 50vw)` technique — it depends only on the band's
+ * own parent being horizontally centred in the viewport, which holds here since Starlight's
+ * container chain above it has no sidebar on these two pages and is itself symmetric). Its
+ * `.landing-container` child then re-applies the page's normal 72rem/1.5rem column so the
+ * band's content lines up with the rest of the page. At 375px there is no browser-reserved
+ * scrollbar gutter to throw the `50vw` math off, so this introduces no horizontal scroll on
+ * phones — confirmed with a 375px viewport during review. */
+.landing-band {
+	margin-inline: calc(50% - 50vw);
+	background: var(--tabula-tint-bg);
+	padding-block: 4rem;
+}
+
+/* A `.landing-band` gets its own tint background as separation from the section below it; a
+ * plain hairline on top of that reads as a redundant second divider (design pass 3, review
+ * round). */
+.landing-band + .landing-section {
+	border-top: 0;
+}
+
+/* Design pass 3 (review round): was a hardcoded `max-width: 72rem; padding-inline: 1.5rem`
+ * that duplicated (and could drift from) the `--sl-content-width`/`--sl-content-pad-x` values
+ * set above — a reviewer measured this actually happening (hero content at x=80 vs. plain
+ * section content at x=92 at 1280px) once those variables carried real values. Deriving both
+ * from the same custom properties Starlight's own `.sl-container` uses keeps a band's content
+ * and a plain section's content aligned on the same left edge at every width, including the
+ * 1rem-on-phones override above. */
+.landing-container {
+	max-width: calc(var(--sl-content-width) + 2 * var(--sl-content-pad-x));
+	margin-inline: auto;
+	padding-inline: var(--sl-content-pad-x);
+}
+
+@media (max-width: 37.5rem) {
+	.landing-band {
+		padding-block: 2.5rem;
+	}
+}
+
+/* "Для кого" — three bordered cards, one column on phones, equal height with the link
+ * pinned to the bottom of each card (design pass 2: bands/cards/tiles instead of plain text
+ * separated by whitespace/rules). */
 .for-whom-grid {
 	display: grid;
 	grid-template-columns: 1fr;
-	gap: 2rem;
+	gap: 1.5rem;
 	margin-top: 1.5rem;
+	align-items: stretch;
 }
 
 /* Starlight's generic vertical-rhythm rule (`:not(...) + :not(...) { margin-top: 1rem }`)
@@ -174,18 +425,24 @@
  * the grid's own `gap` already provides the spacing. */
 .for-whom-item {
 	margin-top: 0;
+	display: flex;
+	flex-direction: column;
+	border: 1px solid var(--sl-color-gray-5);
+	border-radius: 0.75rem;
+	padding: 1.5rem;
+	background: var(--sl-color-bg);
 }
 
 @media (min-width: 50rem) {
 	.for-whom-grid {
 		grid-template-columns: repeat(3, 1fr);
-		gap: 0 2.5rem;
 	}
+}
 
-	.for-whom-item + .for-whom-item {
-		border-inline-start: 1px solid var(--sl-color-hairline);
-		padding-inline-start: 2.5rem;
-	}
+.for-whom-icon {
+	display: block;
+	color: var(--sl-color-accent);
+	margin-bottom: 0.75rem;
 }
 
 .for-whom-item h3 {
@@ -201,50 +458,62 @@
 
 .for-whom-item a {
 	display: inline-block;
-	margin-top: 0.75rem;
+	/* Pins the link to the card's bottom edge regardless of how much the paragraph above
+	 * wraps, so all three cards' links line up — the brief's "link pinned at the bottom". */
+	margin-top: auto;
+	padding-top: 0.75rem;
 	font-weight: 600;
 }
 
-/* "Можливості" — a two-column (one on phones) grid of link rows: bold term, short
- * description, the whole row links to the guide page. */
-.capabilities-list {
+/* "Можливості" — a band of 10 bordered tiles: 1 column on phones, 2 on tablet, 3 on desktop.
+ * 10 tiles over 3 columns leaves a last row of 1, left-aligned by plain grid auto-placement
+ * (no extra centring rule) — chosen over "2 columns of 5" because a 3-column grid reads as
+ * more of a even, structured wall of tiles at this width, and a lone left-aligned tile in the
+ * last row is unremarkable, whereas 2-of-5 leaves the same kind of gap one row earlier. */
+.capabilities-grid {
 	display: grid;
 	grid-template-columns: 1fr;
-	gap: 0;
+	gap: 1rem;
 	margin-top: 1.5rem;
-	border-top: 1px solid var(--sl-color-hairline);
 }
 
-@media (min-width: 50rem) {
-	.capabilities-list {
-		grid-template-columns: 1fr 1fr;
+@media (min-width: 40rem) {
+	.capabilities-grid {
+		grid-template-columns: repeat(2, 1fr);
 	}
 }
 
-.capability-row {
+@media (min-width: 64rem) {
+	.capabilities-grid {
+		grid-template-columns: repeat(3, 1fr);
+	}
+}
+
+.capability-tile {
 	display: block;
-	padding: 0.9rem 0;
-	border-bottom: 1px solid var(--sl-color-hairline);
+	margin-top: 0;
+	border: 1px solid var(--sl-color-gray-5);
+	border-radius: 0.625rem;
+	padding: 1.25rem;
+	background: var(--sl-color-bg);
 	text-decoration: none;
 	color: var(--sl-color-gray-1);
+	transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
-@media (min-width: 50rem) {
-	.capability-row:nth-child(odd) {
-		padding-inline-end: 1.5rem;
-	}
-
-	.capability-row:nth-child(even) {
-		padding-inline-start: 1.5rem;
-		border-inline-start: 1px solid var(--sl-color-hairline);
-	}
+.capability-tile:hover {
+	border-color: var(--sl-color-accent);
+	box-shadow: var(--sl-shadow-sm);
 }
 
-.capability-row:hover .capability-term {
+.capability-icon {
+	display: block;
 	color: var(--sl-color-accent);
+	margin-bottom: 0.625rem;
 }
 
 .capability-term {
+	display: block;
 	font-weight: 600;
 	color: var(--sl-color-white);
 }
@@ -256,16 +525,100 @@
 	color: var(--sl-color-gray-3);
 }
 
-/* "Що потрібно для роботи" — plain heading + paragraph + list + paragraph; no extra styling
- * beyond the section rhythm above and Starlight's own list/paragraph rules. */
+/* "Що потрібно для роботи" — two columns on desktop: the original heading/paragraphs/list
+ * on the left (unchanged text), a "Потрібно" checklist card repeating the three requirements
+ * on the right, one column (card below text) on phones. */
+.needs-grid {
+	display: grid;
+	grid-template-columns: 1fr;
+	gap: 2rem;
+	margin-top: 1.5rem;
+	align-items: start;
+}
 
-/* "Про проєкт" quiet block — light accent tint background with a left accent border, instead
- * of the top hairline used by the other sections. */
+@media (min-width: 50rem) {
+	.needs-grid {
+		grid-template-columns: 1.2fr 1fr;
+	}
+}
+
+.needs-text {
+	max-width: 68ch;
+}
+
+.needs-text > :first-child {
+	margin-top: 0;
+}
+
+/* Design pass 3: this is the landing page's only plain, unstyled `<ul>` — every other list on
+ * the page is custom (`.needs-list`'s own icon+text rows right next to this one, `.steps-list`'s
+ * numbered circles), so it's also the only place the browser's default 40px
+ * `padding-inline-start` list indent survives, making its bullet text start noticeably further
+ * right than the paragraphs directly above and below it in the same `.needs-text` column (and
+ * further right than every other section's flush-left text). Trimmed to a normal small hanging
+ * indent instead, matching the page's otherwise-flush-left look. */
+.needs-text ul {
+	padding-inline-start: 1.125rem;
+}
+
+.needs-card {
+	margin-top: 0;
+	border: 1px solid var(--sl-color-gray-5);
+	border-radius: 0.75rem;
+	padding: 1.5rem;
+	background: var(--sl-color-bg);
+}
+
+:root[data-theme='light'] .needs-card {
+	box-shadow: var(--sl-shadow-sm);
+}
+
+.needs-card-title {
+	margin: 0;
+	font-size: var(--sl-text-sm);
+	font-weight: 600;
+	text-transform: uppercase;
+	letter-spacing: 0.06em;
+	color: var(--sl-color-gray-2);
+}
+
+.needs-list {
+	list-style: none;
+	margin: 1rem 0 0;
+	padding: 0;
+	display: flex;
+	flex-direction: column;
+	gap: 0.75rem;
+}
+
+.needs-list li {
+	display: flex;
+	align-items: flex-start;
+	gap: 0.625rem;
+	margin-top: 0;
+}
+
+.needs-icon {
+	flex-shrink: 0;
+	margin-top: 0.15em;
+	color: var(--sl-color-accent);
+}
+
+.needs-note {
+	margin-top: 1rem;
+	padding-top: 0.75rem;
+	border-top: 1px solid var(--sl-color-hairline);
+	font-size: var(--sl-text-sm);
+	color: var(--sl-color-gray-3);
+}
+
+/* "Про проєкт" quiet block — card treatment with a left accent bar and a tint background,
+ * instead of the top hairline used by the other sections. */
 .landing-quiet {
 	border-top: none;
 	background: var(--sl-color-accent-low);
-	border-inline-start: 3px solid var(--sl-color-accent);
-	border-radius: 0.125rem;
+	border-inline-start: 4px solid var(--sl-color-accent);
+	border-radius: 0.75rem;
 	padding: 1.75rem 2rem;
 }
 
