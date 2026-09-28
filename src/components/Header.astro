@@ -1,0 +1,348 @@
+---
+// Override of Starlight's default Header (registered in astro.config.mjs), design pass 3
+// (issue #5, owner feedback: "зараз якось прям сухо. Меню теж доволі дивно виглядає" — the
+// site reads as bare without site-wide navigation, and the only navigation a reader has today
+// is Starlight's own doc-sidebar hamburger, which is meaningless on the landing/about pages
+// that have no sidebar at all).
+//
+// This adds a `<nav>` of the site's four top-level sections between the title and the search
+// box on wide viewports, and a native `<details>` "Меню" dropdown in its place below 1024px
+// (Starlight's own sidebar hamburger, `MobileMenuToggle`, is unrelated — it lives in
+// PageFrame.astro, not here, toggles the *doc* sidebar, and only renders on pages that have
+// one; it stays untouched).
+//
+// Imports copied verbatim from `@astrojs/starlight/dist/components/Header.astro` (0.42.4) so
+// this override degrades gracefully if the user ever swaps one of these sub-components via
+// `components.*` in astro.config.mjs — going through the same `virtual:starlight/components/*`
+// indirection Starlight's own Header.astro uses, rather than importing the concrete files
+// directly.
+import config from 'virtual:starlight/user-config';
+import LanguageSelect from 'virtual:starlight/components/LanguageSelect';
+import Search from 'virtual:starlight/components/Search';
+import SiteTitle from 'virtual:starlight/components/SiteTitle';
+import SocialIcons from 'virtual:starlight/components/SocialIcons';
+import ThemeSelect from 'virtual:starlight/components/ThemeSelect';
+import { Icon } from '@astrojs/starlight/components';
+
+/**
+ * Render the `Search` component if Pagefind is enabled or the default search component has been overridden.
+ */
+const shouldRenderSearch =
+	config.pagefind || config.components.Search !== '@astrojs/starlight/components/Search.astro';
+
+// Base-aware nav hrefs, same technique as src/components/Footer.astro's "Про проєкт" link:
+// this header renders at every page depth (`/`, `/editor/`, `/editor/novyny/`, ...), so a
+// relative link can't be correct at all of them — these are built from Astro's own resolved
+// `base` instead. "Current" is whichever link's own path (or, for "Документація", one of its
+// `matchPaths`) is a prefix of the current page's pathname (also base-aware, since
+// `Astro.url.pathname` includes the base): `aria-current="page"` on an exact match (the link's
+// own href), `aria-current="true"` for a prefix match that isn't exact (e.g. `/editor/novyny/`
+// under "Документація", or any `/qa/` page — Tabula's own testing docs, which have no nav link
+// of their own — under the same link, since qa/ is conceptually part of the editor docs).
+const base = import.meta.env.BASE_URL;
+const baseWithSlash = base.endsWith('/') ? base : `${base}/`;
+
+const navLinks = [
+	{ label: 'Документація', path: 'editor/', matchPaths: ['editor/', 'qa/'] },
+	{ label: 'Встановлення', path: 'install/' },
+	{ label: 'Розробникам', path: 'dev/' },
+	{ label: 'Про проєкт', path: 'pro-proiekt/' },
+].map(({ label, path, matchPaths }) => {
+	const href = `${baseWithSlash}${path}`;
+	const pathname = Astro.url.pathname;
+	const isExact = pathname === href;
+	const isCurrent = (matchPaths ?? [path]).some((matchPath) =>
+		pathname.startsWith(`${baseWithSlash}${matchPath}`)
+	);
+	const ariaCurrent = isExact ? 'page' : isCurrent ? 'true' : undefined;
+	return { label, href, isCurrent, ariaCurrent };
+});
+---
+
+<div class="header">
+	<div class="title-wrapper sl-flex">
+		<SiteTitle />
+	</div>
+	<nav class="tabula-nav-wrapper" aria-label="Основна навігація">
+		<div class="tabula-nav">
+			{
+				navLinks.map(({ label, href, ariaCurrent }) => (
+					<a href={href} aria-current={ariaCurrent}>
+						{label}
+					</a>
+				))
+			}
+		</div>
+		<details class="tabula-mobile-nav">
+			<summary>
+				<span class="tabula-mobile-nav-label">Меню</span>
+				<Icon name="down-caret" class="tabula-mobile-nav-icon-caret" size="1rem" />
+			</summary>
+			<div class="tabula-mobile-nav-panel">
+				{
+					navLinks.map(({ label, href, ariaCurrent }) => (
+						<a href={href} aria-current={ariaCurrent}>
+							{label}
+						</a>
+					))
+				}
+			</div>
+		</details>
+	</nav>
+	<div class="sl-flex print:hidden tabula-search-wrapper">
+		{shouldRenderSearch && <Search />}
+	</div>
+	<div class="sl-hidden md:sl-flex print:hidden right-group">
+		<div class="sl-flex social-icons">
+			<SocialIcons />
+		</div>
+		<ThemeSelect />
+		<LanguageSelect />
+	</div>
+</div>
+
+<style>
+	@layer starlight.core {
+		.header {
+			display: flex;
+			gap: var(--sl-nav-gap);
+			justify-content: space-between;
+			align-items: center;
+			height: 100%;
+		}
+
+		.title-wrapper {
+			/* Prevent long titles overflowing and covering the search and menu buttons on narrow viewports. */
+			overflow: clip;
+			/* Avoid clipping focus ring around link inside title wrapper. */
+			padding: 0.25rem;
+			margin: -0.25rem;
+			min-width: 0;
+		}
+
+		.right-group,
+		.social-icons {
+			gap: 1rem;
+			align-items: center;
+		}
+		.social-icons::after {
+			content: '';
+			height: 2rem;
+			border-inline-end: 1px solid var(--sl-color-gray-5);
+		}
+
+		/* Design pass 3: site-wide nav (desktop) and the "Меню" dropdown (everything narrower)
+		 * both live inside `.tabula-nav-wrapper`, the single `<nav aria-label="…">` landmark for
+		 * both variants — only one of the two is ever visible at a given width, see the
+		 * sidebar-aware breakpoints below. Below the 50rem breakpoint the header stays a plain
+		 * flex row (untouched from Starlight's own default); `margin-inline-start: auto` on the
+		 * wrapper there pushes it (and the search button after it) to the header's end, next to
+		 * each other, instead of `justify-content: space-between` spreading three items apart
+		 * evenly. */
+		@media (max-width: 49.9375rem) {
+			.tabula-nav-wrapper {
+				margin-inline-start: auto;
+			}
+		}
+
+		.tabula-nav {
+			display: none;
+		}
+
+		/* Review round: the inline nav's own breakpoint has to differ by page type. Starlight's
+		 * header grid (below) sizes the title column from the *sidebar's* width on pages that
+		 * have one (`[data-has-sidebar]`, every imported doc page) — that column is already
+		 * wide there, so a reviewer found the nav still didn't fit at 1024–1100px on doc pages
+		 * (the theme switcher got cut off at 1024, "Про проєкт" wrapped up to ~1100). The
+		 * landing/about pages have no sidebar and no such column pressure, so 1024px continues
+		 * to fit there (verified below). `:global(:root: ...)` — not a plain `:root: ...`
+		 * selector — because Astro scopes unwrapped selectors in a component's own `<style>` to
+		 * this component's elements only; `:root`/`html` need `:global()` to actually reach the
+		 * document root, the same pattern already used below for the `--__sidebar-pad`/
+		 * `--__toc-width` custom properties. */
+		@media (min-width: 64rem) {
+			:global(:root:not([data-has-sidebar])) .tabula-nav {
+				display: flex;
+				gap: 1.5rem;
+				align-items: center;
+			}
+
+			:global(:root:not([data-has-sidebar])) .tabula-mobile-nav {
+				display: none;
+			}
+		}
+
+		@media (min-width: 72rem) {
+			:global(:root[data-has-sidebar]) .tabula-nav {
+				display: flex;
+				gap: 1.5rem;
+				align-items: center;
+			}
+
+			:global(:root[data-has-sidebar]) .tabula-mobile-nav {
+				display: none;
+			}
+		}
+
+		.tabula-nav a {
+			/* Review round: without this, "Про проєкт" (the longest label) wrapped onto two
+			 * lines under column-width pressure from the grid below, instead of the nav simply
+			 * taking the width it needs. */
+			white-space: nowrap;
+			font-size: 0.9375rem;
+			font-weight: 500;
+			line-height: 1;
+			color: var(--sl-color-gray-2);
+			text-decoration: none;
+			text-underline-offset: 6px;
+		}
+
+		.tabula-nav a:hover {
+			color: var(--sl-color-accent);
+		}
+
+		/* `[aria-current]` (any value) rather than `[aria-current='page']` — a prefix match
+		 * (e.g. any `/editor/...` or `/qa/...` page under "Документація") gets
+		 * `aria-current="true"`, not `"page"` (see the script above), but should still look
+		 * current. */
+		.tabula-nav a[aria-current] {
+			color: var(--sl-color-accent);
+			text-decoration: underline;
+			text-decoration-thickness: 2px;
+		}
+
+		.tabula-nav a:focus-visible,
+		.tabula-mobile-nav summary:focus-visible {
+			outline: 2px solid var(--sl-color-accent);
+			outline-offset: 2px;
+			border-radius: 0.25rem;
+		}
+
+		/* The "Меню" summary — no default marker, own chevron instead (rotated when open). Text
+		 * + chevron at every width the summary itself can appear at (review round: an
+		 * icon-only variant below 480px was dropped — on a doc page that duplicated Starlight's
+		 * own sidebar hamburger, a second identical "bars" icon right next to it; the text
+		 * label fits fine down to 320px). */
+		.tabula-mobile-nav summary {
+			display: flex;
+			align-items: center;
+			gap: 0.375rem;
+			padding: 0.5rem;
+			margin: -0.5rem;
+			border-radius: 0.25rem;
+			font-size: 0.9375rem;
+			font-weight: 500;
+			color: var(--sl-color-gray-2);
+			cursor: pointer;
+			list-style: none;
+		}
+
+		.tabula-mobile-nav summary::-webkit-details-marker {
+			display: none;
+		}
+
+		.tabula-mobile-nav summary:hover,
+		.tabula-mobile-nav[open] summary {
+			color: var(--sl-color-accent);
+		}
+
+		.tabula-mobile-nav[open] .tabula-mobile-nav-icon-caret {
+			transform: rotate(180deg);
+		}
+
+		/* Positioned relative to PageFrame.astro's own fixed `<header class="header">` (the
+		 * nearest positioned ancestor — deliberately not this component's own `.header` div, or
+		 * the `<details>` itself, neither of which sets `position`), so `width: 100%`/
+		 * `top: 100%` resolve against the full-width fixed header, giving a full-viewport-width
+		 * panel flush under it with no extra bleed math. (Giving `.tabula-mobile-nav` its own
+		 * `position: relative` — a natural first instinct for a dropdown trigger — would make
+		 * it the containing block instead, shrinking the panel to the `<summary>`'s own ~16px
+		 * width; confirmed the hard way while building this.) */
+		.tabula-mobile-nav-panel {
+			position: absolute;
+			inset-inline-start: 0;
+			top: 100%;
+			width: 100%;
+			flex-direction: column;
+			background: var(--sl-color-bg-nav);
+			border-bottom: 1px solid var(--sl-color-hairline);
+			z-index: var(--sl-z-index-navbar);
+		}
+
+		.tabula-mobile-nav[open] .tabula-mobile-nav-panel {
+			display: flex;
+		}
+
+		.tabula-mobile-nav:not([open]) .tabula-mobile-nav-panel {
+			display: none;
+		}
+
+		.tabula-mobile-nav-panel a {
+			padding: 0.75rem var(--sl-nav-pad-x);
+			font-size: 0.9375rem;
+			font-weight: 500;
+			color: var(--sl-color-gray-2);
+			text-decoration: none;
+		}
+
+		.tabula-mobile-nav-panel a:hover {
+			color: var(--sl-color-accent);
+			background: var(--sl-color-gray-6);
+		}
+
+		/* Review round: colour alone doesn't survive high-contrast modes or colour-blindness —
+		 * weight + underline mark the current item too, same as the desktop nav above. */
+		.tabula-mobile-nav-panel a[aria-current] {
+			color: var(--sl-color-accent);
+			font-weight: 600;
+			text-decoration: underline;
+		}
+
+		@media (min-width: 50rem) {
+			:global(:root[data-has-sidebar]) {
+				--__sidebar-pad: calc(2 * var(--sl-nav-pad-x));
+			}
+			:global(:root:not([data-has-toc])) {
+				--__toc-width: 0rem;
+			}
+			.header {
+				--__sidebar-width: max(0rem, var(--sl-content-inline-start, 0rem) - var(--sl-nav-pad-x));
+				--__main-column-fr: calc(
+					(
+							100% + var(--__sidebar-pad, 0rem) - var(--__toc-width, var(--sl-sidebar-width)) -
+								(2 * var(--__toc-width, var(--sl-nav-pad-x))) - var(--sl-content-inline-start, 0rem) -
+								var(--sl-content-width)
+						) / 2
+				);
+				display: grid;
+				/* Starlight's own default has 3 tracks (title | search 1fr | right auto); this
+				 * adds one track for the nav/"Меню" slot right after the title, so it never
+				 * wraps to a second row on desktop — the explicit `grid-column` values below
+				 * place each part regardless of which of nav/"Меню" is the visible one at a
+				 * given width. */
+				grid-template-columns:
+					minmax(
+						calc(var(--__sidebar-width) + max(0rem, var(--__main-column-fr) - var(--sl-nav-gap))),
+						auto
+					)
+					auto
+					1fr
+					auto;
+				align-content: center;
+			}
+
+			.title-wrapper {
+				grid-column: 1;
+			}
+			.tabula-nav-wrapper {
+				grid-column: 2;
+			}
+			.tabula-search-wrapper {
+				grid-column: 3;
+			}
+			.right-group {
+				grid-column: 4;
+			}
+		}
+	}
+</style>

@@ -52,6 +52,12 @@ export default defineConfig({
 			// at tabula-cms/tabula; there is no site-wide editLink.baseUrl (see CLAUDE.md).
 			lastUpdated: false,
 			social: [{ icon: 'github', label: 'GitHub', href: 'https://github.com/tabula-cms/tabula' }],
+			// Explicit even though it matches Starlight's own default (issue #5, design pass
+			// 3): documents that `public/favicon.svg` is the site's real mark, not the
+			// Starlight placeholder it replaced. Starlight prefixes `base` itself when
+			// rendering the `<link rel="icon">` tag (see `fileWithBase` in its `utils/head.js`),
+			// so this needs no base-handling here — confirmed in a built `dist/index.html`.
+			favicon: '/favicon.svg',
 			sidebar,
 			// Restrained institutional palette (deep ink-blue accent) and landing/about-page
 			// typography — see CLAUDE.md's Conventions and issue #5.
@@ -68,6 +74,10 @@ export default defineConfig({
 				// edit-link/pagination footer on ordinary doc pages — see
 				// src/components/Footer.astro and CLAUDE.md.
 				Footer: './src/components/Footer.astro',
+				// Site-wide top navigation and wordmark (issue #5, design pass 3) — see
+				// src/components/Header.astro, src/components/SiteTitle.astro and CLAUDE.md.
+				Header: './src/components/Header.astro',
+				SiteTitle: './src/components/SiteTitle.astro',
 			},
 		}),
 	],
