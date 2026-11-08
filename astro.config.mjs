@@ -3,12 +3,18 @@ import { existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { defineConfig } from 'astro/config';
 import starlight from '@astrojs/starlight';
+import sitemap from '@astrojs/sitemap';
 
 // Repository variables `SITE_URL` and `SITE_BASE` are set in CI (see CONTRIBUTING.md).
 // The custom domain, once it exists, will set SITE_BASE=/ (and SITE_URL to the domain)
 // without a code change.
 const site = process.env.SITE_URL ?? 'https://tabula-cms.github.io';
 const base = process.env.SITE_BASE ?? '/site';
+
+// @astrojs/sitemap lists the home twice when `base` has no trailing slash: `…/site` (from the page
+// list, whose root path is empty) and `…/site/` (from the route list). Starlight adds the integration
+// itself only when none is configured, so ours drops the slash-less duplicate.
+const slashless = base === '/' ? null : new URL(base, site).href.replace(/\/$/, '');
 
 const docsDir = fileURLToPath(new URL('./src/content/docs/', import.meta.url));
 
@@ -36,7 +42,11 @@ const sidebar = docGroups
 export default defineConfig({
 	site,
 	base,
+	// Story 80, decision 9 (no framework JS): Starlight turns Astro's link prefetch on (a page.*.js
+	// bundle on every page); the product pages must not load it, and the documentation works without it.
+	prefetch: false,
 	integrations: [
+		sitemap({ filter: (page) => page !== slashless }),
 		starlight({
 			title: 'Tabula',
 			// Single locale: the site is Ukrainian. Developer docs (/dev/) are English; their
@@ -63,9 +73,9 @@ export default defineConfig({
 			// typography — see CLAUDE.md's Conventions and issue #5.
 			customCss: ['./src/styles/site.css'],
 			components: {
-				// The landing (index.mdx) and about (pro-proiekt.mdx) pages are hand-written
+				// The about page (pro-proiekt.mdx) and the other W1 pages are hand-written
 				// `template: splash` pages that write their own top heading directly in the
-				// body as a raw `<h1 id="_top">` (the landing's custom hero h1, the about
+				// body as a raw `<h1 id="_top">` (the about
 				// page's own `<h1 id="_top">Про проєкт</h1>`) — Starlight's automatic
 				// PageTitle would otherwise duplicate it. See src/components/PageTitle.astro
 				// and CLAUDE.md.

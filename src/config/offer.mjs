@@ -28,6 +28,18 @@ export const offer = Object.freeze({
 	supportReplyDays: 2,
 	// Decision 24: the public address for requests and support.
 	contactEmail: 'support@tabula.org.ua',
+	// Story 80: must equal `supportEmail` (test/offer.test.mjs); S2 of story 80 moves the W1 pages
+	// to `supportEmail` and this field goes away.
+	// Story 80, decision 13: the public support address, the one the product pages show.
+	supportEmail: 'support@tabula.org.ua',
+	// Story 80, decision 13: 'testing' while the assistant is not on for schools (every place that
+	// shows it carries the «Випробовуємо» chip); 'on' drops the chips and the FAQ entry
+	// «Коли запрацює ШІ-помічник?».
+	assistantStatus: 'testing',
+	// Story 80, decision 12: the public demo site; null until one exists. The home's «Подивитися
+	// приклад сайту» goes there when set, else to #look, and «Відкрити приклад сайту» renders
+	// only when it is set.
+	demoSiteUrl: null,
 	// Decision 24: an optional public phone number; pages show it only when set.
 	contactPhone: null,
 	// Decision 5 and 24: the role mailbox for the controller's details and data-subject requests
@@ -163,3 +175,52 @@ export function formatNumber(n) {
 export function privacyEmail() {
 	return offer.operatorEmail || offer.contactEmail;
 }
+
+// «протягом N робочих днів» with N in words (genitive), for the sentences that give a usual reply
+// time (decision 24): 1 -> «протягом одного робочого дня», 2 -> «протягом двох робочих днів».
+const DAYS_IN_WORDS = {
+	1: 'одного робочого дня',
+	2: 'двох робочих днів',
+	3: 'трьох робочих днів',
+	4: 'чотирьох робочих днів',
+	5: 'пʼяти робочих днів',
+	6: 'шести робочих днів',
+	7: 'семи робочих днів',
+	8: 'восьми робочих днів',
+	9: 'девʼяти робочих днів',
+	10: 'десяти робочих днів',
+};
+
+export function withinWorkingDays(n) {
+	const words = DAYS_IN_WORDS[n];
+	if (!words) throw new Error(`offer: no words for ${String(n)} working days (1..10)`);
+	return `протягом ${words}`;
+}
+
+/** `'2026-12-31'` -> `'31 грудня 2026 року'` with no-break spaces (U+00A0) inside the date. */
+export function formatDateLongYear(iso) {
+	return `${formatDateLong(iso)} року`.replaceAll(' ', '\u00a0');
+}
+
+/** `'2027-01-01'` -> `2027`: the year of that day. */
+export function yearOf(iso) {
+	return requireDate(iso).getUTCFullYear();
+}
+
+/** `4800` -> `'4 800 ₴'`: no-break spaces (U+00A0) between the thousands and before ₴ (the narrow U+202F
+ * of `formatNumber` is too tight at display sizes). */
+export function formatUah(n) {
+	return `${formatNumber(n).replaceAll('\u202f', '\u00a0')}\u00a0₴`;
+}
+
+// Story 80: the short list on the price card of the home page. Each line says in fewer words what
+// `includes` says in full; `coveredBy` lists the indexes into `includes` it summarises, so a line
+// cannot promise something the full list (rendered on «Хостинг і ціна») does not
+// (test/offer.test.mjs checks every index is valid and the list is not empty).
+export const includesShort = Object.freeze([
+	{ text: 'Сайт, панель і всі вісім шаблонів', coveredBy: [1, 2] },
+	{ text: 'ШІ-помічник у межах ліміту', coveredBy: [6] },
+	{ text: 'Адреса на tabula.org.ua або власний домен', coveredBy: [0] },
+	{ text: 'Щоденні резервні копії на серверах у ЄС', coveredBy: [3] },
+	{ text: `Відповідь на листи — зазвичай ${withinWorkingDays(offer.supportReplyDays)}`, coveredBy: [5] },
+]);

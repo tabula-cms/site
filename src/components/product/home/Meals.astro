@@ -1,0 +1,48 @@
+---
+// Section 4: Харчування. Two phones (the panel's «Харчування», the public day page) and a neutral
+// chat card (no Viber or Telegram branding beyond the words). The allergens claim links to
+// «Закон і сайт школи» (spec decision 14).
+import Shot from '../Shot.astro';
+import Tick from '../Tick.astro';
+import { shots } from '../shots';
+
+const base = import.meta.env.BASE_URL;
+const root = base.endsWith('/') ? base : `${base}/`;
+---
+
+<section id="meals" class="anchor band">
+	<div class="wrap split">
+		<div class="reveal split__text">
+			<h2 class="h2">Харчування — за хвилину з&#160;телефона</h2>
+			<ul class="ticks">
+				<li><Tick /><span><b>Чотири дотики:</b> сфотографували порцію в їдальні — день уже на сайті.</span></li>
+				<li><Tick /><span><b>«Поділитися» у Viber і Telegram:</b> у кожного дня своя адреса, у чаті батьків видно фото й страви.</span></li>
+				<li><Tick /><span><b>Алергени й калорійність</b> біля кожної страви: 15 алергенів за <a href={`${root}zakon-i-sait-shkoly/`}>постановою №&#160;305</a>.</span></li>
+				<li><Tick /><span><b>ШІ-помічник</b> читає меню з фото аркуша й перевіряє, чи не потрапили в кадр діти.</span></li>
+			</ul>
+		</div>
+		<div class="reveal meals__visual">
+			<div class="phone-frame meals__admin">
+				<Shot src={shots.adminMeals} alt="Панель на телефоні: екран «Харчування» з кнопкою «Сфотографувати порцію»" widths={[230, 460]} sizes="230px" />
+			</div>
+			<div class="meals__col">
+				<div class="phone-frame meals__day">
+					<Shot src={shots.phoneMealDay} alt="Сторінка дня на сайті з кнопками «Поділитися», Telegram і Viber" widths={[260, 520]} sizes="260px" />
+				</div>
+				<div class="chat">
+					<p class="chat__name">Чат «Батьки 5-А»</p>
+					<div class="chat__bubble">
+						<div class="chat__row">
+							<Shot src={shots.food2} alt="" widths={[54, 108]} sizes="54px" />
+							<div>
+								<p>Харчування — пʼятниця, 6&#160;листопада</p>
+								<p>Каша вівсяна, борщ, котлета з пюре…</p>
+								<p>licey0.tabula.org.ua</p>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</section>

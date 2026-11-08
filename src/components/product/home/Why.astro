@@ -1,0 +1,65 @@
+---
+// Section 7: Чому Tabula, а не звичні варіанти. Six rows: category, the usual way (struck
+// through), ours. «Зазвичай:» / «У Tabula:» are visually hidden, for screen readers.
+import Tick from '../Tick.astro';
+import { offer, withinWorkingDays, formatUah } from '../../../config/offer.mjs';
+
+const rows = [
+	{
+		who: 'Безкоштовна платформа від електронного журналу',
+		usual: 'Типовий дизайн і мало налаштувань',
+		ours: 'Вісім шаблонів, ваші кольори й логотип, за бажання — власний домен',
+	},
+	{
+		who: 'Мережа шкільних сайтів',
+		usual: 'Окрема плата за створення сайту',
+		ours: `${formatUah(0)} за створення, ${formatUah(offer.priceYearUah)} на рік — ціну видно одразу`,
+	},
+	{
+		who: 'Вебстудія',
+		usual: 'Кожна правка — нове замовлення',
+		ours: 'Змінюєте самі, а ШІ-помічник допомагає',
+	},
+	{
+		who: 'Конструктор сайтів',
+		usual: 'Реклама, а розділи доводиться створювати самостійно',
+		ours: 'Без реклами. Розділи за статтею 30 уже готові',
+	},
+	{
+		who: 'Будь-який варіант',
+		usual: 'Як забрати свій сайт, ніде не написано',
+		ours: 'Архів сайту на першу вимогу, код відкритий',
+	},
+	{
+		who: 'Будь-який варіант',
+		usual: 'Строки відповіді не публікують',
+		ours: `Зазвичай відповідаємо ${withinWorkingDays(offer.supportReplyDays)}`,
+	},
+];
+---
+
+<section id="why">
+	<div class="wrap why__inner">
+		<h2 class="reveal h2">Чому Tabula, а не звичні варіанти</h2>
+		<div class="reveal why__table">
+			{
+				rows.map((row) => (
+					<div class="why__row">
+						<p class="why__who">{row.who}</p>
+						<p class="why__usual">
+							<span class="sr">Зазвичай: </span>
+							<s>{row.usual}</s>
+						</p>
+						<p class="why__ours">
+							<Tick size={18} width={2.8} />
+							<span>
+								<span class="sr">У Tabula: </span>
+								{row.ours}
+							</span>
+						</p>
+					</div>
+				))
+			}
+		</div>
+	</div>
+</section>

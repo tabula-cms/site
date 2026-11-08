@@ -1,0 +1,220 @@
+---
+// Section 3: ШІ-помічник. Six tabs (WAI-ARIA tabs, src/scripts/tabs.js); without JavaScript the
+// tablist is hidden and every panel is shown one under another, each under its heading.
+// While `offer.assistantStatus` is 'testing' the «Випробовуємо» chip stands over the heading.
+import Shot from '../Shot.astro';
+import { shots } from '../shots';
+import { offer } from '../../../config/offer.mjs';
+
+const testing = offer.assistantStatus === 'testing';
+const tasks = [
+	{ id: 'news', name: 'Новина з фото' },
+	{ id: 'meals', name: 'Меню з фото аркуша' },
+	{ id: 'docs', name: '20 документів за раз' },
+	{ id: 'alt', name: 'Описи фото' },
+	{ id: 'edit', name: 'Простіше для батьків' },
+	{ id: 'site', name: '«Створи мій сайт»' },
+];
+const thumb = { widths: [64, 128], sizes: '64px' };
+---
+
+<section id="assistant" class="anchor">
+	<div class="wrap assistant__inner">
+		<div class="reveal assistant__head">
+			{
+				testing && (
+					<p class="assistant__status">
+						<span>Випробовуємо</span> у школах ще не ввімкнено
+					</p>
+				)
+			}
+			<h2 class="h2">Що ШІ-помічник підготує за вас</h2>
+			<p class="lead">Помічник зі штучним інтелектом готує чернетку. Публікуєте завжди ви.</p>
+		</div>
+
+		<div class="tabs tabs--assistant" data-tabs>
+			<div role="tablist" aria-label="Що вміє ШІ-помічник" class="tablist" hidden>
+				{
+					tasks.map((t, i) => (
+						<button
+							class="tab"
+							type="button"
+							role="tab"
+							id={`tab-assistant-${t.id}`}
+							aria-controls={`panel-assistant-${t.id}`}
+							aria-selected={i === 0 ? 'true' : 'false'}
+							tabindex={i === 0 ? 0 : -1}
+						>
+							{t.name}
+						</button>
+					))
+				}
+			</div>
+
+			<!-- 1. Новина з фото -->
+			<div id="panel-assistant-news" class="tabpanel tabpanel--demo assistant-panel">
+				<h3 class="tab-heading" data-tab-heading>Новина з фото</h3>
+				<div class="assistant-panel__in">
+					<p class="label-in">Ви даєте</p>
+					<div class="pills pills--above"><span class="pill">Свято</span><span class="pill">Вчора</span><span class="pill">Для всіх</span></div>
+					<div class="bubble">5-А і 6-Б показали виставу до Дня української писемності та мови. Зал був повний, батьки просили повторити.</div>
+					<div class="thumbs">
+						<Shot src={shots.stage3} alt="" {...thumb} />
+						<Shot src={shots.classroom3} alt="" {...thumb} />
+						<span>і ще 1&#160;фото</span>
+					</div>
+				</div>
+				<svg class="assistant-panel__arrow" width="40" height="24" viewBox="0 0 40 24" fill="none" stroke="#1F6F66" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12h34M27 4l9 8-9 8"></path></svg>
+				<div class="assistant-panel__out">
+					<p class="label-out"><span class="ai-tag">ШІ</span>Чернетка</p>
+					<p class="thinking" aria-hidden="true">Готую чернетку<i></i><i></i><i></i></p>
+					<div class="draft">
+						<div class="news-card">
+							<div class="news-card__cover">
+								<Shot src={shots.stage3} alt="" widths={[240, 360, 480]} sizes="(min-width: 900px) 240px, 80vw" />
+								<span class="news-card__badge">Обкладинка: фото 2</span>
+							</div>
+							<div class="news-card__body">
+								<p class="news-card__rubric">Події · Підготовлено з допомогою ШІ</p>
+								<p class="news-card__title">Пʼятикласники й шестикласники показали виставу до Дня писемності</p>
+								<p class="news-card__text">Учні 5-А і 6-Б підготували виставу до Дня української писемності та мови. Актова зала була повна, і батьки вже попросили показати її ще раз. Постановку готувала <span class="mark">[уточніть: хто]</span>.</p>
+							</div>
+						</div>
+						<ul class="notes">
+							<li><b>Описи фото для незрячих:</b> «Сцена актової зали з декораціями», «Порожній клас із вазонами»…</li>
+							<li class="warn">1 місце позначено [уточніть] — допишіть перед публікацією.</li>
+							<li class="warn">На фото, схоже, є діти. Радимо мати згоду батьків на публікацію.</li>
+						</ul>
+						<div class="pills pills--actions"><span class="pill">Коротше</span><span class="pill">Офіційніше</span><span class="pill">Тепліше</span><span class="pill">Інший заголовок</span></div>
+					</div>
+				</div>
+			</div>
+
+			<!-- 2. Меню з фото аркуша -->
+			<div id="panel-assistant-meals" class="tabpanel tabpanel--demo assistant-panel">
+				<h3 class="tab-heading" data-tab-heading>Меню з фото аркуша</h3>
+				<div class="assistant-panel__in">
+					<p class="label-in">Ви даєте</p>
+					<div class="hand-note">Вівторок<br />Сніданок — каша вівсяна з ягодами, чай<br />Обід — борщ, котлета з пюре, компот</div>
+					<p class="hint">Фото аркуша меню — надрукованого чи рукописного</p>
+				</div>
+				<svg class="assistant-panel__arrow" width="40" height="24" viewBox="0 0 40 24" fill="none" stroke="#1F6F66" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12h34M27 4l9 8-9 8"></path></svg>
+				<div class="assistant-panel__out">
+					<p class="label-out"><span class="ai-tag">ШІ</span>Чернетка</p>
+					<p class="thinking" aria-hidden="true">Готую чернетку<i></i><i></i><i></i></p>
+					<div class="draft">
+						<div class="out-card">
+							<p class="out-title">Сніданок</p>
+							<p class="out-line">Каша вівсяна з ягодами · Чай</p>
+							<p class="out-title">Обід</p>
+							<p class="out-line">Борщ · Котлета з пюре</p>
+							<p class="out-line out-line--unsure">Компот <small>неясно — перевірте</small></p>
+						</div>
+						<p class="hint hint--out">Страви стають у форму дня — ви перевіряєте й натискаєте «Опублікувати». Тиждень чотиритижневого меню помічник заповнить так само — з фото, PDF чи Excel.</p>
+					</div>
+				</div>
+			</div>
+
+			<!-- 3. 20 документів за раз -->
+			<div id="panel-assistant-docs" class="tabpanel tabpanel--demo assistant-panel">
+				<h3 class="tab-heading" data-tab-heading>20 документів за раз</h3>
+				<div class="assistant-panel__in">
+					<p class="label-in">Ви даєте</p>
+					<div class="files"><span class="file">statut-2025.pdf</span><span class="file">koshtorys_2026.pdf</span><span class="file">nakaz-147.pdf</span><span class="file file--more">ще 17</span></div>
+					<p class="hint">До 20 файлів за раз</p>
+				</div>
+				<svg class="assistant-panel__arrow" width="40" height="24" viewBox="0 0 40 24" fill="none" stroke="#1F6F66" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12h34M27 4l9 8-9 8"></path></svg>
+				<div class="assistant-panel__out">
+					<p class="label-out"><span class="ai-tag">ШІ</span>Чернетка</p>
+					<p class="thinking" aria-hidden="true">Готую чернетку<i></i><i></i><i></i></p>
+					<div class="draft">
+						<div class="table-wrap" tabindex="0" role="region" aria-label="Таблиця чернетки документів">
+							<table>
+								<thead><tr><th scope="col">Назва</th><th scope="col">Тип</th><th scope="col">Дата</th><th scope="col">Пункт закону</th></tr></thead>
+								<tbody>
+									<tr><td>Статут ліцею</td><td>Установчі</td><td>04.10.2025</td><td>1. Статут</td></tr>
+									<tr><td>Кошторис на 2026&#160;рік</td><td>Фінанси</td><td>15.01.2026</td><td>Кошторис</td></tr>
+									<tr><td>Наказ №&#160;147</td><td>Накази</td><td>01.09.2026</td><td>—</td></tr>
+								</tbody>
+							</table>
+						</div>
+						<p class="hint hint--out">Назва, тип, дата, сторінка й пункт «Інформації за законом» — для кожного файлу. Ви перевіряєте таблицю й зберігаєте.</p>
+					</div>
+				</div>
+			</div>
+
+			<!-- 4. Описи фото -->
+			<div id="panel-assistant-alt" class="tabpanel tabpanel--demo assistant-panel">
+				<h3 class="tab-heading" data-tab-heading>Описи фото</h3>
+				<div class="assistant-panel__in">
+					<p class="label-in">Ви даєте</p>
+					<div class="photos">
+						<Shot src={shots.classroom3} alt="" widths={[120, 240]} sizes="120px" />
+						<Shot src={shots.stage3} alt="" widths={[120, 240]} sizes="120px" />
+						<Shot src={shots.food2} alt="" widths={[120, 240]} sizes="120px" />
+					</div>
+					<p class="hint">До 20 фото без описів</p>
+				</div>
+				<svg class="assistant-panel__arrow" width="40" height="24" viewBox="0 0 40 24" fill="none" stroke="#1F6F66" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12h34M27 4l9 8-9 8"></path></svg>
+				<div class="assistant-panel__out">
+					<p class="label-out"><span class="ai-tag">ШІ</span>Чернетка</p>
+					<p class="thinking" aria-hidden="true">Готую чернетку<i></i><i></i><i></i></p>
+					<div class="draft">
+						<ol class="alt-list">
+							<li>Порожній клас улітку: ряди парт, дошка, на підвіконні — вазони з папороттю.</li>
+							<li>Актова зала зі сценою й рядами крісел.</li>
+							<li>Вівсяна каша з ягодами в тарілці.</li>
+						</ol>
+						<p class="hint hint--out">Описи сцени, без імен. Кожен можна виправити перед збереженням.</p>
+					</div>
+				</div>
+			</div>
+
+			<!-- 5. Простіше для батьків -->
+			<div id="panel-assistant-edit" class="tabpanel tabpanel--demo assistant-panel">
+				<h3 class="tab-heading" data-tab-heading>Простіше для батьків</h3>
+				<div class="assistant-panel__in">
+					<p class="label-in">Ви даєте</p>
+					<div class="quote-box">Відповідно до наказу МОН здійснюється організація освітнього процесу із застосуванням змішаної форми навчання у разі настання відповідних обставин.</div>
+					<div class="pills pills--below"><span class="pill pill--on">Простіше</span><span class="pill">Для батьків</span><span class="pill">Коротше</span><span class="pill">Виправити помилки</span></div>
+				</div>
+				<svg class="assistant-panel__arrow" width="40" height="24" viewBox="0 0 40 24" fill="none" stroke="#1F6F66" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12h34M27 4l9 8-9 8"></path></svg>
+				<div class="assistant-panel__out">
+					<p class="label-out"><span class="ai-tag">ШІ</span>Чернетка</p>
+					<p class="thinking" aria-hidden="true">Готую чернетку<i></i><i></i><i></i></p>
+					<div class="draft">
+						<div class="out-card out-card--text">
+							<p class="out-kicker">Стало</p>
+							<p class="out-body">Якщо навчатися в класах буде неможливо, частину уроків проведемо дистанційно. Так передбачає наказ МОН.</p>
+						</div>
+						<p class="hint hint--out">«Було / стало» по кожному абзацу — приймаєте те, що подобається.</p>
+					</div>
+				</div>
+			</div>
+
+			<!-- 6. «Створи мій сайт» -->
+			<div id="panel-assistant-site" class="tabpanel tabpanel--demo assistant-panel">
+				<h3 class="tab-heading" data-tab-heading>«Створи мій сайт»</h3>
+				<div class="assistant-panel__in">
+					<p class="label-in">Ви даєте</p>
+					<div class="fields">
+						<div>Вид закладу: <b>ліцей</b></div>
+						<div>Профілі: <b>природничо-математичний, філологічний</b></div>
+					</div>
+				</div>
+				<svg class="assistant-panel__arrow" width="40" height="24" viewBox="0 0 40 24" fill="none" stroke="#1F6F66" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12h34M27 4l9 8-9 8"></path></svg>
+				<div class="assistant-panel__out">
+					<p class="label-out"><span class="ai-tag">ШІ</span>Чернетка</p>
+					<p class="thinking" aria-hidden="true">Готую чернетку<i></i><i></i><i></i></p>
+					<div class="draft">
+						<div class="out-card out-card--lines">
+							<p class="out-title">План сайту</p>
+							<p>Про ліцей · Вступ · Навчання · Харчування · Новини · Контакти</p>
+						</div>
+						<p class="hint hint--out">План сайту й чернетки сторінок. Будь-яку зміну можна повернути одним натисканням.</p>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</section>

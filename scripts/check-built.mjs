@@ -15,9 +15,20 @@
 //      text of <main> as built, so text that comes from offer.mjs or a component is covered.
 //   4. `zaiavka`'s <main> has no inline <script> and no script `src` other than Cloudflare
 //      Turnstile's api.js.
-//   5. The header (item 1) and the footer's operator line (decision 5, verbatim) on EVERY html page
-//      of dist/, imported docs included. Forbidden phrases stay on the own pages: the imported docs
-//      are tabula's text.
+//   5. The footer's operator line (decision 5, verbatim) on EVERY html page of dist/, imported docs
+//      included; the Starlight header (item 1) on every page that is not a product page. Forbidden
+//      phrases stay on the own pages: the imported docs are tabula's text.
+//   6. Story 80 — PRODUCT pages, the built pages whose <html> has `data-product-page` (the home today):
+//      the header's seven links in order and the button «Подати заявку» -> #request (inline and in the
+//      «Меню» panel, which adds «Звʼязатися»); no Starlight chrome; decision 8's forbidden phrases;
+//      ʼ only; a no-break space between a number and ₴ / «року» / «грн» and inside a date (checked on
+//      the raw text, because htmlText() folds &nbsp;); «ШІ-помічник» spelled so; the chip when
+//      `assistantStatus` is 'testing'; a law or procurement word only together with a link to
+//      «Закон і сайт школи» (spec decision 14).
+//   7. Every built html page: every <img> has an alt attribute (`alt`, `alt=""` or text) and nothing
+//      refers to fonts.googleapis.com; the built CSS neither. The demo's address (127.0.0.1,
+//      localhost) is kept out of every page that is not tabula's own imported documentation
+//      (that text may legitimately say «localhost» in a command).
 //
 // The rules are pure functions exported for test/check-built.test.mjs; the checks over the files
 // run only when this file is invoked directly.
@@ -26,6 +37,8 @@ import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { offer, operatorLine, formatDate } from '../src/config/offer.mjs';
+
+export const LAW_PAGE_SLUG = 'zakon-i-sait-shkoly';
 
 // Decision 8: forbidden on the site's own pages, matched case-insensitively.
 export const FORBIDDEN_PHRASES = [
@@ -190,6 +203,264 @@ export function checkHeader(html, base) {
 }
 
 // ---------------------------------------------------------------------------------------------
+// Story 80: product pages.
+
+/** True when the page's <html> element carries `data-product-page`. */
+export function isProductPage(html) {
+	return /<html\b[^>]*\bdata-product-page\b/i.test(html);
+}
+
+/** The header's links of a product page, in order: text and the anchor id each one must point at. */
+export const PRODUCT_LINKS = [
+	['ШІ-помічник', 'assistant'],
+	['Харчування', 'meals'],
+	['Документи', 'docs'],
+	['Шаблони', 'look'],
+	['Ціна', 'price'],
+	['Запитання', 'faq'],
+	['Контакти', 'contact'],
+];
+
+function anchorsOf(fragment) {
+	const anchors = [];
+	const re = /<a\b([^>]*)>([\s\S]*?)<\/a>/gi;
+	let match;
+	while ((match = re.exec(fragment))) {
+		const href = match[1].match(/\bhref="([^"]*)"/i);
+		anchors.push({ href: href ? href[1] : '', text: htmlText(match[2]) });
+	}
+	return anchors;
+}
+
+/** `#id` on the home, `{base}#id` on other product pages: the href ends with the anchor. */
+const pointsAt = (href, id) => href === `#${id}` || href.endsWith(`/#${id}`);
+
+/** Problems with a product page's header: seven links in order, the button, the «Меню» panel. */
+export function checkProductHeader(html) {
+	const header = html.match(/<header\b[^>]*data-site-header[^>]*>([\s\S]*?)<\/header>/i);
+	if (!header) return ['no <header data-site-header>'];
+	const problems = [];
+	const inline = header[1].match(/<nav\b[^>]*class="[^"]*nav-links[^"]*"[^>]*>([\s\S]*?)<\/nav>/i);
+	if (!inline) problems.push('no inline nav (.nav-links)');
+	else {
+		const got = anchorsOf(inline[1]);
+		const wantText = PRODUCT_LINKS.map(([text]) => text).join(' | ');
+		if (got.map((a) => a.text).join(' | ') !== wantText) {
+			problems.push(`inline nav is "${got.map((a) => a.text).join(' | ')}", expected "${wantText}"`);
+		}
+		PRODUCT_LINKS.forEach(([text, id], i) => {
+			if (got[i] && !pointsAt(got[i].href, id)) problems.push(`«${text}» points at "${got[i].href}", expected #${id}`);
+		});
+	}
+	const button = header[1].match(/<a\b[^>]*class="[^"]*btn-main[^"]*"[^>]*>[\s\S]*?<\/a>/i);
+	const buttonAnchor = button ? anchorsOf(button[0])[0] : null;
+	if (!buttonAnchor || buttonAnchor.text !== 'Подати заявку' || !pointsAt(buttonAnchor.href, 'request')) {
+		problems.push('the button «Подати заявку» -> #request is missing');
+	}
+	const panel = header[1].match(/<nav\b[^>]*class="[^"]*nav-menu__panel[^"]*"[^>]*>([\s\S]*?)<\/nav>/i);
+	if (!/<details\b[^>]*class="[^"]*nav-menu/i.test(header[1]) || !panel) {
+		problems.push('no <details class="nav-menu"> panel');
+	} else {
+		const got = anchorsOf(panel[1]);
+		const wantText = [...PRODUCT_LINKS.map(([text]) => text), 'Звʼязатися'].join(' | ');
+		if (got.map((a) => a.text).join(' | ') !== wantText) {
+			problems.push(`«Меню» panel is "${got.map((a) => a.text).join(' | ')}", expected "${wantText}"`);
+		}
+		const last = got[got.length - 1];
+		if (last && !last.href.startsWith('mailto:')) problems.push('«Звʼязатися» is not a mailto: link');
+	}
+	return problems;
+}
+
+/** Starlight's chrome on a product page: `sl-` classes, the search box, the theme select. */
+export function checkNoStarlight(html) {
+	const problems = [];
+	if (/class="[^"]*\bsl-[a-z]/i.test(html)) problems.push('a Starlight class (sl-…)');
+	if (/site-search/i.test(html)) problems.push('the Starlight search box');
+	if (/starlight-theme-select/i.test(html)) problems.push('the Starlight theme select');
+	return problems;
+}
+
+const MONTHS = 'січня|лютого|березня|квітня|травня|червня|липня|серпня|вересня|жовтня|листопада|грудня';
+
+/** Visible-ish text with entities left as written (`&#160;` stays), for the no-break space rule. */
+export function rawText(html) {
+	return html
+		.replace(/<script\b[\s\S]*?<\/script>/gi, ' ')
+		.replace(/<style\b[\s\S]*?<\/style>/gi, ' ')
+		.replace(/<[^>]+>/g, ' ');
+}
+
+/** HTML with the entity spellings of an apostrophe turned into characters (Astro writes `'` as `&#39;`). */
+export function decodeApostrophes(html) {
+	return html
+		.replace(/&#0*39;|&#x0*27;|&apos;/gi, "'")
+		.replace(/&#0*8217;|&#x0*2019;|&rsquo;/gi, '’')
+		.replace(/&#0*8216;|&#x0*2018;|&lsquo;/gi, '‘')
+		.replace(/&#0*700;|&#x0*2bc;/gi, 'ʼ');
+}
+
+/** Problems with the apostrophe in built HTML (scripts and styles ignored, entities decoded first). */
+export function checkBuiltApostrophe(html) {
+	const bare = html.replace(/<script\b[\s\S]*?<\/script>/gi, ' ').replace(/<style\b[\s\S]*?<\/style>/gi, ' ');
+	return BAD_APOSTROPHE.test(decodeApostrophes(bare))
+		? ["a ' or ’ between Cyrillic letters — use ʼ (U+02BC)"]
+		: [];
+}
+
+const CYR = 'А-Яа-яҐЄІЇґєії';
+const NOT_CYR_AFTER = `(?![${CYR}])`;
+// A space that is not a no-break one: ASCII whitespace only; U+00A0, U+202F, `&nbsp;`, `&#160;` pass.
+const PLAIN = '[ \\t\\r\\n]';
+const NB = `(?:[\\u00a0\\u202f]|&nbsp;|&#160;|&#xa0;)`;
+
+/**
+ * A plain space where the copy rules want a no-break one: between a number and ₴ / «року» / «грн»,
+ * as the thousands separator of a sum before ₴ / «грн» («4 800 ₴»), and between the day and the
+ * month of a date («31 грудня»). Works on rawText().
+ */
+export function checkNoBreakSpaces(text) {
+	const problems = [];
+	const show = (s) => s.replace(/\s+/g, '␠');
+	const unit = new RegExp(`\\d${PLAIN}+(?:₴|року${NOT_CYR_AFTER}|грн${NOT_CYR_AFTER})`, 'g');
+	for (const m of text.matchAll(unit)) problems.push(`a plain space in "${show(m[0])}"`);
+	const thousands = new RegExp(`\\d${PLAIN}\\d{3}(?!\\d)(?=(?:${PLAIN}|${NB})*(?:₴|грн${NOT_CYR_AFTER}))`, 'g');
+	for (const m of text.matchAll(thousands)) problems.push(`a plain space as the thousands separator in "${show(m[0])}"`);
+	const date = new RegExp(`\\d{1,2}${PLAIN}+(?:${MONTHS})${NOT_CYR_AFTER}`, 'g');
+	for (const m of text.matchAll(date)) problems.push(`a plain space in the date "${show(m[0])}"`);
+	return problems;
+}
+
+/**
+ * «ШІ-помічник» spelled so: no «помічник ШІ» in any case (помічника ШІ, помічником ШІ…), no «ШІ помічник»,
+ * no «ШI» with a Latin I, no standalone «AI».
+ */
+export function checkAssistantSpelling(text) {
+	const problems = [];
+	if (new RegExp(`помічник[${CYR}]*\\s+Ш[ІI]${NOT_CYR_AFTER}`, 'i').test(text)) problems.push('«помічник ШІ» — write «ШІ-помічник»');
+	if (/Ш[ІI][\s ‐-―−]+помічник/i.test(text)) problems.push('«ШІ помічник» — write «ШІ-помічник»');
+	if (/Ш[Ii](?![A-Za-z])/.test(text)) problems.push('«ШI» with a Latin I — write «ШІ»');
+	if (/(^|[^A-Za-zА-Яа-яҐЄІЇґєії])AI(?![A-Za-zА-Яа-я])/.test(text)) problems.push('a standalone «AI»');
+	return problems;
+}
+
+/** The first `<section id="…">…</section>` of a page, or null. */
+export function sectionById(html, id) {
+	const m = html.match(new RegExp(`<section\\b[^>]*\\bid="${id}"[^>]*>([\\s\\S]*?)</section>`, 'i'));
+	return m ? m[1] : null;
+}
+
+/**
+ * The «Випробовуємо» chip must stand in the assistant section (#assistant) of the home while
+ * `assistantStatus` is 'testing', with a real space between its two parts.
+ */
+export function checkAssistantChip(html, status) {
+	if (status !== 'testing') return [];
+	const section = sectionById(html, 'assistant');
+	if (section === null) return ['no <section id="assistant"> to hold the «Випробовуємо» chip'];
+	// Tags removed without adding a space: a missing real space between the parts must show.
+	const flat = section.replace(/<[^>]+>/g, '').replace(/\s+/g, ' ');
+	return flat.includes('Випробовуємо у школах ще не ввімкнено')
+		? []
+		: ['the assistant section lacks «Випробовуємо у школах ще не ввімкнено» (with a real space after «Випробовуємо»)'];
+}
+
+/**
+ * The two law claims of the home (spec decision 14). Each lives in its own block and must carry its own
+ * link to «Закон і сайт школи» inside that block:
+ *  - «Розділи за статтею 30 уже створені» -> the enclosing <section>;
+ *  - «15 алергенів за постановою № 305» -> the enclosing <li>.
+ * Any other law or procurement word on a product page is an uncited law mention and fails; the link text
+ * «Закон і сайт школи» itself does not count as one.
+ */
+export const LAW_CLAIMS = [
+	{ name: '«Розділи за статтею 30 уже створені»', phrase: /Розділи за статтею 30 уже створені/, tag: 'section' },
+	{ name: '«15 алергенів за постановою № 305»', phrase: /15 алергенів за постановою № 305/, tag: 'li' },
+];
+export const LAW_LINK_TEXT = 'Закон і сайт школи';
+
+const foldSpaces = (text) => text.replace(/&nbsp;|&#160;|&#xa0;|[  ]/gi, ' ').replace(/\s+/g, ' ');
+
+export function checkLawClaims(html, { requireClaims = false } = {}) {
+	const problems = [];
+	const linkRe = new RegExp(`href="[^"]*${LAW_PAGE_SLUG}/`);
+	let text = foldSpaces(htmlText(extractMain(html)));
+	for (const claim of LAW_CLAIMS) {
+		const blocks = [...html.matchAll(new RegExp(`<${claim.tag}\\b[\\s\\S]*?</${claim.tag}>`, 'gi'))]
+			.map((m) => m[0])
+			.filter((block) => claim.phrase.test(foldSpaces(htmlText(block))));
+		if (blocks.length === 0) {
+			if (requireClaims) problems.push(`the claim ${claim.name} is missing from the page`);
+			continue;
+		}
+		// The innermost block: the last one when blocks nest (a <section> never nests in this layout).
+		for (const block of blocks) {
+			if (!linkRe.test(block)) problems.push(`the claim ${claim.name} has no link to ${LAW_PAGE_SLUG}/ in its own <${claim.tag}>`);
+		}
+		text = text.replace(new RegExp(claim.phrase.source, 'g'), ' ');
+	}
+	text = text.split(LAW_LINK_TEXT).join(' ');
+	if (LAW_PATTERN.test(text)) {
+		problems.push('names a law or a procurement rule outside the two cited claims (spec decision 14)');
+	}
+	return problems;
+}
+
+/**
+ * Decision 9 (no framework JS): a product page loads only its own two bundles, tabs and header. Each
+ * <script> must be an inline module, or a `src` whose file (read through `readSrc`), that contains
+ * `data-tabs` or `data-site-header`. `readSrc(src)` returns the file's text or null.
+ */
+export function checkProductScripts(html, readSrc = () => null) {
+	const problems = [];
+	const re = /<script\b([^>]*)>([\s\S]*?)<\/script>/gi;
+	let m;
+	while ((m = re.exec(html))) {
+		const src = m[1].match(/\bsrc="([^"]*)"/i);
+		const code = src ? readSrc(src[1]) : m[2];
+		if (code === null || code === undefined) problems.push(`a script (${src[1]}) that cannot be identified`);
+		else if (!/data-tabs|data-site-header/.test(code)) {
+			problems.push(`a script that is neither the tabs nor the header bundle: ${src ? src[1] : code.slice(0, 40)}`);
+		}
+	}
+	return problems;
+}
+
+/** Every product-page rule on one built page's HTML; `isHome` adds the chip and the claims. */
+export function checkProductPage(
+	html,
+	{ isHome = false, assistantStatus = offer.assistantStatus, readSrc = () => null } = {},
+) {
+	const problems = [];
+	problems.push(...checkProductHeader(html));
+	problems.push(...checkNoStarlight(html));
+	const text = htmlText(html);
+	for (const phrase of findForbidden(text)) problems.push(`forbidden phrase «${phrase}»`);
+	problems.push(...checkBuiltApostrophe(html));
+	problems.push(...checkNoBreakSpaces(rawText(html)));
+	problems.push(...checkAssistantSpelling(text));
+	if (isHome) problems.push(...checkAssistantChip(html, assistantStatus));
+	problems.push(...checkLawClaims(html, { requireClaims: isHome }));
+	problems.push(...checkProductScripts(html, readSrc));
+	return problems;
+}
+
+/** Problems every built page can have: an <img> without `alt`, a request to Google Fonts. */
+export function checkEveryPage(html) {
+	const problems = [];
+	for (const tag of html.match(/<img\b[^>]*>/gi) ?? []) {
+		if (!/\salt(?=[\s=/>])/i.test(tag)) problems.push(`an <img> without alt: ${tag.slice(0, 80)}`);
+	}
+	if (/fonts\.googleapis\.com|fonts\.gstatic\.com/i.test(html)) problems.push('refers to Google Fonts');
+	return problems;
+}
+
+/** The demo's address in a page: `127.0.0.1` or `localhost` (text, attributes, image alts). */
+export function checkDemoAddress(html) {
+	return /127\.0\.0\.1|localhost/i.test(html) ? ['the demo address (127.0.0.1 / localhost) is in the page'] : [];
+}
+
+// ---------------------------------------------------------------------------------------------
 // The checks over the files.
 
 const IMPORTED_DIRS = new Set(['editor', 'install', 'qa', 'dev']);
@@ -219,6 +490,24 @@ function walkHtml(dir) {
 		const full = path.join(dir, entry.name);
 		if (entry.isDirectory()) files.push(...walkHtml(full));
 		else if (entry.name.endsWith('.html')) files.push(full);
+	}
+	return files;
+}
+
+/** The text of a built asset named by a `src` of a page (base-aware), or null when it is not in dist/. */
+function readBuilt(distDir, base, src) {
+	const prefix = base === '/' ? '/' : `${base.replace(/\/$/, '')}/`;
+	if (!src.startsWith(prefix)) return null;
+	const file = path.join(distDir, src.slice(prefix.length).split(/[?#]/)[0]);
+	return existsSync(file) ? readFileSync(file, 'utf8') : null;
+}
+
+function walkFiles(dir, ext) {
+	const files = [];
+	for (const entry of readdirSync(dir, { withFileTypes: true })) {
+		const full = path.join(dir, entry.name);
+		if (entry.isDirectory()) files.push(...walkFiles(full, ext));
+		else if (entry.name.endsWith(ext)) files.push(full);
 	}
 	return files;
 }
@@ -262,13 +551,30 @@ function main() {
 		}
 	}
 
-	// The header and the operator line are the site's chrome: held on every page, imported or not.
+	// The operator line is the site's chrome: held on every page, imported or not. The Starlight
+	// header is held on every page that is not a product page; product pages have their own rules.
 	const htmlFiles = walkHtml(distDir);
+	let productPages = 0;
 	for (const file of htmlFiles) {
 		const html = readFileSync(file, 'utf8');
 		const rel = path.relative(distDir, file);
-		for (const problem of checkHeader(html, base)) fail(`dist/${rel} header`, problem);
+		const first = rel.split(path.sep)[0];
+		if (isProductPage(html)) {
+			productPages += 1;
+			for (const problem of checkProductPage(html, { isHome: rel === 'index.html', readSrc: (src) => readBuilt(distDir, base, src) })) fail(`dist/${rel}`, problem);
+		} else {
+			for (const problem of checkHeader(html, base)) fail(`dist/${rel} header`, problem);
+		}
 		for (const problem of checkOperatorLine(html, operatorLine)) fail(`dist/${rel}`, problem);
+		for (const problem of checkEveryPage(html)) fail(`dist/${rel}`, problem);
+		if (!IMPORTED_DIRS.has(first)) {
+			for (const problem of checkDemoAddress(html)) fail(`dist/${rel}`, problem);
+		}
+	}
+	for (const css of walkFiles(distDir, '.css')) {
+		if (/fonts\.googleapis\.com|fonts\.gstatic\.com/i.test(readFileSync(css, 'utf8'))) {
+			fail(`dist/${path.relative(distDir, css)}`, 'the built CSS refers to Google Fonts');
+		}
 	}
 
 	if (!skipped && !existsSync(path.join(distDir, 'editor', 'index.html'))) {
@@ -281,7 +587,7 @@ function main() {
 		process.exit(1);
 	}
 	console.log(
-		`check-built: ${pages.length} own pages and ${htmlFiles.length} html pages OK (base ${base}${skipped ? ', docs import skipped' : ''})`,
+		`check-built: ${pages.length} own pages, ${productPages} product page(s) and ${htmlFiles.length} html pages OK (base ${base}${skipped ? ', docs import skipped' : ''})`,
 	);
 }
 

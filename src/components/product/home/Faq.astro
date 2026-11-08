@@ -1,0 +1,39 @@
+---
+// Section 11: Часті запитання. Five, as in the mockup; «Коли запрацює ШІ-помічник?» is dropped
+// when `offer.assistantStatus` is 'on'.
+import { offer, formatDateLongYear, formatUah, nextDay } from '../../../config/offer.mjs';
+
+const base = import.meta.env.BASE_URL;
+const root = base.endsWith('/') ? base : `${base}/`;
+const paidFrom = nextDay(offer.pilotUntil);
+---
+
+<section id="faq" class="anchor">
+	<div class="faq__inner">
+		<h2 class="reveal h2">Часті запитання</h2>
+		<details class="faq-item">
+			<summary>Що буде після {formatDateLongYear(offer.pilotUntil)}?<span class="plus" aria-hidden="true">+</span></summary>
+			<p>З {formatDateLongYear(paidFrom)} — {formatUah(offer.priceYearUah)} на рік за договором. Не захочете продовжувати — не продовжуйте.</p>
+		</details>
+		<details class="faq-item">
+			<summary>А якщо ми захочемо піти?<span class="plus" aria-hidden="true">+</span></summary>
+			<p>Ми передамо вам архів сайту. Код Tabula відкритий, тож той самий сайт можна встановити на власний сервер.</p>
+		</details>
+		{
+			offer.assistantStatus !== 'on' && (
+				<details class="faq-item">
+					<summary>Коли запрацює ШІ-помічник?<span class="plus" aria-hidden="true">+</span></summary>
+					<p>Коли ми переконаємося, що його чернетки справді допомагають. Дати не обіцяємо: спершу перевірка. Сайт працює і без помічника.</p>
+				</details>
+			)
+		}
+		<details class="faq-item">
+			<summary>Що бачить ШІ-помічник?<span class="plus" aria-hidden="true">+</span></summary>
+			<p>Лише те, що ви йому даєте для чернетки. Дані учнів ми йому не передаємо, а тексти запитів не зберігаємо.</p>
+		</details>
+		<details class="faq-item">
+			<summary>Де зберігаються дані?<span class="plus" aria-hidden="true">+</span></summary>
+			<p>Сайт і резервні копії — на серверах у ЄС. Жодних російських сервісів. <a href={`${root}bezpeka-i-dani/`}>Безпека й дані</a></p>
+		</details>
+	</div>
+</section>

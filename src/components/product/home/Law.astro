@@ -1,0 +1,23 @@
+---
+// Section 6: Розділи за статтею 30 (a short band). The claim links to «Закон і сайт школи» (spec
+// decision 14); «23 з 24» comes from src/assets/shots/facts.json, written by scripts/shots.mjs
+// from the demo's «Інформація за законом» screen.
+import { facts } from '../shots';
+
+const base = import.meta.env.BASE_URL;
+const root = base.endsWith('/') ? base : `${base}/`;
+const lawHref = `${root}zakon-i-sait-shkoly/`;
+---
+
+<section id="law" class="anchor band">
+	<div class="reveal wrap law__inner">
+		<div class="law__text">
+			<h2 class="law__title">Розділи за статтею&#160;30 уже створені</h2>
+			<p>Панель показує, чого бракує й що застаріло, і радить, з чого почати.</p>
+			<a class="quiet" href={lawHref}>Закон і сайт школи</a>
+		</div>
+		<p class="law__figure">
+			{facts.lawFilled}&#160;з&#160;{facts.lawTotal} <span>заповнено на демо-сайті</span>
+		</p>
+	</div>
+</section>

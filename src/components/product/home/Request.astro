@@ -1,0 +1,34 @@
+---
+// Section 13: Подати заявку на пілот. Three steps; then, by `offer.requestsOpen`:
+//  - false (now): no form — «Заявки з сайту відкриємо найближчим часом. Поки напишіть нам:» and
+//    the support address as a `mailto:` button (its label is the address);
+//  - true (slice S3 of story 80): the two-step form of the mockup.
+import { offer, withinWorkingDays, formatDateLongYear } from '../../../config/offer.mjs';
+---
+
+<section id="request" class="anchor">
+	<div class="wrap request__inner">
+		<div class="reveal request__box">
+			<div class="request__text">
+				<h2 class="request__title">Подати заявку на пілот</h2>
+				<p>Відповімо зазвичай {withinWorkingDays(offer.requestReplyDays)}, домовимося про адресу сайту й запустимо його. До {formatDateLongYear(offer.pilotUntil)} — безкоштовно.</p>
+				<ol class="steps">
+					<li><span class="steps__n" aria-hidden="true">1</span><span>Заявка — кілька хвилин</span></li>
+					<li><span class="steps__n" aria-hidden="true">2</span><span>Розмова й домовленість про пілот</span></li>
+					<li><span class="steps__n" aria-hidden="true">3</span><span>Сайт готовий, а код для першого входу — у вашій пошті</span></li>
+				</ol>
+			</div>
+			<div class="request__side">
+				{
+					!offer.requestsOpen && (
+						<>
+							<p>Заявки з сайту відкриємо найближчим часом. Поки напишіть нам:</p>
+							<a class="btn btn-main" href={`mailto:${offer.supportEmail}`}>{offer.supportEmail}</a>
+						</>
+					)
+				}
+				{/* TODO(S3): offer.requestsOpen === true renders the two-step form here (posting to {cpUrl}/v1/requests). */}
+			</div>
+		</div>
+	</div>
+</section>

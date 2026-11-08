@@ -97,6 +97,30 @@ build time, for a manual check of the request form against a local control plane
 `npm run a11y` runs axe-core (WCAG 2.2 AA) over four pages in headless Chromium against `dist/`; install the
 browser once with `npx playwright install chromium`, build first, and pass the same `SITE_BASE` as the build.
 
+## Regenerating the screenshots of the home page
+
+The home page's pictures (`src/assets/shots/*.webp`, `facts.json`) are committed and reproducible: `scripts/shots.mjs`
+takes them from a running demo of tabula, in two terminals.
+
+```sh
+# terminal 1, in a tabula checkout (a sibling ../tabula by default):
+npm run demo -- --seed school --template panorama
+
+# terminal 2, in this repository (npx playwright install chromium once):
+npm run shots -- --template panorama
+```
+
+`--template <key>` takes the rows of that template and the template-free rows (the panel screens); `phone-meal-day` and `kep-line` show a public page, so they are pinned to `panorama`; restart the
+demo with `--template vitryna`, `stend` or `shkilna` and repeat for those. `--only <file>` takes one row. The table
+of rows is `SHOTS` in `scripts/shots.mjs`. Environment: `TABULA_DEMO_URL` (default `http://127.0.0.1:3100`),
+`TABULA_DEMO_LOGIN` / `TABULA_DEMO_PASSWORD` (default: the demo's throwaway fixture account), `TABULA_DIR` (the tabula
+checkout, default `../tabula`: the CC0 photos, and the fixtures for `kep-line`, which starts a throwaway site of its own
+and needs `npm ci` done in that checkout). The demo's address is replaced by `licey0.tabula.org.ua` in the page before
+every shot. `npm test` checks that every row has its file and that the file is a WebP.
+
+`npm run budget` (after a build, with Chromium installed) checks the home page's size on first load at 390 px (at most
+600 KB), that images below the first screen are lazy and that the LCP image is preloaded; CI runs it after `npm run a11y`.
+
 ## Repository settings that are manual
 
 These are set once in GitHub's UI, not in code, in this order:
