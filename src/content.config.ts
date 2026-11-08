@@ -1,4 +1,5 @@
 import { defineCollection, z } from 'astro:content';
+import { glob } from 'astro/loaders';
 import { docsLoader } from '@astrojs/starlight/loaders';
 import { docsSchema } from '@astrojs/starlight/schema';
 
@@ -10,5 +11,11 @@ export const collections = {
 	docs: defineCollection({
 		loader: docsLoader(),
 		schema: docsSchema({ extend: z.object({ lang: z.string().optional() }) }),
+	}),
+	// Story 80, slice S2: the site's own reading pages (src/content/pages/<slug>.md(x)), rendered
+	// at /<slug>/ by src/pages/[slug].astro in the product layout. Not part of Starlight's `docs`.
+	pages: defineCollection({
+		loader: glob({ pattern: '*.{md,mdx}', base: './src/content/pages' }),
+		schema: z.object({ title: z.string(), description: z.string() }),
 	}),
 };

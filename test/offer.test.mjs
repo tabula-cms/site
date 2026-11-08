@@ -7,6 +7,7 @@ import {
 	withinWorkingDays,
 	formatDateLongYear,
 	formatUah,
+	formatGrn,
 	yearOf,
 	operatorLine,
 	parseIsoDate,
@@ -24,7 +25,6 @@ test('offer: the fields exist with the right types', () => {
 		assert.ok(Number.isInteger(offer[key]) && offer[key] > 0, `${key} is a positive integer`);
 	}
 	assert.ok(offer.pilotValueUah === null || Number.isInteger(offer.pilotValueUah));
-	assert.match(offer.contactEmail, /^[^@\s]+@[^@\s]+\.[a-z]+$/);
 	assert.ok(offer.contactPhone === null || typeof offer.contactPhone === 'string');
 	assert.ok(offer.operatorEmail === null || /^[^@\s]+@[^@\s]+\.[a-z]+$/.test(offer.operatorEmail));
 });
@@ -82,15 +82,14 @@ test('formatNumber: a narrow no-break space between thousands', () => {
 	assert.throws(() => formatNumber(1.5));
 });
 
-test('privacyEmail: operatorEmail when set, else contactEmail', () => {
-	assert.equal(privacyEmail(), offer.operatorEmail || offer.contactEmail);
+test('privacyEmail: operatorEmail when set, else supportEmail', () => {
+	assert.equal(privacyEmail(), offer.operatorEmail || offer.supportEmail);
 });
 
 test('offer: story 80 fields — assistantStatus, demoSiteUrl, supportEmail', () => {
 	assert.ok(['testing', 'on'].includes(offer.assistantStatus));
 	assert.ok(offer.demoSiteUrl === null || /^https:\/\//.test(offer.demoSiteUrl));
 	assert.match(offer.supportEmail, /^[^@\s]+@[^@\s]+\.[a-z]+$/);
-	assert.equal(offer.supportEmail, offer.contactEmail, 'the W1 pages still read contactEmail');
 });
 
 test('includesShort: five lines, each covered by valid, non-empty indexes of includes', () => {
@@ -128,4 +127,9 @@ test('formatDateLongYear, yearOf, formatUah: no-break spaces where the copy rule
 test('includesShort: no apostrophe but ʼ between Cyrillic letters', () => {
 	const bad = /[А-ЯҐЄІЇа-яґєії]['’][А-ЯҐЄІЇа-яґєії]/;
 	for (const item of includesShort) assert.doesNotMatch(item.text, bad, item.text);
+});
+
+test('formatGrn: no-break spaces inside the sum and before «грн»', () => {
+	assert.equal(formatGrn(4800), '4\u00a0800\u00a0грн');
+	assert.equal(formatGrn(400), '400\u00a0грн');
 });

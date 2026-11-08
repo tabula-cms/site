@@ -1,25 +1,17 @@
 ---
 title: Для бухгалтерії
-description: "Як оформити розміщення сайту закладу освіти: календар, рядок у річному плані, межа 50 000 грн, КЕКВ, документи, пілот. Станом на дату перевірки джерел."
-template: splash
-editUrl: false
-sidebar:
-  hidden: true
+description: "Як оформити розміщення сайту закладу освіти: календар, рядок у річному плані, межа 50 000 грн, КЕКВ, документи, пілот. Станом на дату перевірки джерел."
 ---
 
 import {
 	offer,
 	operatorLine,
 	formatDate,
-	formatNumber,
+	formatGrn,
 	nextDay,
 } from '../../config/offer.mjs';
 
 export const planYear = nextDay(offer.pilotUntil).slice(0, 4);
-
-<div class="prose-narrow">
-
-<h1 id="_top">Для бухгалтерії</h1>
 
 Станом на {formatDate(offer.asOf)}. Кожне правило нижче має посилання на джерело. Узгодьте рядок плану й код з уповноваженою особою закладу.
 
@@ -29,7 +21,8 @@ export const planYear = nextDay(offer.pilotUntil).slice(0, 4);
 
 ## Календар
 
-<table class="compare-table">
+<div class="reading-table" tabindex="0" role="region" aria-label={`Календар оформлення на ${planYear} рік`}>
+<table>
 <caption>Календар оформлення на {planYear} рік</caption>
 <thead>
 <tr><th scope="col">Коли</th><th scope="col">Що робимо</th></tr>
@@ -42,24 +35,25 @@ export const planYear = nextDay(offer.pilotUntil).slice(0, 4);
 <tr><th scope="row">Кінець березня</th><td>Перший акт.</td></tr>
 </tbody>
 </table>
+</div>
 
 ## Рядок у річному плані
 
 Рядок плану, який можна взяти за основу:
 
 <blockquote class="plan-line">
-<p>Предмет закупівлі: послуги з розміщення та супроводу вебсайту закладу. Код ДК 021:2015 72410000-7 „Послуги провайдерів“ (за класифікатором — 72415000-2 „Послуги з хостингу для вебсайтів“); код погодьте з уповноваженою особою. Очікувана вартість — {formatNumber(offer.priceYearUah)} грн. Договір без використання електронної системи.</p>
+<p>Предмет закупівлі: послуги з розміщення та супроводу вебсайту закладу. Код ДК 021:2015 72410000-7 „Послуги провайдерів“ (за класифікатором — 72415000-2 „Послуги з хостингу для вебсайтів“); код погодьте з уповноваженою особою. Очікувана вартість — {formatGrn(offer.priceYearUah)}. Договір без використання електронної системи.</p>
 </blockquote>
 
 З 01.07.2026 очікувана вартість у плані включає ПДВ, якщо постачальник його сплачує. Ми — без ПДВ. Джерело: [tndr.com.ua](https://tndr.com.ua/article/zakupivli-do-50-tys-grn-z-01-07-2026-yak-vidobrazhaty-informacziyu-v-elektronnij-systemi-zakupivel/).
 
-## Межа 50 000 грн
+## Межа 50 000 грн
 
 Станом на {formatDate(offer.asOf)}:
 
-- Якщо за рік один предмет закупівлі коштує менше 50 000 грн (з ПДВ, якщо він є), досить рядка в плані й договору, звіт не потрібен. Джерело: [Prozorro Infobox](https://infobox.prozorro.org/articles/vse-pro-publikaciyu-zvitiv-po-ukladenim-dogovoram-v-umovah-sogodennya).
-- Від 50 000 грн потрібен ще звіт про договір у Prozorro протягом 10 робочих днів після підписання договору. Джерело: [Мінекономіки](https://me.gov.ua/InfoRez/Details/ee922d65-5e66-4082-82f8-9851e7236da6?lang=uk-UA).
-- Тендер не потрібен до 200 000 грн (постанова КМУ № 957, з 01.09.2026). Ділити закупівлю на частини заборонено. Штраф — до 170 000 грн (КУпАП, ст. 164-14). Джерело: [tndr.com.ua](https://tndr.com.ua/article/zbilsheno-vartisni-mezhi-dlya-zakupivel-tovariv-robit-ta-poslug-z-01-09-2026-yak-cze-vlyvaye-na-obrannya-vydu-zakupivli-ta-mozhlyvi-ryzyky/).
+- Якщо за рік один предмет закупівлі коштує менше 50 000 грн (з ПДВ, якщо він є), досить рядка в плані й договору, звіт не потрібен. Джерело: [Prozorro Infobox](https://infobox.prozorro.org/articles/vse-pro-publikaciyu-zvitiv-po-ukladenim-dogovoram-v-umovah-sogodennya).
+- Від 50 000 грн потрібен ще звіт про договір у Prozorro протягом 10 робочих днів після підписання договору. Джерело: [Мінекономіки](https://me.gov.ua/InfoRez/Details/ee922d65-5e66-4082-82f8-9851e7236da6?lang=uk-UA).
+- Тендер не потрібен до 200 000 грн (постанова КМУ № 957, з 01.09.2026). Ділити закупівлю на частини заборонено. Штраф — до 170 000 грн (КУпАП, ст. 164-14). Джерело: [tndr.com.ua](https://tndr.com.ua/article/zbilsheno-vartisni-mezhi-dlya-zakupivel-tovariv-robit-ta-poslug-z-01-09-2026-yak-cze-vlyvaye-na-obrannya-vydu-zakupivli-ta-mozhlyvi-ryzyky/).
 - Межу рахують за предметом закупівлі за рік, а не за одним договором. Розміщення сайту й інтернет під тим самим кодом можуть рахуватися разом. Джерело: [Radnyk Academy](https://radnyk.academy/blog/shodo-zakupivel-do-50-tis-grn).
 
 Ці правила — за постановою КМУ № 1178, поки новий закон не введено в дію повністю. Джерело: [Prozorro Infobox](https://infobox.prozorro.org/articles/shchodo-nabrannya-chinnosti-ta-vvedennya-v-diyu-zakonu-ukrajini-pro-publichni-zakupivli-vid-27-05-2026-4888-ix).
@@ -78,7 +72,7 @@ export const planYear = nextDay(offer.pilotUntil).slice(0, 4);
 
 ## Пілот
 
-До {formatDate(offer.pilotUntil)} послуги безоплатні: угода з їхньою вартістю{offer.pilotValueUah != null && <> — {formatNumber(offer.pilotValueUah)} грн за кожен місяць пілоту</>} і акт приймання. Заклад ставить їх на облік і протягом 10 робочих днів оприлюднює на своєму сайті як благодійну допомогу (Закон „Про освіту“, ст. 30 ч. 3–4, ст. 79). Угода не зобовʼязує заклад купувати послугу потім.
+До {formatDate(offer.pilotUntil)} послуги безоплатні: угода з їхньою вартістю{offer.pilotValueUah != null && <> — {formatGrn(offer.pilotValueUah)} за кожен місяць пілоту</>} і акт приймання. Заклад ставить їх на облік і протягом 10 робочих днів оприлюднює на своєму сайті як благодійну допомогу (Закон „Про освіту“, ст. 30 ч. 3–4, ст. 79). Угода не зобовʼязує заклад купувати послугу потім.
 
 Джерела: безоплатні послуги — це благодійна допомога, її оформлюють документами й ставлять на облік ([osvita.ua](https://osvita.ua/school/90325/)); строк і місце оприлюднення — [Закон „Про освіту“, ст. 30](https://urst.com.ua/pro_osvitu/st-30) та [info.eo.gov.ua](https://info.eo.gov.ua/oprylyudnennya-informacziyi-na-vykonannya-statti-30-zakonu-ukrayiny-pro-osvitu/).
 
@@ -86,6 +80,4 @@ export const planYear = nextDay(offer.pilotUntil).slice(0, 4);
 
 Закон „Про публічні закупівлі“ № 4888-IX вводиться в дію повністю з 24.03.2027; ми оновимо цю сторінку. Джерело: [Prozorro Infobox](https://infobox.prozorro.org/articles/shchodo-nabrannya-chinnosti-ta-vvedennya-v-diyu-zakonu-ukrajini-pro-publichni-zakupivli-vid-27-05-2026-4888-ix).
 
-<p class="cta-row"><a class="button primary" href="../zaiavka/">Залишити заявку</a></p>
-
-</div>
+<p class="cta-row"><a class="btn btn-main" href="../zaiavka/">Подати заявку</a></p>

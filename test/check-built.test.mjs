@@ -7,20 +7,9 @@ import {
 	checkBuiltAsOf,
 	checkOperatorLine,
 	checkScripts,
-	checkHeader,
 	extractMain,
-	expectedHeader,
 	TURNSTILE_SRC,
 } from '../scripts/check-built.mjs';
-
-function headerHtml(base, { dropLink, swapButton } = {}) {
-	const { links, button } = expectedHeader(base);
-	const a = ([text, href]) => `<a href="${href}">${text}</a>`;
-	const shown = dropLink ? links.filter(([text]) => text !== dropLink) : links;
-	const btn = swapButton ? [button[0], `${base}/wrong/`] : button;
-	return `<nav aria-label="Основна навігація"><div class="tabula-nav">${shown.map(a).join('')}${a(btn)}</div>
-<details><summary>Меню</summary><div>${a(btn)}${shown.map(a).join('')}</div></details></nav>`;
-}
 
 test('findForbidden: each phrase of decision 8, case-insensitively', () => {
 	assert.deepEqual(findForbidden('Ми гарантуємо відповідність закону.'), ['гарантуємо відповідність']);
@@ -82,19 +71,6 @@ test('checkOperatorLine: the footer carries the operator line verbatim', () => {
 	assert.equal(checkOperatorLine(`<p>${line}</p><footer class="site-footer"></footer>`, line).length, 1);
 });
 
-test('checkHeader: the five links and the button, inline and in the panel', () => {
-	for (const base of ['/site', '/']) {
-		assert.deepEqual(checkHeader(headerHtml(base), base), []);
-	}
-});
-
-test('checkHeader: a missing link, a wrong button and a wrong base fail', () => {
-	assert.ok(checkHeader(headerHtml('/site', { dropLink: 'Підтримка' }), '/site').length > 0);
-	assert.ok(checkHeader(headerHtml('/site', { swapButton: true }), '/site').length > 0);
-	assert.ok(checkHeader(headerHtml('/site'), '/').length > 0);
-	assert.deepEqual(checkHeader('<div></div>', '/site'), ['no <nav aria-label="Основна навігація">']);
-});
-
 test('checkScripts: only Turnstile\'s api.js, never inline', () => {
 	assert.deepEqual(checkScripts('<form></form>'), []);
 	assert.deepEqual(checkScripts(`<script src="${TURNSTILE_SRC}" async></script>`), []);
@@ -124,6 +100,13 @@ import {
 	LAW_CLAIMS,
 	checkEveryPage,
 	checkDemoAddress,
+	checkNoDocsLinks,
+	checkDocChrome,
+	checkCtaName,
+	checkFooterLinks,
+	checkOneH1,
+	metaDescription,
+	isDocsHref,
 	rawText,
 	PRODUCT_LINKS,
 } from '../scripts/check-built.mjs';
@@ -138,7 +121,7 @@ function productHeader({ prefix = '', dropLink, button = `${prefix}#request` } =
 </div></header>`;
 }
 const productPage = (body = '', header = productHeader()) =>
-	`<!doctype html><html lang="uk" data-product-page><body>${header}<main>${body}</main></body></html>`;
+	`<!doctype html><html lang="uk" data-product-page><body>${header}<main><h1>Т</h1>${body}</main></body></html>`;
 
 test('isProductPage: only <html data-product-page>', () => {
 	assert.ok(isProductPage('<!doctype html><html lang="uk" data-product-page><head>'));
@@ -169,7 +152,7 @@ test('checkNoBreakSpaces: a plain space between a number and ₴ / року / г
 	assert.equal(checkNoBreakSpaces('1\u00a0200 ₴').length, 1);
 	assert.equal(checkNoBreakSpaces('до 2026 року').length, 1);
 	assert.equal(checkNoBreakSpaces('300 грн').length, 1);
-	assert.equal(checkNoBreakSpaces('31 грудня 2026').length, 1);
+	assert.equal(checkNoBreakSpaces('31 грудня 2026').length, 2);
 });
 
 test('rawText keeps entities, so the no-break rule sees &#160; as written', () => {
@@ -283,4 +266,77 @@ test('checkProductPage: a clean home passes; each family of rule fails on its ow
 	assert.ok(bad('<p>помічник ШІ</p>').length > 0);
 	assert.ok(bad('<p class="sl-flex">x</p>').length > 0);
 	assert.ok(bad('<script type="module" src="/a.js"></script>').length > 0);
+});
+
+test('checkProductPage: the home alone is exempt from the two-claims rule; the law page may name uCoz', () => {
+	const lawBody = '<p>Закон «Про освіту». Станом на 08.11.2026.</p>';
+	assert.ok(checkProductPage(productPage(lawBody), { isHome: true, assistantStatus: 'on' }).length > 0);
+	assert.deepEqual(checkProductPage(productPage(lawBody), { isHome: false }), []);
+	assert.ok(checkProductPage(productPage('<p>сайти на uCoz</p>'), { isHome: false }).length > 0);
+	assert.deepEqual(checkProductPage(productPage('<p>сайти на uCoz</p>'), { isHome: false, allowUcoz: true }), []);
+});
+
+test('checkNoDocsLinks: the product header and footer do not link into the documentation', () => {
+	const footer = (...hrefs) => `<footer class="site-footer">${hrefs.map((h) => `<a href="${h}">x</a>`).join('')}</footer>`;
+	const page = (f) => productPage('', productHeader()) + f;
+	assert.deepEqual(checkNoDocsLinks(page(footer('/site/dlia-bukhhalterii/', '/site/vstanovyty-samostiino/', 'https://example.org/editor/'))), []);
+	for (const bad of ['/site/editor/', '/site/install/vstanovlennia/', '../qa/', '/dev/']) {
+		assert.equal(checkNoDocsLinks(page(footer(bad))).length, 1, bad);
+	}
+	// a body link into the docs is text, not navigation
+	assert.deepEqual(checkNoDocsLinks(productPage('<a href="../editor/">посібник</a>') + footer('/site/')), []);
+	const headerLink = productHeader().replace('href="#price"', 'href="/site/editor/"');
+	assert.equal(checkNoDocsLinks(productPage('', headerLink)).length, 1);
+});
+
+test('checkDocChrome: no site navigation or request button, a footer link to the product home', () => {
+	const doc = (extra = '', home = '/site/') =>
+		`<html lang="uk"><body><header class="header"><a href="/site/">Tabula</a>${extra}</header><footer class="site-footer"><a href="${home}">На головну Tabula</a></footer></body></html>`;
+	assert.deepEqual(checkDocChrome(doc(), '/site'), []);
+	assert.deepEqual(checkDocChrome(doc('', '/'), '/'), []);
+	assert.equal(checkDocChrome(doc('<nav aria-label="Основна навігація"></nav>'), '/site').length, 1);
+	assert.equal(checkDocChrome(doc('<a class="btn" href="/site/zaiavka/">Подати заявку</a>'), '/site').length, 1);
+	assert.equal(checkDocChrome(doc('', '/site/editor/'), '/site').length, 1);
+	assert.equal(checkDocChrome(doc('<a class="btn" href="/site/zaiavka/">Залишити заявку</a>'), '/site').length, 1);
+	assert.equal(checkDocChrome('<html><body><header></header></body></html>', '/site').length, 1);
+});
+
+test('checkCtaName: «Залишити заявку» is on no product page', () => {
+	assert.deepEqual(checkCtaName(productPage('<a href="#request">Подати заявку</a>')), []);
+	assert.equal(checkCtaName(productPage('<a class="btn" href="../zaiavka/">Залишити  заявку</a>')).length, 1);
+});
+
+test('isDocsHref: relative, root-relative, own-origin absolute and slash-less hrefs; not other origins', () => {
+	const origin = 'https://example.test';
+	for (const bad of ['/site/editor/', '../install/x/', '/site/dev', 'qa', 'editor/#a', 'https://example.test/site/editor/', 'https://example.test/site/dev', '//example.test/site/qa/']) {
+		assert.ok(isDocsHref(bad, origin), bad);
+	}
+	for (const ok of ['/site/zaiavka/', '/site/vstanovyty-samostiino/', 'https://github.com/x/editor/', 'https://other.test/site/dev/', '/site/#faq', 'mailto:a@b.c', '/site/developers/']) {
+		assert.ok(!isDocsHref(ok, origin), ok);
+	}
+	assert.equal(checkNoDocsLinks(productPage('') + '<footer class="site-footer"><a href="https://example.test/site/editor">x</a></footer>', origin).length, 1);
+});
+
+test('checkFooterLinks: every own page is linked from the footer', () => {
+	const footer = (...slugs) => `<footer class="site-footer">${slugs.map((s) => `<a href="/site/${s}/">x</a>`).join('')}</footer>`;
+	assert.deepEqual(checkFooterLinks(footer('a', 'b'), ['a', 'b'], '/site'), []);
+	assert.equal(checkFooterLinks(footer('a'), ['a', 'b'], '/site').length, 1);
+	assert.equal(checkFooterLinks('<a href="/site/b/">in the body</a>' + footer('a'), ['a', 'b'], '/site').length, 1);
+	assert.deepEqual(checkFooterLinks('<footer class="site-footer"><a href="/a/">x</a></footer>', ['a'], '/'), []);
+});
+
+test('checkOneH1 and metaDescription', () => {
+	assert.deepEqual(checkOneH1('<h1>a</h1><h2>b</h2>'), []);
+	assert.equal(checkOneH1('<p>none</p>').length, 1);
+	assert.equal(checkOneH1('<h1>a</h1><h1 id="x">b</h1>').length, 1);
+	assert.equal(metaDescription('<meta name="description" content="межа 50&#160;000 грн">'), 'межа 50&#160;000 грн');
+	assert.equal(metaDescription('<meta charset="utf-8">'), null);
+	assert.ok(checkProductPage('<!doctype html><html lang="uk" data-product-page><head><meta name="description" content="50 000 грн"></head><body>' + productHeader() + '<main><h1>x</h1></main></body></html>').filter((p) => p.startsWith('meta description')).length > 0);
+	assert.ok(checkProductPage(productPage('<h1>y</h1>')).some((p) => p.includes('<h1>')));
+});
+
+test('checkNoBreakSpaces: month and year', () => {
+	assert.equal(checkNoBreakSpaces('з 1\u00a0січня 2027').length, 1);
+	assert.deepEqual(checkNoBreakSpaces('1\u00a0січня\u00a02027'), []);
+	assert.deepEqual(checkNoBreakSpaces('1&#160;січня&nbsp;2027'), []);
 });

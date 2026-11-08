@@ -1,19 +1,11 @@
 ---
 title: Як це працює
 description: Чотири кроки від заявки до сайту закладу освіти. Що робить проєкт, що робить заклад, як перенести старий сайт.
-template: splash
-editUrl: false
-sidebar:
-  hidden: true
 ---
 
 import { offer, nextDay } from '../../config/offer.mjs';
 
 export const planYear = nextDay(offer.pilotUntil).slice(0, 4);
-
-<div class="prose-narrow">
-
-<h1 id="_top">Як це працює</h1>
 
 Чотири кроки від заявки до сайту. Кожен крок має свій строк.
 
@@ -23,7 +15,7 @@ export const planYear = nextDay(offer.pilotUntil).slice(0, 4);
 
 Зазвичай відповідаємо протягом {offer.requestReplyDays} робочих днів.
 
-<p class="cta-row"><a class="button primary" href="../zaiavka/">Залишити заявку</a></p>
+<p class="cta-row"><a class="btn btn-main" href="../zaiavka/">Подати заявку</a></p>
 
 ## 2. Розмова
 
@@ -70,5 +62,3 @@ export const planYear = nextDay(offer.pilotUntil).slice(0, 4);
 ## Власний домен
 
 Сайт може працювати на власному домені закладу. Скажіть про це під час розмови — підкажемо, як підключити. Власний домен лишається вашим.
-
-</div>

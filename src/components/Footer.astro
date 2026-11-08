@@ -1,36 +1,23 @@
 ---
-// Override of Starlight's default Footer (registered in astro.config.mjs), issue #5.
+// Override of Starlight's default Footer (registered in astro.config.mjs). Since slice S2 of story 80
+// every Starlight page is a documentation page (`template: doc`), so Starlight's own footer content —
+// edit link, pagination — is kept above ours.
 //
-// Doc pages (`template: doc`) keep Starlight's own footer content — edit link, last-updated,
-// pagination — rendered above our links. Splash pages (the landing and the about page) have
-// no edit link or pagination, so the default footer would render an empty wrapper there; skip
-// it entirely on those.
-//
-// The site-page links here are the one place internal links can't be written relative
-// (`../pro-proiekt/`, `pro-proiekt/`, ...) — this
-// footer renders on every page at every depth (`/`, `/editor/`, `/editor/novyny/`, ...), so a
-// single relative path can't be correct at all of them. `import.meta.env.BASE_URL` is Astro's
-// own resolved `base` (see astro.config.mjs: `/site` by default, `/` once the custom domain
-// sets `SITE_BASE=/`) and is safe to join directly: check-links.mjs resolves an absolute
-// (leading-slash) href without any base-stripping of its own, because dist/'s own file layout
-// is already base-prefixed to match.
+// Ours: one link back to the product home («На головну Tabula»), the project's own GitHub links, the
+// tagline and the operator line of story 78's decision 5 (`operatorLine` from `offer.mjs`, checked on
+// every page by `check-built.mjs`). The documentation is not linked from the product pages, so this is
+// the only way back. The home link is built from `import.meta.env.BASE_URL` (Astro's resolved `base`):
+// this footer renders at every page depth, so a single relative path cannot be correct everywhere;
+// `scripts/check-links.mjs` resolves an absolute (leading-slash) href against its own base-prefixed page
+// map.
 import Default from '@astrojs/starlight/components/Footer.astro';
 import { operatorLine } from '../config/offer.mjs';
 
-const isSplash = Astro.locals.starlightRoute.entry.data.template === 'splash';
-
 const base = import.meta.env.BASE_URL;
-const baseWithSlash = base.endsWith('/') ? base : `${base}/`;
-const pageHref = (path) => `${baseWithSlash}${path}`;
+const home = base.endsWith('/') ? base : `${base}/`;
 
-// Story 78: the trust pages first, then the project's own links (GitHub, licence, bug and
-// vulnerability reports are kept from before).
 const links = [
-	{ text: 'Доступність', href: pageHref('dostupnist/') },
-	{ text: 'Обробка персональних даних', href: pageHref('personalni-dani/') },
-	{ text: 'Безпека й дані', href: pageHref('bezpeka-i-dani/') },
-	{ text: 'Встановити самостійно', href: pageHref('vstanovyty-samostiino/') },
-	{ text: 'Про проєкт', href: pageHref('pro-proiekt/') },
+	{ text: 'На головну Tabula', href: home },
 	{ text: 'Репозиторій на GitHub', href: 'https://github.com/tabula-cms/tabula' },
 	{ text: 'Ліцензія AGPL-3.0', href: 'https://github.com/tabula-cms/tabula/blob/main/LICENSE' },
 	{ text: 'Повідомити про помилку', href: 'https://github.com/tabula-cms/tabula/issues/new/choose' },
@@ -38,7 +25,7 @@ const links = [
 ];
 ---
 
-{!isSplash && <Default />}
+<Default />
 
 <footer class="site-footer not-content">
 	<nav class="site-footer-links" aria-label="Про сайт">

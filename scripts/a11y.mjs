@@ -4,37 +4,34 @@
 // scripts/lib/serve-dist.mjs that maps the base path (SITE_BASE, default /site as in
 // astro.config.mjs), so it needs no dependency beyond playwright and @axe-core/playwright.
 //
-// Pages: the product pages (the home, slice S1 of story 80) and the W1 pages «Хостинг і ціна»,
-// «Для бухгалтерії» and «Заявка», each at 1280 and 320 px, in a context with
-// `reducedMotion: 'reduce'` (so revealed content is measured, not its first frame). On the home
-// every tab of both tablists is also clicked in turn and axe runs after each. Prints the violation
-// count and the time per page and width; exits 1 on any violation.
+// Pages: every product page — the home and the eleven reading pages of src/content/pages/ (slice S2) —
+// each at 1280 and 320 px, in a context with `reducedMotion: 'reduce'` (so revealed content is measured,
+// not its first frame). On the home every tab of both tablists is also clicked in turn and axe runs after
+// each. The documentation (Starlight) is not scanned. Prints the violation count and the time per page
+// and width; exits 1 on any violation.
 
-import { existsSync } from 'node:fs';
+import { existsSync, readdirSync } from 'node:fs';
 import { chromium } from 'playwright';
 import AxeBuilder from '@axe-core/playwright';
+import { fileURLToPath } from 'node:url';
 import { serveDist, distDir, baseNoSlash } from './lib/serve-dist.mjs';
 
-const PAGES = ['', 'khostynh-i-tsina/', 'dlia-bukhhalterii/', 'zaiavka/'];
+const pagesDir = fileURLToPath(new URL('../src/content/pages/', import.meta.url));
+const PAGES = [
+	'',
+	...readdirSync(pagesDir)
+		.filter((name) => /\.mdx?$/.test(name))
+		.map((name) => `${name.replace(/\.mdx?$/, '')}/`)
+		.sort(),
+];
 const WIDTHS = [1280, 320];
-// Starlight's own search button (visible "Пошук Ctrl K", accessible name "Пошук") fails axe's
-// label-content-name-mismatch on every page of the site, imported docs included. It is the
-// framework's component, not ours; only this rule on only this element is ignored, and the
-// number of ignored nodes is printed for every run. Temporary: tracked in
-// https://github.com/tabula-cms/site/issues/22 — remove this entry when that issue is closed.
-const KNOWN = [{ rule: 'label-content-name-mismatch', target: 'button[data-open-modal=""]' }];
 const TAGS = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'];
 
-// What axe reports for `tab`, minus the known Starlight search-button node, counted and printed.
+// What axe reports for `tab`, counted and printed.
 async function scan(tab, label, started) {
 	const result = await new AxeBuilder({ page: tab }).withTags(TAGS).analyze();
-	const isKnown = (v) =>
-		KNOWN.some((k) => k.rule === v.id && v.nodes.every((n) => n.target.join(' ') === k.target));
-	const ignored = result.violations.filter(isKnown).reduce((sum, v) => sum + v.nodes.length, 0);
-	const violations = result.violations.filter((v) => !isKnown(v));
-	console.log(
-		`a11y: ${label} — ${violations.length} violation(s), ${ignored} known node(s) ignored, ${Date.now() - started} ms`,
-	);
+	const violations = result.violations;
+	console.log(`a11y: ${label} — ${violations.length} violation(s), ${Date.now() - started} ms`);
 	for (const violation of violations) {
 		console.error(`  - ${violation.id} (${violation.impact}): ${violation.help}`);
 		for (const node of violation.nodes.slice(0, 5)) console.error(`      ${node.target.join(' ')}`);

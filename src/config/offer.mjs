@@ -26,11 +26,8 @@ export const offer = Object.freeze({
 	requestReplyDays: 2,
 	// Decision 24: the usual reply time to a support e-mail, in working days.
 	supportReplyDays: 2,
-	// Decision 24: the public address for requests and support.
-	contactEmail: 'support@tabula.org.ua',
-	// Story 80: must equal `supportEmail` (test/offer.test.mjs); S2 of story 80 moves the W1 pages
-	// to `supportEmail` and this field goes away.
-	// Story 80, decision 13: the public support address, the one the product pages show.
+	// Decision 24 and story 80, decision 13: the public address for requests and support, the one every
+	// product page shows.
 	supportEmail: 'support@tabula.org.ua',
 	// Story 80, decision 13: 'testing' while the assistant is not on for schools (every place that
 	// shows it carries the «Випробовуємо» chip); 'on' drops the chips and the FAQ entry
@@ -43,7 +40,7 @@ export const offer = Object.freeze({
 	// Decision 24: an optional public phone number; pages show it only when set.
 	contactPhone: null,
 	// Decision 5 and 24: the role mailbox for the controller's details and data-subject requests
-	// (set by the owner in PR #21). privacyEmail() falls back to contactEmail if it is ever null.
+	// (set by the owner in PR #21). privacyEmail() falls back to supportEmail if it is ever null.
 	operatorEmail: 'privacy@tabula.org.ua',
 	// Decision 24: the control plane's address; TABULA_CP_URL overrides it at build time for a
 	// manual check against a local control plane.
@@ -171,9 +168,9 @@ export function formatNumber(n) {
 
 /** The mailbox the privacy page names for the controller's full details (decision 5).
  * `operatorEmail` is empty until the owner sets a role mailbox; until then the sentence
- * «…на запит на {operatorEmail}» uses `contactEmail`, so it always names an address that works. */
+ * «…на запит на {operatorEmail}» uses `supportEmail`, so it always names an address that works. */
 export function privacyEmail() {
-	return offer.operatorEmail || offer.contactEmail;
+	return offer.operatorEmail || offer.supportEmail;
 }
 
 // «протягом N робочих днів» with N in words (genitive), for the sentences that give a usual reply
@@ -224,3 +221,8 @@ export const includesShort = Object.freeze([
 	{ text: 'Щоденні резервні копії на серверах у ЄС', coveredBy: [3] },
 	{ text: `Відповідь на листи — зазвичай ${withinWorkingDays(offer.supportReplyDays)}`, coveredBy: [5] },
 ]);
+
+/** `4800` -> `'4 800 грн'`: the sum for running text, no-break spaces (U+00A0) inside and before «грн». */
+export function formatGrn(n) {
+	return `${formatNumber(n).replaceAll(' ', ' ')} грн`;
+}

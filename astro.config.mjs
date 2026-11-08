@@ -69,24 +69,15 @@ export default defineConfig({
 			// so this needs no base-handling here — confirmed in a built `dist/index.html`.
 			favicon: '/favicon.svg',
 			sidebar,
-			// Restrained institutional palette (deep ink-blue accent) and landing/about-page
-			// typography — see CLAUDE.md's Conventions and issue #5.
+			// The documentation's deep ink-blue accent palette — see CLAUDE.md and src/styles/site.css.
 			customCss: ['./src/styles/site.css'],
 			components: {
-				// The about page (pro-proiekt.mdx) and the other W1 pages are hand-written
-				// `template: splash` pages that write their own top heading directly in the
-				// body as a raw `<h1 id="_top">` (the about
-				// page's own `<h1 id="_top">Про проєкт</h1>`) — Starlight's automatic
-				// PageTitle would otherwise duplicate it. See src/components/PageTitle.astro
-				// and CLAUDE.md.
-				PageTitle: './src/components/PageTitle.astro',
-				// Quiet, site-wide footer (issue #5) that still preserves the default
-				// edit-link/pagination footer on ordinary doc pages — see
-				// src/components/Footer.astro and CLAUDE.md.
+				// Slice S2 of story 80: Starlight is the documentation only. The footer keeps the default
+				// edit-link/pagination footer, adds the link back to the product home and the operator line;
+				// the wordmark carries the site's mark. The header is Starlight's own (search, theme switch) —
+				// no site navigation: the product pages are not linked from here except through the wordmark and the
+				// footer link. See src/components/ and CLAUDE.md.
 				Footer: './src/components/Footer.astro',
-				// Site-wide top navigation and wordmark (issue #5, design pass 3) — see
-				// src/components/Header.astro, src/components/SiteTitle.astro and CLAUDE.md.
-				Header: './src/components/Header.astro',
 				SiteTitle: './src/components/SiteTitle.astro',
 			},
 		}),

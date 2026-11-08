@@ -1,0 +1,18 @@
+---
+// The site's own reading pages (story 80, slice S2): one route per file of src/content/pages/, at
+// /<slug>/ under the base — the addresses the pages had when they were Starlight's.
+import { getCollection, render } from 'astro:content';
+import ProductPage from '../layouts/ProductPage.astro';
+
+export async function getStaticPaths() {
+	const pages = await getCollection('pages');
+	return pages.map((entry) => ({ params: { slug: entry.id }, props: { entry } }));
+}
+
+const { entry } = Astro.props;
+const { Content } = await render(entry);
+---
+
+<ProductPage title={entry.data.title} description={entry.data.description}>
+	<Content />
+</ProductPage>

@@ -2164,3 +2164,163 @@
 [data-product-page] [hidden] {
 	display: none !important;
 }
+
+/* ---------------------------------------------------------------------------------------------
+ * 17. Reading pages (slice S2 of story 80): src/layouts/ProductPage.astro. One narrow column
+ * (at most 720 px), the H1 in Unbounded, the text in Manrope at 18 px. No reveal effects.
+ * --------------------------------------------------------------------------------------------- */
+.reading {
+	max-width: 720px;
+	margin: 0 auto;
+	padding: 48px 24px 72px;
+	font-size: 18px;
+	line-height: 1.65;
+	color: var(--text);
+	overflow-wrap: break-word;
+}
+.reading h1 {
+	margin: 0 0 24px;
+	font-family: var(--display);
+	font-weight: 600;
+	font-size: clamp(26px, 7vw, 38px);
+	line-height: 1.15;
+	letter-spacing: -0.02em;
+	color: var(--ink);
+}
+.reading h2,
+.reading h3 {
+	font-family: var(--display);
+	font-weight: 600;
+	color: var(--ink);
+	line-height: 1.25;
+	letter-spacing: -0.01em;
+}
+.reading h2 {
+	margin: 2.2em 0 0.6em;
+	font-size: clamp(21px, 5.4vw, 26px);
+}
+.reading h3 {
+	margin: 1.8em 0 0.5em;
+	font-size: clamp(18px, 4.6vw, 21px);
+}
+.reading p,
+.reading ul,
+.reading ol,
+.reading blockquote {
+	margin: 0 0 1em;
+}
+.reading ul,
+.reading ol {
+	padding-left: 1.4em;
+}
+.reading li + li {
+	margin-top: 0.4em;
+}
+.reading strong {
+	color: var(--ink);
+}
+.reading a {
+	text-decoration: underline;
+	text-underline-offset: 0.15em;
+}
+.reading a.btn {
+	text-decoration: none;
+}
+.reading code {
+	padding: 1px 6px;
+	border-radius: 6px;
+	background: var(--mint);
+	font-size: 0.9em;
+}
+.reading hr {
+	margin: 2em 0;
+	border: 0;
+	border-top: 1px solid var(--line);
+}
+.reading blockquote {
+	padding: 14px 18px;
+	border-left: 4px solid var(--accent);
+	border-radius: 0 12px 12px 0;
+	background: var(--surface);
+	font-size: 17px;
+}
+.reading blockquote p:last-child {
+	margin-bottom: 0;
+}
+.reading .cta-row {
+	margin: 1.6em 0;
+}
+.reading .cta-row .btn {
+	padding: 14px 24px;
+	font-size: 17px;
+}
+.reading details {
+	margin: 0 0 1em;
+	padding: 12px 16px;
+	border: 1px solid var(--line);
+	border-radius: 12px;
+	background: var(--surface);
+}
+.reading summary {
+	cursor: pointer;
+	font-weight: 700;
+	color: var(--ink);
+}
+.reading-table {
+	margin: 0 0 1.4em;
+	background: var(--surface);
+	border: 1px solid #dce5e2;
+	border-radius: 16px;
+	overflow-x: auto;
+}
+.reading-table table {
+	width: 100%;
+	min-width: 480px;
+	border-collapse: collapse;
+	font-size: 16px;
+	line-height: 1.5;
+}
+.reading-table caption {
+	padding: 12px 14px 4px;
+	text-align: left;
+	font-weight: 700;
+	color: var(--ink);
+}
+.reading-table th,
+.reading-table td {
+	padding: 10px 14px;
+	text-align: left;
+	vertical-align: top;
+	border-bottom: 1px solid #eef1f0;
+}
+.reading-table thead th {
+	color: var(--ink);
+	border-bottom: 1px solid #dce5e2;
+}
+.reading-table tbody th {
+	color: var(--ink);
+	font-weight: 700;
+}
+.reading-table tr:last-child > * {
+	border-bottom: 0;
+}
+@media (max-width: 600px) {
+	.reading {
+		padding: 32px 20px 56px;
+	}
+}
+
+/* The footer's link under the tagline («Про проєкт»): the same box as the list links, 44 px on phones via section 15. */
+.site-footer__more {
+	margin: 6px 0 0;
+}
+.site-footer__more a {
+	display: inline-block;
+	padding: 6px 0;
+	color: var(--text);
+}
+@media (max-width: 900px) {
+	.site-footer__more a {
+		padding: 11px 0;
+	}
+}

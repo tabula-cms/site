@@ -1,0 +1,21 @@
+---
+// A reading page of the product layout (story 80, slice S2): the product header and footer around
+// one narrow column with the page's single <h1>, then the page's text. No reveal effects here, only
+// the header's behaviour from Product.astro.
+import Product from './Product.astro';
+
+interface Props {
+	title: string;
+	description: string;
+}
+const { title, description } = Astro.props;
+---
+
+<Product title={`${title} — Tabula`} description={description}>
+	<article class="reading">
+		<h1>{title}</h1>
+		<div class="reading__body">
+			<slot />
+		</div>
+	</article>
+</Product>

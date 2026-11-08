@@ -1,10 +1,6 @@
 ---
 title: Хостинг і ціна
 description: Що входить у розміщення сайту закладу освіти, скільки це коштує, як відбувається оплата і що буде, якщо заклад піде.
-template: splash
-editUrl: false
-sidebar:
-  hidden: true
 ---
 
 import {
@@ -12,14 +8,10 @@ import {
 	includes,
 	operatorLine,
 	formatDate,
-	formatDateLong,
-	formatNumber,
+	formatDateLongYear,
+	formatGrn,
 	nextDay,
 } from '../../config/offer.mjs';
-
-<div class="prose-narrow">
-
-<h1 id="_top">Хостинг і ціна</h1>
 
 Станом на {formatDate(offer.asOf)}.
 
@@ -27,7 +19,7 @@ import {
 
 ## Що отримує заклад
 
-<ul class="plain-list">
+<ul>
 {includes.map((item) => (
 	<li>{item.title}</li>
 ))}
@@ -35,11 +27,11 @@ import {
 
 ## Скільки коштує
 
-До {formatDate(offer.pilotUntil)} — безкоштовно. З {formatDateLong(nextDay(offer.pilotUntil))} року — {formatNumber(offer.priceYearUah)} грн на рік ({formatNumber(offer.priceQuarterUah)} грн за квартал), без ПДВ.
+До {formatDate(offer.pilotUntil)} — безкоштовно. З {formatDateLongYear(nextDay(offer.pilotUntil))} — {formatGrn(offer.priceYearUah)} на рік ({formatGrn(offer.priceQuarterUah)} за квартал), без ПДВ.
 
 <p>{operatorLine}</p>
 
-<p class="cta-row"><a class="button primary" href="../zaiavka/">Залишити заявку</a></p>
+<p class="cta-row"><a class="btn btn-main" href="../zaiavka/">Подати заявку</a></p>
 
 ## Як відбувається оплата
 
@@ -62,19 +54,20 @@ import {
 
 ## Пакет для громади
 
-Для відділу освіти, який хоче сайти для кількох закладів: один договір і одна ціна за сайт; напишіть нам. Від 11 сайтів сума за рік перевищує 50 000 грн — потрібен звіт про договір у Prozorro.
+Для відділу освіти, який хоче сайти для кількох закладів: один договір і одна ціна за сайт; напишіть нам. Від 11 сайтів сума за рік перевищує 50 000 грн — потрібен звіт про договір у Prozorro.
 
-Від 50 000 грн потрібен звіт про договір у Prozorro протягом 10 робочих днів після підписання договору (станом на {formatDate(offer.asOf)}). Джерело: [Мінекономіки](https://me.gov.ua/InfoRez/Details/ee922d65-5e66-4082-82f8-9851e7236da6?lang=uk-UA). Межу рахують за предметом закупівлі за рік, а не за одним договором. Джерело: [Radnyk Academy](https://radnyk.academy/blog/shodo-zakupivel-do-50-tis-grn).
+Від 50 000 грн потрібен звіт про договір у Prozorro протягом 10 робочих днів після підписання договору (станом на {formatDate(offer.asOf)}). Джерело: [Мінекономіки](https://me.gov.ua/InfoRez/Details/ee922d65-5e66-4082-82f8-9851e7236da6?lang=uk-UA). Межу рахують за предметом закупівлі за рік, а не за одним договором. Джерело: [Radnyk Academy](https://radnyk.academy/blog/shodo-zakupivel-do-50-tis-grn).
 
 ## Хостинг Tabula чи власний сервер
 
-<table class="compare-table">
+<div class="reading-table" tabindex="0" role="region" aria-label="Порівняння двох способів мати сайт на Tabula">
+<table>
 <caption>Порівняння двох способів мати сайт на Tabula</caption>
 <thead>
 <tr><th scope="col">Що</th><th scope="col">Хостинг Tabula</th><th scope="col">Власний сервер</th></tr>
 </thead>
 <tbody>
-<tr><th scope="row">Ціна</th><td>{formatNumber(offer.priceYearUah)} грн на рік після пілоту</td><td>Система безкоштовна; сервер і домен оплачуєте самі</td></tr>
+<tr><th scope="row">Ціна</th><td>{formatGrn(offer.priceYearUah)} на рік після пілоту</td><td>Система безкоштовна; сервер і домен оплачуєте самі</td></tr>
 <tr><th scope="row">Оновлення</th><td>Оновлюємо ми</td><td>Ставите за інструкцією</td></tr>
 <tr><th scope="row">Резервні копії</th><td>Щоденні, зашифровані</td><td>Налаштовуєте самі</td></tr>
 <tr><th scope="row">Підтримка</th><td>Електронною поштою</td><td>Документація й GitHub</td></tr>
@@ -82,7 +75,6 @@ import {
 <tr><th scope="row">Хто виправляє, якщо щось зламалося</th><td>Ми</td><td>Ваш технічний фахівець</td></tr>
 </tbody>
 </table>
+</div>
 
 Хочете свій сервер? Див. [«Встановити самостійно»](../vstanovyty-samostiino/).
-
-</div>
