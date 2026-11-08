@@ -1,0 +1,103 @@
+---
+// Section 8: Такий вигляд матиме ваш сайт. Four template tabs switch the laptop and the phone;
+// without JavaScript all four are shown one under another. The note of the active template is
+// mirrored next to the tablist by src/scripts/tabs.js (`data-tabs-note`).
+import Shot from '../Shot.astro';
+import { shots } from '../shots';
+import { offer } from '../../../config/offer.mjs';
+
+const templates = [
+	{
+		id: 'panorama',
+		name: 'Панорама',
+		laptop: shots.tplPanorama,
+		phone: shots.phonePanorama,
+		note: 'Велике фото будівлі й спокійні шрифти — класичний вигляд, що пасує будь-якому закладу.',
+	},
+	{
+		id: 'vitryna',
+		name: 'Вітрина',
+		laptop: shots.tplVitryna,
+		phone: shots.phoneVitryna,
+		note: 'Яскраві блоки й жовтий акцент — для закладу, який хоче, щоб його помітили.',
+	},
+	{
+		id: 'stend',
+		name: 'Стенд',
+		laptop: shots.tplStend,
+		phone: shots.phoneStend,
+		note: 'Як шкільний стенд оголошень: приколоті аркуші й найближчі події на видноті.',
+	},
+	{
+		id: 'klasychna',
+		name: 'Класична',
+		laptop: shots.tplShkilna,
+		phone: shots.phoneShkilna,
+		note: 'Розділи, оголошення й події на першому екрані — для великих закладів.',
+	},
+];
+---
+
+<section id="look" class="anchor">
+	<div class="wrap look__inner">
+		<div class="reveal look__head">
+			<div>
+				<h2 class="h2">Такий вигляд матиме ваш сайт</h2>
+				<p class="lead">Вісім шаблонів. Вигляд змінюєте одним клацанням — зміст залишається.</p>
+			</div>
+			{offer.demoSiteUrl && <a class="btn btn-line btn-md" href={offer.demoSiteUrl}>Відкрити приклад сайту</a>}
+		</div>
+
+		<div class="tabs tabs--look" data-tabs>
+			<div class="look__row">
+				<div role="tablist" aria-label="Шаблони" class="tablist" hidden>
+					{
+						templates.map((t, i) => (
+							<button
+								class="tab"
+								type="button"
+								role="tab"
+								id={`tab-look-${t.id}`}
+								aria-controls={`panel-look-${t.id}`}
+								aria-selected={i === 0 ? 'true' : 'false'}
+								tabindex={i === 0 ? 0 : -1}
+							>
+								{t.name}
+							</button>
+						))
+					}
+				</div>
+				<p class="look__note" data-tabs-note hidden></p>
+			</div>
+			{
+				templates.map((t) => (
+					<div id={`panel-look-${t.id}`} class="tabpanel look__panel">
+						<h3 class="tab-heading" data-tab-heading>{t.name}</h3>
+						<p class="look__note" data-note>{t.note}</p>
+						<div class="laptop">
+							<div class="laptop__screen">
+								<Shot
+									src={t.laptop}
+									alt={`Демонстраційний сайт ліцею в шаблоні «${t.name}» на ноутбуці`}
+									widths={[640, 960, 1280]}
+									sizes="(min-width: 1200px) 1100px, calc(100vw - 92px)"
+									quality={70}
+								/>
+							</div>
+							<div class="laptop__base" aria-hidden="true" />
+						</div>
+						<div class="phone-frame look__phone">
+							<Shot
+								src={t.phone}
+								alt={`Той самий сайт у шаблоні «${t.name}» на телефоні`}
+								widths={[160, 240, 320]}
+								sizes="(min-width: 1200px) 220px, 20vw"
+							/>
+						</div>
+					</div>
+				))
+			}
+			<p class="look__foot">Кожен шаблон зручний на телефоні й має режим «Для слабозорих».</p>
+		</div>
+	</div>
+</section>

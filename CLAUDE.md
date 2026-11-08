@@ -2,7 +2,7 @@
 
 > Internal reference for Claude Code sessions working in this repository.
 >
-> **Last verified: 2026-11-08.**
+> **Last verified: 2026-11-08 (story 80, S1).**
 >
 > **How to keep this file honest:** every pull request that changes a convention, a command,
 > or the file layout updates the matching section of this file in the same PR.
@@ -37,18 +37,26 @@ Exists now:
 | `tsconfig.json` | `astro/tsconfigs/strict` |
 | `src/content.config.ts` | Starlight's `docs` collection (`docsLoader()` + `docsSchema()`, extended with an optional `lang` field) |
 | `src/routeData.ts` | Route data middleware that applies a page's `lang` frontmatter to its `<html lang>` — see Conventions |
-| `src/content/docs/index.mdx` | Landing page content (issue #5, design pass 2) — hand-written `template: splash` MDX sections styled by `src/styles/site.css`: full-bleed tinted bands (hero, "Можливості"), bordered cards ("Три кроки", "Для кого", the "Потрібно" checklist), a tile grid, and small monochrome icons from Starlight's built-in `<Icon name="…" />` set (`@astrojs/starlight/components`) — no `hero` frontmatter and no Starlight `CardGrid`/`Card` |
+| `src/pages/index.astro` | Story 80 (S1): the home, sections 1–13 in the product layout (`src/components/product/home/*`); replaced `src/content/docs/index.mdx`, which was deleted |
+| `src/layouts/Product.astro`, `src/styles/product.css` | Story 80: the product layout (`<html data-product-page>`, skip link, one `<h1>`, own CSS, self-hosted fonts) — see Conventions |
+| `src/components/product/` | Story 80: `Header.astro`, `Footer.astro` (with the `help` slot), `Shot.astro` (responsive `astro:assets` image), `Tick.astro`, `shots.ts` (the screenshots + hero preload options), `home/*.astro` (one component per section) |
+| `src/scripts/tabs.js`, `src/scripts/header.js` | Story 80: the only two scripts of the product pages (tabs with keyboard support; header shadow and «Меню») |
+| `src/assets/shots/` | Story 80: the home's screenshots (WebP) and `facts.json` (`lawFilled`/`lawTotal`), written by `scripts/shots.mjs`; committed |
+| `scripts/shots.mjs` (`npm run shots`), `scripts/lib/shot-kep-line.cjs` | Story 80: reproducible screenshots from a running tabula demo; the `SHOTS` table is exported and tested in `test/shots.test.mjs` |
+| `scripts/budget.mjs` (`npm run budget`), `scripts/lib/serve-dist.mjs` | Story 80: the home's performance budget (600 KB at 390 px, lazy images, LCP preload); the static server of `dist/` shared with `a11y.mjs` |
+| `THIRD_PARTY_LICENSES.md` | The fonts (SIL OFL 1.1, via Fontsource) and the CC0 photos |
+| `test/tabs.test.mjs`, `test/shots.test.mjs` | `node --test`: tabs keyboard logic (pure helper + a fake DOM); the `SHOTS` table (every file exists, starts `RIFF….WEBP`, `facts.json` valid) |
 | `src/content/docs/pro-proiekt.mdx` | About-the-project page (issue #5), `template: splash`, hidden from the sidebar, its content column narrowed by `src/styles/site.css`'s `.prose-narrow`; `.mdx` since PR #21 so it can import `offer.mjs` for its «станом на» date |
-| `src/config/offer.mjs` | Story 78 (W1): the **one source of the offer's numbers and dates** — `pilotUntil`, `priceYearUah`, `priceQuarterUah`, `asOf`, reply times, contacts, `cpUrl` / `turnstileSiteKey` (env `TABULA_CP_URL`, `TABULA_TURNSTILE_SITEKEY`), `requestsOpen`, `copiesWhere`; plus the operator line, the "what the institution gets" list (`includes`) and formatters. No page types a price or a date of the offer by hand: such a page is `.mdx` and imports this module |
+| `src/config/offer.mjs` | Story 78 (W1): the **one source of the offer's numbers and dates** — `pilotUntil`, `priceYearUah`, `priceQuarterUah`, `asOf`, reply times, contacts, `cpUrl` / `turnstileSiteKey` (env `TABULA_CP_URL`, `TABULA_TURNSTILE_SITEKEY`), `requestsOpen`, `copiesWhere`; plus the operator line, the "what the institution gets" list (`includes`) and formatters. No page types a price or a date of the offer by hand: such a page is `.mdx` and imports this module; story 80 added `assistantStatus`, `demoSiteUrl`, `supportEmail` (must equal `contactEmail` until S2), `includesShort` (the price card's lines, each with `coveredBy` indexes into `includes`) and the helpers `withinWorkingDays`, `formatDateLongYear`, `yearOf`, `formatUah` |
 | `src/content/docs/{yak-tse-pratsiuie,khostynh-i-tsina,dlia-bukhhalterii,zakon-i-sait-shkoly,bezpeka-i-dani,pidtrymka,dostupnist,personalni-dani,zaiavka}.mdx`, `vstanovyty-samostiino.md` | Story 78 (W1): the site's own pages for schools (committed, `template: splash`, `editUrl: false`, own `<h1 id="_top">`) |
-| `scripts/check-built.mjs` (`npm run check:built`; also runs after the build via `postbuild`) | Story 78: the header's five links and the button, decision 8's forbidden phrases and «станом на» on the own pages, ʼ instead of ' / ’, no foreign script on `zaiavka`. Rules are exported and unit-tested in `test/check-built.test.mjs` |
-| `scripts/a11y.mjs` (`npm run a11y`) | Story 78: axe-core (WCAG 2.2 AA) over four pages at 1280 and 320 px in headless Chromium, served from `dist/` by a tiny static server; CI job `a11y` |
+| `scripts/check-built.mjs` (`npm run check:built`; also runs after the build via `postbuild`) | Story 78: the header's five links and the button, decision 8's forbidden phrases and «станом на» on the own pages, ʼ instead of ' / ’, no foreign script on `zaiavka`. Rules are exported and unit-tested in `test/check-built.test.mjs`; story 80 added the product-page rules and the every-page rules (`<img alt>`, no Google Fonts, no demo address outside the imported docs) |
+| `scripts/a11y.mjs` (`npm run a11y`) | Story 78: axe-core (WCAG 2.2 AA) over four pages at 1280 and 320 px in headless Chromium, served from `dist/` by a tiny static server; CI job `a11y`; story 80: the home also opens every tab of both tablists, all contexts use `reducedMotion: 'reduce'` |
 | `src/styles/site.css` | `customCss` for the Starlight config (issue #5): the deep ink-blue accent palette (`--sl-color-accent*`, light/dark) and the layout/typography for the hand-written landing and about pages — see Conventions |
 | `src/components/Footer.astro` | `Footer` component override (issue #5): a quiet, site-wide link row + tagline; still renders Starlight's default footer (edit link, pagination) above it on `template: doc` pages — see Conventions |
 | `src/components/PageTitle.astro` | `PageTitle` component override (issue #5): suppressed on `template: splash` pages, which write their own top heading in the body — see Conventions |
 | `src/components/Header.astro` | `Header` component override (issue #5, design pass 3): adds site-wide navigation (a `<nav>` of five links and the button «Залишити заявку» from 70rem on pages without a sidebar and from 85rem on doc pages, a native `<details>` "Меню" dropdown below that) between the wordmark and the search box — see Conventions |
-| `src/components/SiteTitle.astro` | `SiteTitle` component override (issue #5, design pass 3): the text-only default plus a small inline SVG wordmark — see Conventions |
-| `public/favicon.svg` | The site's mark (issue #5, design pass 3): the same "tablet" motif as `SiteTitle.astro`'s inline SVG, redrawn at a 32×32 viewBox with hard-coded hex colours and its own `prefers-color-scheme` variant (an `<img>`/browser favicon can't read the page's CSS custom properties) — replaces the Starlight starter's placeholder mark |
+| `src/components/SiteTitle.astro` | `SiteTitle` component override (issue #5, design pass 3): the text-only default plus a small inline SVG wordmark — see Conventions (story 80: its mark is the older "tablet" motif; the favicon is now the product «T» mark) |
+| `public/favicon.svg` | The site's mark (story 80, S1): the teal rounded square with the white «T», the same drawing as the product header's inline SVG, with literal hex colours (`#1F6F66`); Starlight's pages use the same file |
 | `scripts/lib/docs-transform.mjs` | Pure functions used by `fetch-docs.mjs`: frontmatter building/serialisation, link rewriting, `sidebar.order` from `docs/INDEX.md`, `editUrl` mapping, back-link removal. No filesystem or network access — this is what `test/docs-transform.test.mjs` unit-tests directly. |
 | `scripts/fetch-docs.mjs` | Imports `docs/{editor,install,qa,dev}` from `tabula-cms/tabula` into the gitignored `src/content/docs/{editor,install,qa,dev}/` (issue #3) — obtains the source (local dir or a sparse git clone), runs the transform, writes the output, prints a summary. See Conventions for the rules it implements. |
 | `scripts/check-links.mjs` (`npm run check:links`; also runs automatically after `npm run build` via `postbuild`) | Walks the built `dist/` and fails if any internal link or `#anchor` resolves to nothing. Replaces `starlight-links-validator`, which cannot validate this site's relative-link convention — see Conventions. |
@@ -57,7 +65,7 @@ Exists now:
 | `test/smoke.test.mjs` | `node --test` check of `astro.config.mjs`'s `site`/`base` defaults and env overrides |
 | `test/docs-transform.test.mjs` | `node --test` fixture-based unit tests for `scripts/lib/docs-transform.mjs` (pure functions only, no network) |
 | `package.json`, `package-lock.json` | npm scripts and locked dependencies |
-| `.github/workflows/ci.yml` | CI: the `build` job that branch protection requires (issue #4) |
+| `.github/workflows/ci.yml` | CI: the `build` job that branch protection requires (issue #4); the `a11y` job also runs `npm run budget` (story 80) |
 | `.github/workflows/deploy.yml` | Deploy: `main`/schedule/manual/`repository_dispatch` triggers, `build` + `deploy` jobs to GitHub Pages (issue #4) |
 | `.github/actions/build-site/action.yml` | Composite action shared by both workflows — setup-node, `npm ci`, docs import, `npm test`, `npm run build` (checkout stays in the calling workflow; issue #4) |
 
@@ -139,44 +147,15 @@ happens in each workflow, not in the composite action. Both checkouts pass
 
 ## Conventions
 
-- Landing (`src/content/docs/index.mdx`) and about (`src/content/docs/pro-proiekt.mdx`) page
-  content (issue #5): hand-written `template: splash` MDX/Markdown sections with plain classed
-  `<div>`/`<section>` markup, styled in `src/styles/site.css` — not Starlight's `hero`
-  frontmatter or `CardGrid`/`Card` components, which read as decorative for this site's
-  audience (education-department officials, principals, the installing teacher). Internal
-  links inside these two pages follow the same relative-link convention as imported pages (no
-  leading slash; `../` from `/pro-proiekt/`) — see the link-convention bullet below.
-- Landing page visual structure (issue #5, design pass 2, 2026-09-28): the plain-text sections
-  from the first pass gained bands, cards, tiles, and icons so the page has visual anchors
-  instead of reading as "bare text on white" — `.landing-band` is the full-bleed tinted-band
-  primitive (`margin-inline: calc(50% - 50vw)`, background `--tabula-tint-bg`) used for the
-  hero and "Можливості"; `.landing-container` re-applies the page's 72rem/1.5rem (1rem on
-  phones) column inside a band, derived from the same `--sl-content-width`/`--sl-content-pad-x`
-  custom properties as Starlight's own `.sl-container` (see below) so a band's content and a
-  plain section's content share the same left edge; `.for-whom-item`/`.steps-card`/
-  `.needs-card`/`.capability-tile` are the bordered card/tile style (1px `--sl-color-gray-5`
-  border, `--sl-color-bg` surface, 0.75rem radius for the first three, 0.625rem for the tile,
-  the tile also getting hover border-accent + shadow). Icons are Starlight's own built-in set
-  via `<Icon name="…" />` (imported from `@astrojs/starlight/components` at the top of
-  `index.mdx`) — small and monochrome (`color: var(--sl-color-accent)`), decorative (`Icon`
-  defaults to `aria-hidden="true"` when no `label` prop is passed, so no extra markup is
-  needed), and picked only from the verified name list in
-  `node_modules/@astrojs/starlight/dist/components-internals/Icons.js` (there is no `Icons.ts`
-  source file in the published package — the `.js` is authoritative). Two of the ten
-  "Можливості" tiles fall back to a close-enough icon because no better one exists in that set:
-  "Фотогалереї" uses `document` (no `image`/`photo` icon), "Колектив" uses `information` (no
-  `user` icon). `:root:not([data-has-sidebar])` widens `--sl-content-width` to 72rem and
-  `--sl-content-pad-x` to 1.5rem (1rem on phones) for these two pages only; every imported doc
-  page has a sidebar and is unaffected. Design pass 3 (review round) changed this from
-  `html:not([data-has-sidebar])` — the exact selector Starlight's own `Page.astro` uses inline
-  to detect a sidebar-less page — because that gave both rules *equal* specificity, so
-  whichever the cascade placed later won regardless of authorship; a reviewer confirmed
-  Starlight's own inline rule was winning in practice, silently keeping these two pages at
-  Starlight's stock 67.5rem instead of this file's intended 72rem the whole time. `:root` and
-  `html` are the same element, but `:root:not(...)` carries one more pseudo-class of specificity
-  than `html:not(...)`, so it now wins reliably. The `.landing-quiet` ("Про проєкт") block keeps
-  its own tint + left accent bar treatment from the first pass, just thickened to a 4px bar and
-  given the same corner radius as the new cards.
+- The home (`/`) is no longer a Starlight page: `src/content/docs/index.mdx` was deleted in story 80 (S1) and
+  `src/pages/index.astro` renders `/` in the product layout (see the product-pages bullet below). The about page
+  (`src/content/docs/pro-proiekt.mdx`) and the other W1 pages are still hand-written `template: splash` MDX in
+  Starlight until S2 moves them: plain classed `<div>`/`<section>` markup styled in `src/styles/site.css`, no
+  Starlight `hero` frontmatter or `CardGrid`/`Card`; internal links inside them follow the relative-link convention
+  of imported pages (no leading slash; `../` from `/pro-proiekt/`) — see the link-convention bullet below.
+  The `.landing-*`, `.steps-card`, `.for-whom-item`, `.needs-card` and `.capability-tile` rules in `site.css` belong to
+  the deleted landing and are unused now (S2 removes them); `.prose-narrow`, `.cta-row`, `.button`, `.compare-table`
+  and the like are still used by the W1 pages.
 - Accent palette (issue #5): `src/styles/site.css` overrides only `--sl-color-accent-low`,
   `--sl-color-accent` and `--sl-color-accent-high` (dark mode in `:root`, light mode in
   `:root[data-theme='light']`), following Starlight's own theme-colour convention (see
@@ -279,12 +258,9 @@ happens in each workflow, not in the composite action. Both checkouts pass
   .siteTitle` (Starlight's own resolved site title, "Tabula" today per `astro.config.mjs`'s
   `starlight({ title: 'Tabula' })`), not a hardcoded string, so this stays a drop-in visual
   replacement of the text-only default even if that title ever changes.
-  `public/favicon.svg` redraws the same motif at a 32×32 viewBox with literal hex colours
-  (`#1f3d63` light / `#8fb3e0` dark via an `@media (prefers-color-scheme: dark)` rule inside the
-  SVG's own `<style>`, the same pattern the Starlight starter's placeholder favicon already
-  used) — a favicon can't read the page's `--sl-color-accent` custom property, so the mark's
-  colours are duplicated by value here rather than referenced from `src/styles/site.css`'s
-  palette; if that palette's accent hex values ever change, this file needs updating too.
+  `public/favicon.svg` is, since story 80 (S1), the product «T» mark (teal `#1F6F66` square, white strokes) — the same drawing as
+  the product header's inline SVG — not the "tablet" motif of `SiteTitle.astro` any more (a favicon can't read CSS custom properties,
+  so its colours are literal hex values);
   `favicon: '/favicon.svg'` in `astro.config.mjs` is Starlight's own default and so technically
   a no-op, kept only to document that this is the site's real mark, not a leftover placeholder;
   Starlight prefixes `base` itself when rendering the `<link rel="icon">` tag (`fileWithBase` in
@@ -302,60 +278,45 @@ happens in each workflow, not in the composite action. Both checkouts pass
   since its own hairline-shade already reads clearly there. Targets the tag+class selector
   (`header.header`) rather than plain `.header`, since this component's own root `<div>` in
   `src/components/Header.astro` reuses the same class name for its inner flex/grid row.
-- Two small landing-page layout fixes from the design pass 3 review round: (1) the hero band sat
-  1.5rem below the header instead of flush against it — that gap was the first `.content-panel`'s
-  own top padding (Starlight core; `PageTitle.astro` empties that panel's *content* on
-  `template: splash` pages but doesn't remove the panel's own padding), fixed with
-  `.landing-hero-band { margin-top: -1.5rem }` rather than reaching into Starlight's own panel
-  padding (every other page still needs it); verified `header.getBoundingClientRect().bottom ===
-  .landing-hero-band.getBoundingClientRect().top` at both 375px and 1280px. (2) a `.landing-band`
-  + `.landing-section` pair (i.e. right after "Можливості") showed two dividers back to back —
-  the band's own tint background already separates it from what follows, so `.landing-band +
-  .landing-section { border-top: 0 }` drops the redundant hairline.
-- Card and tile borders (`.steps-card`, `.for-whom-item`, `.needs-card`, `.capability-tile`) use
-  `--sl-color-gray-5`, not `--sl-color-hairline` (design pass 3, review round): a reviewer
-  measured the hairline-bordered cards at roughly a 1.16:1 contrast ratio against their own
-  `--sl-color-bg` surface in both themes — `--sl-color-hairline` resolves to the *same* gray
-  step as the page background's near-neighbour in both themes (gray-6, one step from
-  `--sl-color-bg`/`--sl-color-black`/`--sl-color-white`), so the border was barely there.
-  `--sl-color-gray-5` is one step further from the background in both themes, reading as a
-  quiet-but-visible line rather than a heavy one. `.landing-section`'s own plain divider
-  (`border-top`) and `.needs-note`'s divider keep `--sl-color-hairline` — only bordered
-  card/tile *surfaces* needed the contrast bump, not the plain section rules between them.
-- Landing page horizontal-overflow fix (issue #5, design pass 3, corrected in the review round):
-  `.landing-band`'s full-bleed technique (`margin-inline: calc(50% - 50vw)`) measured 8px —
-  exactly a vertical scrollbar's width — too wide at a 716px viewport, because `100vw` always
-  includes the scrollbar while the page's actual centred column is laid out in the narrower
-  space the scrollbar leaves for content. The first version of this fix set `overflow-x: clip`
-  on `:root`. A reviewer found that broke Starlight's own scroll lock: Starlight sets
-  `overflow: hidden` on `<body>` while the search modal is open (`[data-search-modal-open]`, in
-  its `Search.astro`) and while the mobile sidebar popover is open
-  (`body:has(#starlight__sidebar:popover-open)`, in `PageFrame.astro`) — that only stops the
-  page scrolling behind the modal/sidebar when the *root*'s own `overflow` is still `visible`
-  (per the CSS Overflow spec's propagation rules, the UA applies `<body>`'s `overflow` to the
-  viewport specifically when `<html>`'s is `visible`); with `<html>` no longer `visible`, that
-  propagation didn't happen, and the reviewer confirmed the page behind the search modal kept
-  scrolling. Fixed by scoping the clip to just the sidebar-less pages' own content column — the
-  only place `.landing-band` exists — instead of the document root: `html:not([data-has-sidebar])
-  .main-frame { overflow-x: clip; }`. Verified after the fix: opening the search modal (any
-  page) and the mobile sidebar popover (`/editor/novyny/` at 375px) both still show
-  `document.body`'s `overflow` computed as `hidden`, and the search modal genuinely blocks page
-  scroll (`window.scrollBy` no longer moves `window.scrollY`) — the sidebar popover's own scroll
-  lock turned out to rely on a separate, pre-existing mechanism unrelated to this rule (`<dialog
-  showModal()>`'s native inert-background behaviour for the search modal vs. a plain
-  `popover=""` attribute for the sidebar, which doesn't get the same treatment — true before
-  design pass 3 touched anything here, and outside this fix's scope). `document.documentElement
-  .scrollWidth === document.documentElement.clientWidth` was confirmed at 375, 800, 1024 and
-  1280px in this environment's browser pane — which uses overlay scrollbars that reserve no
-  layout width, so it cannot reproduce the classic reserved-scrollbar gap the bug depends on;
-  the exact-match result confirms the fix introduces no *self-inflicted* overflow, but a classic
-  (non-overlay) scrollbar hasn't been re-verified against this exact fix the way the original
-  8px-at-716px measurement was. Deliberately not `container-type: inline-size` + `50cqw` (the
-  other fix an earlier brief floated): `container-type` implies layout containment, which would
-  make whichever ancestor carries it the containing block for the header's `position: fixed` —
-  a correctness bug traded for a cosmetic one. Nothing on the site needs genuine page-level
-  horizontal scroll (code blocks scroll within their own `pre`, an independent scroll container
-  unaffected by clipping above it).
+- Starlight's scroll lock (search modal, mobile sidebar) relies on `<html>`'s `overflow` staying `visible`: never set
+  `overflow` on `:root`/`html` in `site.css`. (History: the deleted landing's full-bleed bands needed a clip, applied
+  to `html:not([data-has-sidebar]) .main-frame` only, for exactly this reason; that rule is still there.)
+- Product pages (story 80, S1): `src/layouts/Product.astro` is the layout of the site's own pages — `<html lang="uk" data-product-page>`,
+  a skip link to `#main`, one `<h1>`, no Starlight; `src/styles/product.css` is its stylesheet (the mockup's values as classes;
+  tokens as CSS custom properties on `:root[data-product-page]`, focus `3px #2F7FD6`, 44 px targets below 900 px). The home is
+  `src/pages/index.astro`, sections 1–13 as components in `src/components/product/home/`; `Header.astro` (sticky, seven links +
+  «Подати заявку», a `<details>` «Меню» below 900 px; links are `#…` on the home and `{BASE_URL}#…` elsewhere, prop `home`) and
+  `Footer.astro` (four columns, a `help` slot «Довідка» that renders nothing until the docs story) are in `src/components/product/`.
+  Fonts are self-hosted from `@fontsource/{unbounded,manrope,caveat}` — own `@font-face` rules with `unicode-range` in
+  `product.css` (the packages' per-subset CSS has none), Cyrillic + Latin files of the used weights only, no Google Fonts.
+  Unbounded is wide: `product.css` shrinks the display sizes with `clamp()` on phones (the mockup's screenshots were evidently
+  rendered without it, so its line breaks differ). ₴ is not in the Cyrillic/Latin subsets and falls back to a system font.
+  Only two scripts (Starlight's link prefetch is switched off with `prefetch: false` in `astro.config.mjs`, so no `page.*.js` loads;
+  `check-built` fails a product page that loads any other script): `src/scripts/tabs.js` (WAI-ARIA tabs for both tablists; without JS the tablists are `hidden`, every panel
+  is shown under its own `[data-tab-heading]` and has no `tabpanel` role — the script sets role, `aria-labelledby` and `tabindex`; `nextIndex()` is pure and unit-tested) and `src/scripts/header.js` (header shadow
+  via IntersectionObserver, «Меню» closes on link/Escape). Motion lives only in `product.css` §16, all behind
+  `prefers-reduced-motion: no-preference` (reveal also behind `@supports (animation-timeline: view())`, written as longhands in separate rules because a minifier folds `animation` + `animation-timeline: view()` into a shorthand Chromium rejects). Images come from
+  `src/assets/shots/*.webp` through `astro:assets` (`components/product/Shot.astro`); the hero laptop is the LCP image (eager,
+  `fetchpriority=high`, preloaded in `<head>` with the same widths/sizes from `shots.ts`). Every number, date, sum and address on the
+  home comes from `offer.mjs` (`formatDateLongYear`, `formatUah`, `withinWorkingDays`, `includesShort`, `supportEmail`, `assistantStatus`,
+  `demoSiteUrl`); reply times always say «зазвичай» (story 78 decision 24). The «23 з 24» figure is `src/assets/shots/facts.json`.
+  The request section renders no form while `requestsOpen` is false (the form is slice S3: see `TODO(S3)` in `Request.astro`).
+- Screenshots (story 80, decision 11): `scripts/shots.mjs` (`npm run shots`) drives Playwright against a running tabula demo
+  (`npm run demo -- --seed school --template <key>` in a tabula checkout; `TABULA_DEMO_URL`, default `http://127.0.0.1:3100`) and
+  writes WebP into `src/assets/shots/` (committed); its exported `SHOTS` table is the list of files. `--template <key>` shoots that
+  template's rows plus the template-free ones (the body class is checked against the demo's template); `--only <file>` one row.
+  The demo's address (origin and host:port from `TABULA_DEMO_URL`, and `localhost`) is replaced by `licey0.tabula.org.ua` in the page before each shot; shots are written at their real scale-2 pixel size (astro:assets makes the responsive widths). `phone-meal-day` and `kep-line` are pinned to `panorama`. `kep-line` needs a signed document, which
+  the demo cannot show (its signatures are not chained to a trusted provider), so `scripts/lib/shot-kep-line.cjs` starts a throwaway
+  site from the tabula checkout (`TABULA_DIR`, default `../tabula`) with a fictitious trusted chain. The three CC0 photos are copied
+  from tabula's `test/fixtures/school-seed/photos/`; see `THIRD_PARTY_LICENSES.md`.
+- `astro.config.mjs` configures `@astrojs/sitemap` itself with a filter, because the integration lists the home twice (`…/site` and `…/site/`) when `base` has no trailing slash; Starlight only adds its own copy when none is configured.
+- Product-page checks: `check-built.mjs` treats a built page whose `<html>` has `data-product-page` as a product page (seven header
+  links, no Starlight chrome, forbidden phrases, ʼ, no-break spaces before ₴/«року»/«грн» and inside dates on the raw text, «ШІ-помічник»
+  spelling, the chip while `assistantStatus` is `testing`, a law word only with a link to `zakon-i-sait-shkoly/`); on every built page
+  every `<img>` has `alt` and nothing refers to Google Fonts; the demo address (`127.0.0.1`, `localhost`) is kept out of every page
+  except tabula's imported docs (they may say `localhost` in a command). `npm run a11y` also opens each tab of both tablists on the
+  home (reduced motion); `npm run budget` fails above 600 KB on first load at 390 px, on a non-lazy image below the first viewport, or
+  without a matching preload of the LCP image (CI runs it after a11y).
 - Story 78 pages (W1): the numbers, dates, reply times and contacts of the offer come only from
   `src/config/offer.mjs`. The operator is only «фізична особа — підприємець» (decision 5) — no name
   anywhere. The key messages of the spec are quoted verbatim, with ʼ (U+02BC) as the apostrophe on the
@@ -385,7 +346,7 @@ happens in each workflow, not in the composite action. Both checkouts pass
 - `astro.config.mjs`'s `site`/`base` default to the GitHub Pages project URL
   (`https://tabula-cms.github.io` / `/site`) and are overridden by the `SITE_URL`/`SITE_BASE`
   repository variables in CI; the custom domain later sets `SITE_BASE=/`. Internal links in
-  `src/content/docs/index.mdx` — the hero buttons and all other landing links — are written
+  the hand-written W1 pages (`src/content/docs/*.mdx`) are written
   without a leading slash (`editor/`, not `/editor/`) so they resolve under either base —
   Starlight does not rewrite frontmatter link fields for the configured `base` itself.
 - The sidebar's four groups (`editor`, `install`, `qa`, `dev`) are only added to
@@ -417,13 +378,13 @@ happens in each workflow, not in the composite action. Both checkouts pass
   link into *this* repository's `src/content/docs/...`, which is never where doc text is
   edited). The import script (#3) instead writes an absolute `editUrl` into each imported
   page's frontmatter, pointing at the matching file in `tabula-cms/tabula` (mapping
-  `index.md` back to `README.md`). The landing page (`src/content/docs/index.mdx`) isn't
-  imported from anywhere, so it sets `editUrl: false` and shows no edit link at all.
+  `index.md` back to `README.md`). The site's own pages (`src/content/docs/*.mdx`) aren't
+  imported from anywhere, so they set `editUrl: false` and show no edit link at all.
 - Internal links inside imported pages are always emitted **relative**, computed from each
   page's own URL (`README.md` -> `/<folder>/`, `name.md` -> `/<folder>/<slug>/`), never with a
   leading slash: `path.posix.relative(fromUrl, toUrl) + '/'` (`./` when the two pages are the
   same), with `#anchor` appended verbatim — see `relativeHref()`/`rewriteLink()` in
-  `scripts/lib/docs-transform.mjs`. This is the same reason as the index.mdx hero links above:
+  `scripts/lib/docs-transform.mjs`. This is the same reason as the W1 pages' relative links above:
   Starlight does not prefix Markdown body links with `base` either. A link that leaves `docs/`,
   or lands in `docs/INDEX.md` (skipped, not published), becomes an absolute
   `https://github.com/tabula-cms/tabula/blob/<TABULA_REF>/…` link instead; a link into
@@ -480,6 +441,8 @@ npm run build         # runs check-links.mjs afterwards via postbuild; fails on 
 npm run check:links   # same check, standalone, without rebuilding
 npm run check:built   # story 78 rules over dist/ (runs after the build too)
 npm run a11y          # axe over four pages, needs a build and `npx playwright install chromium`
+npm run budget        # story 80: the home's size/lazy/LCP budget, needs a build and Chromium
+npm run shots -- --template panorama   # story 80: screenshots from a running tabula demo (see CONTRIBUTING.md)
 npm test
 ```
 

@@ -1,0 +1,60 @@
+---
+// The home of tabula.org.ua (story 80, slice S1): sections 1–13 of the spec in their order.
+import { getImage } from 'astro:assets';
+import Product from '../layouts/Product.astro';
+import Hero from '../components/product/home/Hero.astro';
+import Four from '../components/product/home/Four.astro';
+import Assistant from '../components/product/home/Assistant.astro';
+import Meals from '../components/product/home/Meals.astro';
+import Docs from '../components/product/home/Docs.astro';
+import Law from '../components/product/home/Law.astro';
+import Why from '../components/product/home/Why.astro';
+import Look from '../components/product/home/Look.astro';
+import Panel from '../components/product/home/Panel.astro';
+import Price from '../components/product/home/Price.astro';
+import Faq from '../components/product/home/Faq.astro';
+import Contact from '../components/product/home/Contact.astro';
+import Request from '../components/product/home/Request.astro';
+import { shots, HERO } from '../components/product/shots';
+
+// The LCP image: the hero's laptop. Same widths, sizes and quality as Hero.astro's <img>, so the
+// preload fetches the very file the page then uses.
+const hero = await getImage({
+	src: shots.tplPanorama,
+	widths: [...HERO.widths],
+	format: 'webp',
+	quality: HERO.quality,
+});
+---
+
+<Product
+	title="Tabula — сайт школи без рутини"
+	description="Tabula: сайти для закладів освіти з готовими розділами за статтею 30, зручною панеллю й ШІ-помічником. Безкоштовний пілот."
+	home
+>
+	<link
+		slot="head"
+		rel="preload"
+		as="image"
+		type="image/webp"
+		imagesrcset={hero.srcSet.attribute}
+		imagesizes={HERO.sizes}
+		fetchpriority="high"
+	/>
+	<Hero />
+	<Four />
+	<Assistant />
+	<Meals />
+	<Docs />
+	<Law />
+	<Why />
+	<Look />
+	<Panel />
+	<Price />
+	<Faq />
+	<Contact />
+	<Request />
+	<script>
+		import '../scripts/tabs.js';
+	</script>
+</Product>

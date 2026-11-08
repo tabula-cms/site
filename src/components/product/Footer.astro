@@ -1,0 +1,63 @@
+---
+// The footer of the product pages (story 80): four columns, then the two sentences about the
+// product and the operator line of story 78's decision 5, verbatim (check-built holds it on every
+// page). Links to the site's own pages are base-aware (`BASE_URL`); the «Продукт» column goes to the
+// home's anchors. The «Довідка» slot renders only when `help` is on (the docs story turns it on).
+import { offer, operatorLine } from '../../config/offer.mjs';
+
+const { help = false } = Astro.props;
+const base = import.meta.env.BASE_URL;
+const root = base.endsWith('/') ? base : `${base}/`;
+const page = (slug: string) => `${root}${slug}/`;
+---
+
+<footer class="site-footer" id="footer-nav">
+	<div class="site-footer__inner">
+		<div>
+			<p class="site-footer__brand">Tabula</p>
+			<p class="site-footer__about">
+				Сайти для закладів освіти: готові розділи, зручна панель і ШІ-помічник.
+			</p>
+		</div>
+		<nav aria-label="Продукт">
+			<p class="site-footer__title">Продукт</p>
+			<ul>
+				<li><a href={`${root}#assistant`}>ШІ-помічник</a></li>
+				<li><a href={`${root}#look`}>Шаблони</a></li>
+				<li><a href={`${root}#panel`}>Панель</a></li>
+				<li><a href={`${root}#price`}>Ціна</a></li>
+			</ul>
+		</nav>
+		<nav aria-label="Для закладу">
+			<p class="site-footer__title">Для закладу</p>
+			<ul>
+				<li><a href={page('dlia-bukhhalterii')}>Для бухгалтерії</a></li>
+				<li><a href={page('bezpeka-i-dani')}>Безпека й дані</a></li>
+				<li><a href={page('personalni-dani')}>Обробка персональних даних</a></li>
+				<li><a href={page('dostupnist')}>Доступність</a></li>
+			</ul>
+		</nav>
+		<div>
+			<p class="site-footer__title">Допомога</p>
+			<ul>
+				<li><a href={`${root}#faq`}>Часті запитання</a></li>
+				<li><a href={`mailto:${offer.supportEmail}`}>{offer.supportEmail}</a></li>
+				<li>
+					<span>Персональні дані: <a href={`mailto:${offer.operatorEmail}`}>{offer.operatorEmail}</a></span>
+				</li>
+				<li><a href={page('vstanovyty-samostiino')}>Установити на власний сервер</a></li>
+				{
+					help && (
+						<li>
+							<a href={`${root}dokumentatsiia/`}>Довідка</a>
+						</li>
+					)
+				}
+			</ul>
+		</div>
+		<p class="site-footer__legal">
+			Програма Tabula вільна й безкоштовна: її код відкритий. Розміщення сайтів — платна послуга, з неї ми
+			фінансуємо розвиток Tabula. {operatorLine}
+		</p>
+	</div>
+</footer>

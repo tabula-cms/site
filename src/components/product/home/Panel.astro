@@ -1,0 +1,31 @@
+---
+// Section 9: Панель. The «Огляд» screen on a laptop and five short lines.
+import Shot from '../Shot.astro';
+import { shots } from '../shots';
+---
+
+<section id="panel" class="anchor">
+	<div class="wrap panel__inner">
+		<h2 class="reveal h2">Панель, з якою впорається кожен</h2>
+		<div class="reveal panel__body">
+			<div class="panel__laptop">
+				<div class="laptop__screen">
+					<Shot
+						src={shots.cropOverview}
+						alt="Панель: екран «Огляд» з наступними кроками"
+						widths={[640, 994]}
+						sizes="(min-width: 1200px) 820px, calc(100vw - 72px)"
+					/>
+				</div>
+				<div class="laptop__base" aria-hidden="true"></div>
+			</div>
+			<ul class="panel__list">
+				<li><b>«Огляд» підкаже,</b> що зробити сьогодні.</li>
+				<li><b>Ролі:</b> адміністратор, редактор, учні-автори з перевіркою.</li>
+				<li><b>Нічого не пропадає:</b> журнал змін і кошик.</li>
+				<li><b>Підказки</b> біля полів і довідка «Як зробити».</li>
+				<li><b>Переїзд</b> зі старого сайту на WordPress.</li>
+			</ul>
+		</div>
+	</div>
+</section>

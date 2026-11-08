@@ -1,0 +1,30 @@
+---
+// Section 5: Документи з КЕП. The public signature line and the «Інформація за законом» fragment
+// (the «23 з 24» of its alt is read from facts.json, never typed).
+import Shot from '../Shot.astro';
+import Tick from '../Tick.astro';
+import { shots, facts } from '../shots';
+---
+
+<section id="docs" class="anchor">
+	<div class="wrap split split--reverse">
+		<div class="reveal docs__visual">
+			<div class="docs-card docs-card--pad">
+				<p>Так документ із КЕП бачить відвідувач</p>
+				<Shot src={shots.kepLine} alt="Документ «Статут ліцею (нова редакція)» на сайті: електронний підпис, імʼя, посада й дата, посилання «Перевірити підпис» і «Файл підпису»" widths={[352, 704]} sizes="(min-width: 1200px) 520px, calc(100vw - 100px)" />
+			</div>
+			<div class="docs-card docs-card--clip">
+				<Shot src={shots.adminLaw} alt={`Панель: розділ «Інформація за законом», заповнено ${facts.lawFilled} з ${facts.lawTotal} пунктів`} widths={[480, 720, 1080]} sizes="(min-width: 1200px) 560px, calc(100vw - 50px)" />
+			</div>
+		</div>
+		<div class="reveal split__text">
+			<h2 class="h2">Документи з КЕП — без мороки</h2>
+			<ul class="ticks">
+				<li><Tick /><span><b>Підписали на id.gov.ua</b> чи печаткою закладу в Приват24 — сайт сам перевіряє підпис і показує, хто й коли підписав.</span></li>
+				<li><Tick /><span><b>Будь-хто перевірить сам</b> — кнопка «Перевірити підпис» біля документа.</span></li>
+				<li><Tick /><span><b>20 документів і 20 підписів за раз,</b> а не по одному.</span></li>
+				<li><Tick /><span><b>Усі документи на одній сторінці</b> з пошуком за типом і роком. Можна показувати сторінками, без завантаження PDF.</span></li>
+			</ul>
+		</div>
+	</div>
+</section>

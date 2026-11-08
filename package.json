@@ -16,10 +16,16 @@
     "docs:fetch": "node scripts/fetch-docs.mjs",
     "check:links": "node scripts/check-links.mjs",
     "check:built": "node scripts/check-built.mjs",
-    "a11y": "node scripts/a11y.mjs"
+    "a11y": "node scripts/a11y.mjs",
+    "shots": "node scripts/shots.mjs",
+    "budget": "node scripts/budget.mjs"
   },
   "dependencies": {
+    "@astrojs/sitemap": "^3.7.4",
     "@astrojs/starlight": "^0.42.5",
+    "@fontsource/caveat": "^5.3.0",
+    "@fontsource/manrope": "^5.3.0",
+    "@fontsource/unbounded": "^5.3.0",
     "astro": "^7.3.7",
     "sharp": "^0.35.3"
   },

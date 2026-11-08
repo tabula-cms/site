@@ -1,0 +1,53 @@
+---
+// Section 1: the hero. The laptop is the page's LCP image: eager, fetchpriority high, and
+// preloaded in the <head> by src/pages/index.astro with the same widths/sizes.
+import Shot from '../Shot.astro';
+import { shots, HERO } from '../shots';
+import { offer, formatDateLongYear } from '../../../config/offer.mjs';
+
+const exampleHref = offer.demoSiteUrl ?? '#look';
+---
+
+<section id="top" class="hero">
+	<div class="hero__glow" aria-hidden="true"></div>
+	<div class="wrap hero__inner">
+		<div class="hero__text">
+			<p class="chip">Безкоштовно до {formatDateLongYear(offer.pilotUntil)}</p>
+			<h1 class="hero__title">Сайт школи <span class="marker">без рутини</span></h1>
+			<p class="hero__sub">ШІ-помічник готує новини, меню й документи. Ви лише перевіряєте й публікуєте.</p>
+			<div class="hero__buttons">
+				<a class="btn btn-main btn-lg" href="#request">Подати заявку</a>
+				<a class="btn btn-line btn-lg" href={exampleHref}>Подивитися приклад сайту</a>
+			</div>
+		</div>
+		<div class="hero__visual">
+			<div class="laptop">
+				<div class="laptop__screen">
+					<Shot
+						src={shots.tplPanorama}
+						alt="Демонстраційний сайт ліцею в шаблоні «Панорама» на ноутбуці"
+						widths={[...HERO.widths]}
+						sizes={HERO.sizes}
+						quality={HERO.quality}
+						priority
+					/>
+				</div>
+				<div class="laptop__base" aria-hidden="true"></div>
+			</div>
+			<div class="phone-frame hero__phone">
+				<Shot
+					src={shots.phoneMealDay}
+					alt="Сторінка дня харчування на телефоні з кнопками «Поділитися», Telegram і Viber"
+					widths={[160, 240, 320]}
+					sizes="(min-width: 1030px) 130px, 25vw"
+					eager
+				/>
+			</div>
+			<div class="hero__card hide-sm">
+				<p class="card-kicker"><span class="ai-tag">ШІ</span>Чернетка новини</p>
+				<p class="hero__card-title">Пʼятикласники й шестикласники показали виставу до Дня писемності</p>
+				<p class="hero__card-note">Перевірте й опублікуйте</p>
+			</div>
+		</div>
+	</div>
+</section>

@@ -3,6 +3,11 @@ import assert from 'node:assert/strict';
 import {
 	offer,
 	includes,
+	includesShort,
+	withinWorkingDays,
+	formatDateLongYear,
+	formatUah,
+	yearOf,
 	operatorLine,
 	parseIsoDate,
 	formatDate,
@@ -79,4 +84,48 @@ test('formatNumber: a narrow no-break space between thousands', () => {
 
 test('privacyEmail: operatorEmail when set, else contactEmail', () => {
 	assert.equal(privacyEmail(), offer.operatorEmail || offer.contactEmail);
+});
+
+test('offer: story 80 fields — assistantStatus, demoSiteUrl, supportEmail', () => {
+	assert.ok(['testing', 'on'].includes(offer.assistantStatus));
+	assert.ok(offer.demoSiteUrl === null || /^https:\/\//.test(offer.demoSiteUrl));
+	assert.match(offer.supportEmail, /^[^@\s]+@[^@\s]+\.[a-z]+$/);
+	assert.equal(offer.supportEmail, offer.contactEmail, 'the W1 pages still read contactEmail');
+});
+
+test('includesShort: five lines, each covered by valid, non-empty indexes of includes', () => {
+	assert.equal(includesShort.length, 5);
+	for (const item of includesShort) {
+		assert.ok(item.text.length > 0);
+		assert.ok(Array.isArray(item.coveredBy) && item.coveredBy.length > 0, item.text);
+		for (const index of item.coveredBy) {
+			assert.ok(Number.isInteger(index) && index >= 0 && index < includes.length, `${item.text}: index ${index}`);
+		}
+	}
+});
+
+test('includesShort: the reply time line says «зазвичай» and takes its number from offer', () => {
+	const line = includesShort.find((item) => item.text.startsWith('Відповідь на листи'));
+	assert.equal(line.text, `Відповідь на листи — зазвичай ${withinWorkingDays(offer.supportReplyDays)}`);
+});
+
+test('withinWorkingDays: the number in words, genitive', () => {
+	assert.equal(withinWorkingDays(1), 'протягом одного робочого дня');
+	assert.equal(withinWorkingDays(2), 'протягом двох робочих днів');
+	assert.equal(withinWorkingDays(5), 'протягом пʼяти робочих днів');
+	assert.throws(() => withinWorkingDays(0));
+	assert.throws(() => withinWorkingDays(11));
+});
+
+test('formatDateLongYear, yearOf, formatUah: no-break spaces where the copy rules want them', () => {
+	assert.equal(formatDateLongYear('2026-12-31'), '31\u00a0грудня\u00a02026\u00a0року');
+	assert.equal(yearOf(nextDay('2026-12-31')), 2027);
+	assert.equal(formatUah(4800), '4\u00a0800\u00a0₴');
+	assert.equal(formatUah(0), '0\u00a0₴');
+	assert.equal(formatUah(offer.priceQuarterUah), '1\u00a0200\u00a0₴');
+});
+
+test('includesShort: no apostrophe but ʼ between Cyrillic letters', () => {
+	const bad = /[А-ЯҐЄІЇа-яґєії]['’][А-ЯҐЄІЇа-яґєії]/;
+	for (const item of includesShort) assert.doesNotMatch(item.text, bad, item.text);
 });

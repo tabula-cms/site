@@ -1,0 +1,29 @@
+---
+// Section 10: Ціна. The sums and dates come from src/config/offer.mjs; never typed here.
+import { offer, includesShort, formatDateLongYear, formatUah, nextDay, yearOf } from '../../../config/offer.mjs';
+
+const base = import.meta.env.BASE_URL;
+const root = base.endsWith('/') ? base : `${base}/`;
+---
+
+<section id="price" class="anchor">
+	<div class="wrap price__inner">
+		<div class="reveal price__text">
+			<h2 class="h2">Одна ціна, відома наперед</h2>
+			<p>Рахунок і акт щокварталу. Поки договір реєструють і платіж іде через казначейство, сайт працює як завжди. Пілот не зобовʼязує вас купувати послугу далі.</p>
+			<p class="price__link"><a href={`${root}dlia-bukhhalterii/`}>Для бухгалтерії: договір, акт і рядок у плані закупівель</a></p>
+		</div>
+		<div class="reveal price-card">
+			<p class="chip">До {formatDateLongYear(offer.pilotUntil)} — безкоштовно</p>
+			<p class="price-card__sum">
+				<span class="marker">{formatUah(offer.priceYearUah)}</span>
+				<span>на рік з {yearOf(nextDay(offer.pilotUntil))}&#160;року</span>
+			</p>
+			<p class="price-card__sub">{formatUah(offer.priceQuarterUah)} щокварталу · без ПДВ · {formatUah(0)} за створення</p>
+			<ul class="price-card__list">
+				{includesShort.map((item) => <li>{item.text}</li>)}
+			</ul>
+			<a class="btn btn-main btn-block" href="#request">Подати заявку</a>
+		</div>
+	</div>
+</section>

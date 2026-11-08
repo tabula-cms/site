@@ -1,0 +1,36 @@
+---
+// One screenshot of src/assets/shots/ as a responsive <img> (astro:assets, WebP, srcset).
+// Below the first screen it is `loading="lazy" decoding="async"`; `priority` is for the LCP image only
+// (eager, sync decode, fetchpriority high). Decorative images pass `alt=""`.
+import { Image } from 'astro:assets';
+
+interface Props {
+	src: ImageMetadata;
+	alt: string;
+	widths: number[];
+	sizes: string;
+	quality?: number;
+	priority?: boolean;
+	eager?: boolean;
+	class?: string;
+}
+const { src, alt, widths, sizes, quality = 72, priority = false, eager = false, class: className } = Astro.props;
+---
+
+{
+	priority ? (
+		<Image src={src} alt={alt} widths={widths} sizes={sizes} format="webp" quality={quality} priority class={className} />
+	) : (
+		<Image
+			src={src}
+			alt={alt}
+			widths={widths}
+			sizes={sizes}
+			format="webp"
+			quality={quality}
+			loading={eager ? 'eager' : 'lazy'}
+			decoding={eager ? 'sync' : 'async'}
+			class={className}
+		/>
+	)
+}

@@ -1,0 +1,46 @@
+---
+// The layout of the site's own product pages (story 80, decision 1): its own design, no Starlight.
+// `<html data-product-page>` is what scripts/check-built.mjs keys its product-page rules on.
+//
+// Props: `title`, `description`; `home` (the page is the home, so the header's links are `#…`
+// anchors; on every other product page they go to `{BASE_URL}#…`); `help` (turns on the
+// footer's «Довідка» slot — off until the documentation story).
+import '../styles/product.css';
+import Header from '../components/product/Header.astro';
+import Footer from '../components/product/Footer.astro';
+
+interface Props {
+	title: string;
+	description?: string;
+	home?: boolean;
+	help?: boolean;
+}
+const { title, description, home = false, help = false } = Astro.props;
+const base = import.meta.env.BASE_URL;
+const root = base.endsWith('/') ? base : `${base}/`;
+---
+
+<!doctype html>
+<html lang="uk" data-product-page>
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<title>{title}</title>
+		{description && <meta name="description" content={description} />}
+		<link rel="icon" type="image/svg+xml" href={`${root}favicon.svg`} />
+		<slot name="head" />
+	</head>
+	<body>
+		<a class="skip-link" href="#main">Перейти до вмісту</a>
+		<div class="page">
+			<Header home={home} />
+			<main id="main">
+				<slot />
+			</main>
+			<Footer help={help} />
+		</div>
+		<script>
+			import '../scripts/header.js';
+		</script>
+	</body>
+</html>

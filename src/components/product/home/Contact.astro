@@ -1,0 +1,18 @@
+---
+// Section 12: Не знайшли відповіді? The support address as a `mailto:` button.
+import { offer, withinWorkingDays } from '../../../config/offer.mjs';
+---
+
+<section id="contact" class="anchor">
+	<div class="contact__inner">
+		<div class="reveal contact__box">
+			<div>
+				<p class="contact__title">Не знайшли відповіді?</p>
+				<p class="contact__text">Напишіть нам — зазвичай відповідаємо {withinWorkingDays(offer.supportReplyDays)}. Телефонної лінії немає: у листі вкажіть адресу сайту й що сталося.</p>
+			</div>
+			<div>
+				<a class="btn btn-main" href={`mailto:${offer.supportEmail}`}>{offer.supportEmail}</a>
+			</div>
+		</div>
+	</div>
+</section>
