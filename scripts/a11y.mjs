@@ -24,7 +24,8 @@ const WIDTHS = [1280, 320];
 // Starlight's own search button (visible "Пошук Ctrl K", accessible name "Пошук") fails axe's
 // label-content-name-mismatch on every page of the site, imported docs included. It is the
 // framework's component, not ours; only this rule on only this element is ignored, and the
-// number of ignored nodes is printed for every run.
+// number of ignored nodes is printed for every run. Temporary: tracked in
+// https://github.com/tabula-cms/site/issues/22 — remove this entry when that issue is closed.
 const KNOWN = [{ rule: 'label-content-name-mismatch', target: 'button[data-open-modal=""]' }];
 const TAGS = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'];
 
