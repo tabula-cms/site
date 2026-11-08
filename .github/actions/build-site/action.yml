@@ -90,9 +90,13 @@ runs:
           # landing-page-only build it would fail on links that only resolve once those
           # folders are imported. `npm run build --ignore-scripts` still runs the named
           # "build" script itself, it only skips npm's pre/post lifecycle scripts (i.e.
-          # postbuild here), so the link check is the only thing this skips.
+          # postbuild here), so the link check and check-built are what this skips.
           echo "::notice::Link check skipped: documentation was not imported"
           npm run build --ignore-scripts
+          # check-built (story 78) needs only the site's own pages; with DOCS_IMPORT_SKIPPED=true it
+          # tolerates the missing editor/ target of the «Документація» link. Run it explicitly,
+          # since --ignore-scripts skipped it together with the link check.
+          node scripts/check-built.mjs
         else
           npm run build
         fi
