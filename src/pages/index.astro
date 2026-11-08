@@ -4,6 +4,7 @@ import { getImage } from 'astro:assets';
 import Product from '../layouts/Product.astro';
 import Hero from '../components/product/home/Hero.astro';
 import Four from '../components/product/home/Four.astro';
+import Kinds from '../components/product/home/Kinds.astro';
 import Assistant from '../components/product/home/Assistant.astro';
 import Meals from '../components/product/home/Meals.astro';
 import Docs from '../components/product/home/Docs.astro';
@@ -43,6 +44,7 @@ const hero = await getImage({
 	/>
 	<Hero />
 	<Four />
+	<Kinds />
 	<Assistant />
 	<Meals />
 	<Docs />

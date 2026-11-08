@@ -681,6 +681,59 @@
 	background: #eef1f0;
 }
 
+/* The four kinds of institution (section 2b). */
+.kinds__inner {
+	padding-top: 72px;
+	padding-bottom: 24px;
+}
+.kinds__head .lead {
+	max-width: 760px;
+}
+.kinds__grid {
+	margin-top: 32px;
+	display: grid;
+	grid-template-columns: repeat(4, minmax(0, 1fr));
+	gap: 20px;
+}
+.kinds__tile {
+	background: var(--surface);
+	border: 1px solid #dce5e2;
+	border-radius: 16px;
+	padding: 22px;
+}
+.kinds__icon {
+	display: grid;
+	place-items: center;
+	width: 40px;
+	height: 40px;
+	border-radius: 12px;
+	background: var(--mint);
+}
+.kinds__title {
+	margin: 16px 0 0;
+	font-family: var(--display);
+	font-weight: 600;
+	font-size: 17px;
+	line-height: 1.3;
+	color: var(--ink);
+}
+.kinds__text {
+	margin: 10px 0 0;
+	font-size: 15px;
+	line-height: 1.55;
+	color: var(--text);
+}
+@media (max-width: 1000px) {
+	.kinds__grid {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+}
+@media (max-width: 600px) {
+	.kinds__grid {
+		grid-template-columns: minmax(0, 1fr);
+	}
+}
+
 /* ---------------------------------------------------------------------------------------------
  * 8. Tabs (both tablists). Without JavaScript the tablist is not shown and every panel is
  * visible, one under another, each with its heading; src/scripts/tabs.js hides the headings,
@@ -1945,12 +1998,12 @@
 }
 
 /* Staggering without time delays: each item's index (--i) shifts its own scroll range. */
-:is(.ticks, .panel__list, .price-card__list, .why__table, .four__inner, .steps) > :nth-child(1) { --i: 0; }
-:is(.ticks, .panel__list, .price-card__list, .why__table, .four__inner, .steps) > :nth-child(2) { --i: 1; }
-:is(.ticks, .panel__list, .price-card__list, .why__table, .four__inner, .steps) > :nth-child(3) { --i: 2; }
-:is(.ticks, .panel__list, .price-card__list, .why__table, .four__inner, .steps) > :nth-child(4) { --i: 3; }
-:is(.ticks, .panel__list, .price-card__list, .why__table, .four__inner, .steps) > :nth-child(5) { --i: 4; }
-:is(.ticks, .panel__list, .price-card__list, .why__table, .four__inner, .steps) > :nth-child(6) { --i: 5; }
+:is(.ticks, .panel__list, .price-card__list, .why__table, .four__inner, .kinds__grid, .steps) > :nth-child(1) { --i: 0; }
+:is(.ticks, .panel__list, .price-card__list, .why__table, .four__inner, .kinds__grid, .steps) > :nth-child(2) { --i: 1; }
+:is(.ticks, .panel__list, .price-card__list, .why__table, .four__inner, .kinds__grid, .steps) > :nth-child(3) { --i: 2; }
+:is(.ticks, .panel__list, .price-card__list, .why__table, .four__inner, .kinds__grid, .steps) > :nth-child(4) { --i: 3; }
+:is(.ticks, .panel__list, .price-card__list, .why__table, .four__inner, .kinds__grid, .steps) > :nth-child(5) { --i: 4; }
+:is(.ticks, .panel__list, .price-card__list, .why__table, .four__inner, .kinds__grid, .steps) > :nth-child(6) { --i: 5; }
 .faq__inner > .faq-item:nth-of-type(1) { --i: 0; }
 .faq__inner > .faq-item:nth-of-type(2) { --i: 1; }
 .faq__inner > .faq-item:nth-of-type(3) { --i: 2; }
@@ -1984,14 +2037,14 @@
 
 		/* 1. Reveal: sections rise ~24 px with a fade over entry 0–40 %; items follow one after another. */
 		.reveal,
-		:is(.ticks, .panel__list, .price-card__list, .why__table, .four__inner, .steps) > *,
+		:is(.ticks, .panel__list, .price-card__list, .why__table, .four__inner, .kinds__grid, .steps) > *,
 		.faq__inner > .faq-item {
 			animation-name: rise;
 			animation-timing-function: linear;
 			animation-fill-mode: both;
 		}
 		.reveal,
-		:is(.ticks, .panel__list, .price-card__list, .why__table, .four__inner, .steps) > *,
+		:is(.ticks, .panel__list, .price-card__list, .why__table, .four__inner, .kinds__grid, .steps) > *,
 		.faq__inner > .faq-item {
 			animation-timeline: view();
 		}
@@ -1999,7 +2052,7 @@
 			animation-range-start: entry 0%;
 			animation-range-end: entry 40%;
 		}
-		:is(.ticks, .panel__list, .price-card__list, .why__table, .four__inner, .steps) > *,
+		:is(.ticks, .panel__list, .price-card__list, .why__table, .four__inner, .kinds__grid, .steps) > *,
 		.faq__inner > .faq-item {
 			animation-range-start: entry calc(var(--i, 0) * 5%);
 			animation-range-end: entry calc(40% + var(--i, 0) * 5%);
@@ -2314,5 +2367,900 @@
 @media (max-width: 900px) {
 	.site-footer__more a {
 		padding: 11px 0;
+	}
+}
+
+/* ---------------------------------------------------------------------------------------------
+ * 18. Richer motion on the home (owner's request, 2026-11-09; spec decision 10 was widened the same day).
+ * Everything below is inside `@media (prefers-reduced-motion: no-preference)`: with reduced motion the
+ * page is exactly the static page of §1–15. No scroll hijacking, no snapping; content is never hidden
+ * without JS or without `animation-timeline`; the new animations use the individual `translate` / `scale`
+ * properties, so they never clobber a `transform` that a rule above sets (the tilted hand-written note).
+ * Scroll-driven effects are written as longhands, the timeline in its own list (a minifier folds the
+ * shorthand and Chromium then rejects `view()`).
+ * --------------------------------------------------------------------------------------------- */
+@property --n {
+	syntax: '<integer>';
+	inherits: false;
+	initial-value: 0;
+}
+@property --th {
+	syntax: '<integer>';
+	inherits: false;
+	initial-value: 0;
+}
+@property --d1 {
+	syntax: '<integer>';
+	inherits: false;
+	initial-value: 0;
+}
+@property --d2 {
+	syntax: '<integer>';
+	inherits: false;
+	initial-value: 0;
+}
+@property --d3 {
+	syntax: '<integer>';
+	inherits: false;
+	initial-value: 0;
+}
+
+@keyframes fade-up {
+	from {
+		opacity: 0;
+		translate: 0 10px;
+	}
+	to {
+		opacity: 1;
+		translate: 0 0;
+	}
+}
+@keyframes slide-in {
+	from {
+		opacity: 0;
+		translate: -18px 0;
+	}
+	to {
+		opacity: 1;
+		translate: 0 0;
+	}
+}
+@keyframes pop {
+	from {
+		opacity: 0;
+		scale: 0.8;
+	}
+	to {
+		opacity: 1;
+		scale: 1;
+	}
+}
+@keyframes word-in {
+	from {
+		opacity: 0;
+	}
+	to {
+		opacity: 1;
+	}
+}
+@keyframes arrow-draw {
+	from {
+		stroke-dashoffset: 70;
+	}
+	to {
+		stroke-dashoffset: 0;
+	}
+}
+@keyframes arrow-pulse {
+	0%,
+	100% {
+		scale: 1;
+	}
+	50% {
+		scale: 1.25;
+	}
+}
+@keyframes think-run {
+	0% {
+		opacity: 0;
+	}
+	10%,
+	85% {
+		opacity: 1;
+	}
+	100% {
+		opacity: 0;
+		visibility: hidden;
+	}
+}
+@keyframes draft-show {
+	from {
+		opacity: 0;
+	}
+	to {
+		opacity: 1;
+	}
+}
+@keyframes flash-mark {
+	0%,
+	100% {
+		background-color: var(--amber-bg);
+	}
+	20%,
+	60% {
+		background-color: #ffc933;
+	}
+	40% {
+		background-color: #fff3cc;
+	}
+	80% {
+		background-color: var(--amber-bg);
+	}
+}
+@keyframes flash-small {
+	0%,
+	40%,
+	80%,
+	100% {
+		background-color: transparent;
+	}
+	20%,
+	60% {
+		background-color: #ffc933;
+	}
+}
+@keyframes was-out {
+	from {
+		opacity: 1;
+		visibility: visible;
+	}
+	to {
+		opacity: 0;
+		visibility: hidden;
+	}
+}
+@keyframes hero-rise {
+	from {
+		transform: translateY(34px) scale(0.97);
+	}
+	to {
+		transform: none;
+	}
+}
+@keyframes phone-in {
+	from {
+		transform: translate(46px, 10px);
+	}
+	to {
+		transform: none;
+	}
+}
+@keyframes card-pop {
+	from {
+		opacity: 0;
+		transform: translateY(12px) scale(0.88);
+	}
+	to {
+		opacity: 1;
+		transform: none;
+	}
+}
+@keyframes float-a {
+	0%,
+	100% {
+		transform: translateY(0);
+	}
+	50% {
+		transform: translateY(-4px);
+	}
+}
+@keyframes float-b {
+	0%,
+	100% {
+		transform: translateY(-2px);
+	}
+	50% {
+		transform: translateY(3px);
+	}
+}
+@keyframes blob-drift {
+	from {
+		transform: translate(0, 0) scale(1);
+	}
+	to {
+		transform: translate(-3%, 4%) scale(1.08);
+	}
+}
+@keyframes par-hero {
+	from {
+		translate: 0 0;
+	}
+	to {
+		translate: 0 -24px;
+	}
+}
+@keyframes par-blob {
+	from {
+		translate: 0 0;
+	}
+	to {
+		translate: 0 18px;
+	}
+}
+@keyframes par-mid {
+	from {
+		translate: 0 24px;
+	}
+	to {
+		translate: 0 -24px;
+	}
+}
+@keyframes count-n {
+	from {
+		--n: 0;
+	}
+	to {
+		--n: var(--to);
+	}
+}
+@keyframes count-sum {
+	from {
+		--th: 0;
+		--d1: 0;
+		--d2: 0;
+		--d3: 0;
+	}
+	to {
+		--th: var(--t);
+		--d1: var(--a);
+		--d2: var(--b);
+		--d3: var(--c);
+	}
+}
+/* The «Харчування» story. Four invisible spacers (75 vh each) have a view timeline each (--s1…--s4); a step is the
+ * centre of the viewport at 50 % and the boundary to the next one at 71.4 %. Screens and the highlighted point
+ * change in a narrow range around the boundary (the next step's 25–32 %, this step's 68–75 %), so two screens are never
+ * half-visible for long. */
+@keyframes lay-first {
+	0%,
+	68% {
+		opacity: 1;
+	}
+	75%,
+	100% {
+		opacity: 0;
+	}
+}
+@keyframes lay-mid {
+	0%,
+	25% {
+		opacity: 0;
+	}
+	32%,
+	68% {
+		opacity: 1;
+	}
+	75%,
+	100% {
+		opacity: 0;
+	}
+}
+@keyframes lay-last {
+	0%,
+	25% {
+		opacity: 0;
+	}
+	32%,
+	100% {
+		opacity: 1;
+	}
+}
+@keyframes chat-step {
+	0%,
+	36% {
+		opacity: 0;
+		translate: 5cqw 0;
+	}
+	44%,
+	68% {
+		opacity: 1;
+		translate: 0 0;
+	}
+	75%,
+	100% {
+		opacity: 0;
+		translate: 0 0;
+	}
+}
+@keyframes step-first {
+	0%,
+	68% {
+		color: var(--ink);
+		border-left-color: var(--accent);
+	}
+	75%,
+	100% {
+		color: #5f6e83;
+		border-left-color: transparent;
+	}
+}
+@keyframes step-mid {
+	0%,
+	25% {
+		color: #5f6e83;
+		border-left-color: transparent;
+	}
+	32%,
+	68% {
+		color: var(--ink);
+		border-left-color: var(--accent);
+	}
+	75%,
+	100% {
+		color: #5f6e83;
+		border-left-color: transparent;
+	}
+}
+@keyframes step-last {
+	0%,
+	25% {
+		color: #5f6e83;
+		border-left-color: transparent;
+	}
+	32%,
+	100% {
+		color: var(--ink);
+		border-left-color: var(--accent);
+	}
+}
+@keyframes scan-run {
+	0%,
+	28% {
+		translate: 0 -100%;
+	}
+	38%,
+	100% {
+		translate: 0 0;
+	}
+}
+@keyframes sheet-out {
+	0%,
+	38% {
+		opacity: 0;
+		translate: 0 8px;
+	}
+	46%,
+	100% {
+		opacity: 1;
+		translate: 0 0;
+	}
+}
+
+/* The story's extra screens are display:none everywhere except in the story itself. */
+.meals__alle,
+.meals__sheet,
+.meals__track,
+.meals__dots {
+	display: none;
+}
+.meals__pin {
+	display: contents;
+}
+.count,
+.count__real,
+.count__anim {
+	font-style: normal;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+	/* 1. The assistant plays (src/scripts/tabs.js): «Ви даєте» → arrow → «Готую чернетку…» → the draft. The
+	 * script marks the parts with data-p and their delays (--d); `.is-primed` keeps the first panel's parts
+	 * out until the section first enters the viewport. */
+	.tabs--assistant .assistant-panel.is-primed [data-p] {
+		opacity: 0;
+	}
+	.tabs--assistant .assistant-panel.is-primed .draft {
+		animation: none;
+		opacity: 0;
+	}
+	.tabs--assistant .assistant-panel.is-primed .thinking {
+		display: none;
+	}
+	.tabs--assistant .assistant-panel.is-primed .assistant-panel__arrow path,
+	.tabs--assistant .assistant-panel.is-playing .assistant-panel__arrow path {
+		stroke-dasharray: 70;
+	}
+	.tabs--assistant .assistant-panel.is-primed .assistant-panel__arrow path {
+		stroke-dashoffset: 70;
+	}
+	.tabs--assistant .assistant-panel.is-playing [data-p='in'],
+	.tabs--assistant .assistant-panel.is-playing [data-p='build'] {
+		animation: fade-up 0.28s ease-out var(--d, 0ms) both;
+	}
+	.tabs--assistant .assistant-panel.is-playing .pill[data-p],
+	.tabs--assistant .assistant-panel.is-playing .file[data-p],
+	.tabs--assistant .assistant-panel.is-playing .photos img[data-p] {
+		animation-name: pop;
+	}
+	.tabs--assistant .assistant-panel.is-playing .notes li[data-p] {
+		animation-name: slide-in;
+	}
+	.tabs--assistant .assistant-panel.is-playing [data-p='word'] {
+		animation: word-in 0.15s linear var(--d, 0ms) both;
+	}
+	.tabs--assistant .assistant-panel.is-playing .assistant-panel__arrow {
+		animation: arrow-pulse var(--arrow-dur, 300ms) ease-out var(--arrow-at, 700ms) both;
+	}
+	.tabs--assistant .assistant-panel.is-playing .assistant-panel__arrow path {
+		animation: arrow-draw var(--arrow-dur, 300ms) ease-out var(--arrow-at, 700ms) both;
+	}
+	.tabs--assistant .tabpanel--demo.is-playing:not([hidden]) .thinking {
+		display: block;
+		animation: think-run var(--think-dur, 650ms) linear var(--think-at, 1000ms) both;
+	}
+	.tabs--assistant .tabpanel--demo.is-playing:not([hidden]) .draft {
+		animation: draft-show 1ms linear var(--out-at, 1650ms) both;
+	}
+	/* The highlighted parts («[уточніть: хто]», «неясно — перевірте») flash amber twice once their block is there. */
+	.tabs--assistant .assistant-panel.is-playing .mark[data-p='flash'] {
+		animation: flash-mark var(--flash-dur, 500ms) ease-in-out var(--d, 0ms) both;
+	}
+	.tabs--assistant .assistant-panel.is-playing .out-line--unsure small[data-p='flash'] {
+		border-radius: 3px;
+		animation: flash-small var(--flash-dur, 500ms) ease-in-out var(--d, 0ms) both;
+	}
+	/* «Було» → «Стало»: the original text is laid over the result and fades out. */
+	.out-card--text {
+		position: relative;
+		overflow: hidden;
+	}
+	.out-was {
+		position: absolute;
+		inset: 0;
+		margin: 0;
+		padding: inherit;
+		background: var(--surface);
+		font-size: 15px;
+		line-height: 1.55;
+		color: var(--text);
+		visibility: hidden;
+		pointer-events: none;
+		user-select: none;
+	}
+	.out-was .out-kicker {
+		display: block;
+		font-size: 12px;
+		font-weight: 800;
+	}
+	.tabs--assistant .assistant-panel.is-playing .out-was {
+		animation: was-out 0.35s ease-in-out calc(var(--out-at, 1650ms) + 380ms) both;
+	}
+
+	/* 2. The hero: on load the laptop rises, the phone slides in, the card pops and types its title; then the
+	 * phone and the card float (±4 px, 6.5 s and 7 s, out of phase) and the mint blob drifts (26 s). The idle
+	 * loops are transform-only (compositor) and are left running off screen: they cost no layout or paint. The
+	 * first frames are as static: the laptop (the LCP image) is never transparent. */
+	.hero__visual .laptop {
+		animation: hero-rise 0.6s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+	}
+	.hero__phone {
+		animation-name: phone-in, float-a;
+		animation-duration: 0.5s, 6.5s;
+		animation-delay: 0.15s, 0.8s;
+		animation-timing-function: ease-out, ease-in-out;
+		animation-iteration-count: 1, infinite;
+		animation-fill-mode: both, none;
+	}
+	.hero__card {
+		animation-name: card-pop, float-b;
+		animation-duration: 0.4s, 7s;
+		animation-delay: 0.4s, 1s;
+		animation-timing-function: ease-out, ease-in-out;
+		animation-iteration-count: 1, infinite;
+		animation-fill-mode: both, none;
+	}
+	.hero__card-title .w {
+		animation: word-in 0.2s linear calc(0.62s + var(--w, 0) * 40ms) both;
+	}
+	.hero__glow {
+		animation: blob-drift 26s ease-in-out infinite alternate;
+	}
+
+	@supports (animation-timeline: scroll()) {
+		/* 3. Depth in the hero: the phone and the card drift up to 24 px against the laptop over the first
+		 * 700 px of scrolling; the blob drifts slower the other way. The lists keep the load animations. */
+		.hero__phone {
+			animation-name: phone-in, float-a, par-hero;
+			animation-duration: 0.5s, 6.5s, auto;
+			animation-delay: 0.15s, 0.8s, 0s;
+			animation-timing-function: ease-out, ease-in-out, linear;
+			animation-iteration-count: 1, infinite, 1;
+			animation-fill-mode: both, none, both;
+		}
+		.hero__phone {
+			animation-timeline: auto, auto, scroll(root);
+		}
+		.hero__phone {
+			animation-range-start: normal, normal, 0px;
+			animation-range-end: normal, normal, 700px;
+		}
+		.hero__card {
+			animation-name: card-pop, float-b, par-hero;
+			animation-duration: 0.4s, 7s, auto;
+			animation-delay: 0.4s, 1s, 0s;
+			animation-timing-function: ease-out, ease-in-out, linear;
+			animation-iteration-count: 1, infinite, 1;
+			animation-fill-mode: both, none, both;
+		}
+		.hero__card {
+			animation-timeline: auto, auto, scroll(root);
+		}
+		.hero__card {
+			animation-range-start: normal, normal, 0px;
+			animation-range-end: normal, normal, 700px;
+		}
+		.hero__glow {
+			animation-name: blob-drift, par-blob;
+			animation-duration: 26s, auto;
+			animation-delay: 0s, 0s;
+			animation-timing-function: ease-in-out, linear;
+			animation-iteration-count: infinite, 1;
+			animation-direction: alternate, normal;
+			animation-fill-mode: none, both;
+		}
+		.hero__glow {
+			animation-timeline: auto, scroll(root);
+		}
+		.hero__glow {
+			animation-range-start: normal, 0px;
+			animation-range-end: normal, 700px;
+		}
+	}
+
+	@supports (animation-timeline: view()) {
+		/* 3. Depth further down: the second card of «Документи з КЕП» and the phone of «Такий вигляд» drift
+		 * ±24 px while they cross the screen, on top of the entry animation they already have. */
+		.docs-card--clip {
+			animation-name: rise-far, par-mid;
+			animation-duration: auto, auto;
+			animation-timing-function: linear, linear;
+			animation-fill-mode: both, both;
+		}
+		.docs-card--clip {
+			animation-timeline: view(), view();
+		}
+		.docs-card--clip {
+			animation-range-start: entry 0%, cover 0%;
+			animation-range-end: entry 40%, cover 100%;
+		}
+		.look__phone {
+			animation-name: from-right, par-mid;
+			animation-duration: auto, auto;
+			animation-timing-function: linear, linear;
+			animation-fill-mode: both, both;
+		}
+		.look__phone {
+			animation-timeline: view(), view();
+		}
+		.look__phone {
+			animation-range-start: entry 0%, cover 0%;
+			animation-range-end: entry 40%, cover 100%;
+		}
+
+		/* 4. Counters: «23 з 24» and the price count up while they enter; the real text stays in the DOM (the
+		 * overlay is aria-hidden) and is only transparent while the overlay shows the very same text. */
+		.count {
+			position: relative;
+			display: inline-block;
+		}
+		.count__real {
+			opacity: 0;
+		}
+		.count__real,
+		.count__anim {
+			font-variant-numeric: tabular-nums;
+		}
+		.count__anim {
+			position: absolute;
+			left: 0;
+			top: 0;
+			white-space: nowrap;
+		}
+		.count--n .count__anim {
+			counter-reset: n var(--n);
+			animation-name: count-n;
+		}
+		.count--n .count__anim::before {
+			content: counter(n);
+		}
+		.count--sum .count__anim {
+			counter-reset: th var(--th) da var(--d1) db var(--d2) dc var(--d3);
+			animation-name: count-sum;
+		}
+		.count--sum .count__anim::before {
+			content: counter(th) '\00a0' counter(da) counter(db) counter(dc) '\00a0\20b4';
+		}
+		.count__anim {
+			animation-duration: auto;
+			animation-timing-function: ease-out;
+			animation-fill-mode: both;
+		}
+		.count__anim {
+			animation-timeline: view();
+		}
+		.count__anim {
+			animation-range-start: entry 0%;
+			animation-range-end: cover 45%;
+		}
+	}
+
+	/* 5. «Харчування» as a scroll story, from 900 px and with scroll-driven animations only. The heading, the four
+	 * points and one phone stage are pinned together (`.meals__pin`, sticky); four invisible spacers
+	 * (`.meals__track`, 75 vh each) give the scroll its length and the four view timelines (--s1…--s4). The page
+	 * scrolls normally; nothing snaps. The current point is dark with an accent bar, the others are
+	 * #5f6e83 (colours, not opacity, so every point keeps ≥ 4.5:1); the dots beside the phone follow. Below 900 px,
+	 * or without support, the section is today's two columns / stack. */
+	@media (min-width: 900px) {
+		@supports (animation-timeline: view()) {
+			#meals {
+				timeline-scope: --s1, --s2, --s3, --s4;
+			}
+			#meals .split {
+				display: grid;
+				grid-template-columns: minmax(0, 1fr);
+				padding-bottom: 0;
+			}
+			#meals .reveal {
+				animation: none;
+			}
+			#meals .meals__pin,
+			#meals .meals__track {
+				grid-area: 1 / 1;
+			}
+			#meals .meals__pin {
+				position: sticky;
+				top: max(84px, calc(50vh - 300px));
+				display: grid;
+				grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+				gap: 0 64px;
+				align-items: center;
+				align-self: start;
+				height: 600px;
+			}
+			#meals .meals__track {
+				display: block;
+				/* four 75 vh steps and a 50 vh tail: the finished sheet stays pinned for a moment before the stage leaves */
+				height: 350vh;
+				pointer-events: none;
+			}
+			#meals .meals__track i {
+				display: block;
+				height: 75vh;
+			}
+			#meals .meals__track i:nth-child(1) {
+				view-timeline-name: --s1;
+			}
+			#meals .meals__track i:nth-child(2) {
+				view-timeline-name: --s2;
+			}
+			#meals .meals__track i:nth-child(3) {
+				view-timeline-name: --s3;
+			}
+			#meals .meals__track i:nth-child(4) {
+				view-timeline-name: --s4;
+			}
+			#meals .ticks {
+				gap: 12px;
+				margin-top: 24px;
+				font-size: 19px;
+				line-height: 1.45;
+			}
+			#meals .ticks > li {
+				padding: 8px 0 8px 16px;
+				border-left: 3px solid transparent;
+				align-items: flex-start;
+				animation-duration: auto;
+				animation-timing-function: linear;
+				animation-fill-mode: both;
+				animation-range-start: normal;
+				animation-range-end: normal;
+			}
+			#meals .ticks > li:nth-child(1) {
+				animation-name: step-first;
+				animation-timeline: --s1;
+			}
+			#meals .ticks > li:nth-child(2) {
+				animation-name: step-mid;
+				animation-timeline: --s2;
+			}
+			#meals .ticks > li:nth-child(3) {
+				animation-name: step-mid;
+				animation-timeline: --s3;
+			}
+			#meals .ticks > li:nth-child(4) {
+				animation-name: step-last;
+				animation-timeline: --s4;
+			}
+			#meals .meals__visual {
+				position: relative;
+				display: block;
+				container-type: inline-size;
+				width: 100%;
+				max-width: 560px;
+				height: 600px;
+				margin: 0 auto;
+			}
+			#meals .meals__col {
+				display: contents;
+			}
+			#meals .meals__admin,
+			#meals .meals__day,
+			#meals .meals__alle {
+				position: absolute;
+				top: 8px;
+				flex: none;
+			}
+			#meals .meals__admin {
+				width: 48cqw;
+				left: calc(50% - 36cqw);
+			}
+			#meals .meals__day,
+			#meals .meals__alle {
+				width: 52cqw;
+				left: calc(50% - 38cqw);
+			}
+			#meals .meals__alle {
+				display: block;
+				border-radius: 30px;
+				box-shadow: 0 24px 48px rgba(23, 40, 58, 0.2);
+			}
+			#meals .meals__alle img {
+				aspect-ratio: 9 / 16;
+				border-radius: 24px;
+			}
+			#meals .chat {
+				position: absolute;
+				width: 34cqw;
+				left: calc(50% + 16cqw);
+				bottom: 70px;
+				z-index: 2;
+			}
+			#meals .meals__sheet {
+				display: block;
+				position: absolute;
+				top: 120px;
+				left: calc(50% - 43cqw);
+				width: 62cqw;
+			}
+			#meals .meals__sheet-paper {
+				position: relative;
+				overflow: hidden;
+				background: #fffcf0;
+				border: 1px solid #efe6c8;
+				border-radius: 8px;
+				padding: 18px 20px;
+				box-shadow: 0 18px 36px rgba(23, 40, 58, 0.14);
+				transform: rotate(-1.5deg);
+			}
+			#meals .meals__sheet-hand {
+				margin: 0;
+				font-family: 'Caveat', cursive;
+				font-weight: 600;
+				font-size: 26px;
+				line-height: 1.25;
+				color: var(--hand);
+			}
+			#meals .meals__sheet-scan {
+				position: absolute;
+				inset: 0;
+				background: linear-gradient(180deg, rgba(31, 111, 102, 0) 70%, rgba(31, 111, 102, 0.22) 100%);
+				border-bottom: 2px solid var(--accent);
+			}
+			#meals .meals__sheet-out {
+				margin-top: 16px;
+				background: var(--surface);
+				border: 1px solid #dce5e2;
+				border-radius: 14px;
+				padding: 12px 16px;
+				font-size: 15px;
+				line-height: 1.5;
+				box-shadow: 0 10px 24px rgba(23, 40, 58, 0.08);
+			}
+			#meals .meals__sheet-out p {
+				margin: 0;
+			}
+			#meals .meals__sheet-out b {
+				display: inline-block;
+				min-width: 64px;
+				color: var(--ink);
+			}
+			/* the four dots at the stage's left edge: the current one is filled */
+			#meals .meals__dots {
+				display: flex;
+				flex-direction: column;
+				gap: 10px;
+				position: absolute;
+				left: 0;
+				top: 50%;
+				translate: 0 -50%;
+			}
+			#meals .meals__dots i {
+				position: relative;
+				display: block;
+				width: 10px;
+				height: 10px;
+				border-radius: 50%;
+				background: #d3dcd9;
+			}
+			#meals .meals__dots i::after {
+				content: '';
+				position: absolute;
+				inset: 0;
+				border-radius: 50%;
+				background: var(--accent);
+				opacity: 0;
+				animation-duration: auto;
+				animation-timing-function: linear;
+				animation-fill-mode: both;
+			}
+			#meals .meals__dots i:nth-child(1)::after {
+				animation-name: lay-first;
+				animation-timeline: --s1;
+			}
+			#meals .meals__dots i:nth-child(2)::after {
+				animation-name: lay-mid;
+				animation-timeline: --s2;
+			}
+			#meals .meals__dots i:nth-child(3)::after {
+				animation-name: lay-mid;
+				animation-timeline: --s3;
+			}
+			#meals .meals__dots i:nth-child(4)::after {
+				animation-name: lay-last;
+				animation-timeline: --s4;
+			}
+			/* the screens and what happens on them, each on its own step's timeline */
+			#meals .meals__admin,
+			#meals .meals__day,
+			#meals .meals__alle,
+			#meals .meals__sheet,
+			#meals .chat,
+			#meals .meals__sheet-scan,
+			#meals .meals__sheet-out {
+				animation-duration: auto;
+				animation-timing-function: linear;
+				animation-fill-mode: both;
+				animation-range-start: normal;
+				animation-range-end: normal;
+			}
+			#meals .meals__admin {
+				animation-name: lay-first;
+				animation-timeline: --s1;
+			}
+			#meals .meals__day {
+				animation-name: lay-mid;
+				animation-timeline: --s2;
+			}
+			#meals .chat {
+				animation-name: chat-step;
+				animation-timeline: --s2;
+			}
+			#meals .meals__alle {
+				animation-name: lay-mid;
+				animation-timeline: --s3;
+			}
+			#meals .meals__sheet {
+				animation-name: lay-last;
+				animation-timeline: --s4;
+			}
+			#meals .meals__sheet-scan {
+				animation-name: scan-run;
+				animation-timeline: --s4;
+			}
+			#meals .meals__sheet-out {
+				animation-name: sheet-out;
+				animation-timeline: --s4;
+			}
+		}
 	}
 }

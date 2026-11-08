@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
-import { SHOTS, OUT_DIR, selectRows, parseArgs, VIEWPORTS, demoAddresses } from '../scripts/shots.mjs';
+import { SHOTS, OUT_DIR, selectRows, orderRows, parseArgs, VIEWPORTS, demoAddresses } from '../scripts/shots.mjs';
 
 test('SHOTS: unique file names, a known kind, viewport and template where they apply', () => {
 	const names = SHOTS.map((row) => row.file);
@@ -53,4 +53,12 @@ test('parseArgs: --template x, --template=x, --only y', () => {
 test('demoAddresses: origin, host:port and localhost come from the demo URL', () => {
 	assert.deepEqual(demoAddresses('http://127.0.0.1:3100/'), ['http://127.0.0.1:3100', '127.0.0.1:3100', 'localhost']);
 	assert.deepEqual(demoAddresses('http://localhost:4000'), ['http://localhost:4000', 'localhost:4000', 'localhost']);
+});
+
+test('orderRows: rows with a setup come last, the others keep their order', () => {
+	const rows = [{ file: 'a', setup: 'x' }, { file: 'b' }, { file: 'c', setup: 'y' }, { file: 'd' }];
+	assert.deepEqual(orderRows(rows).map((r) => r.file), ['b', 'd', 'a', 'c']);
+	const all = orderRows(SHOTS);
+	const first = all.findIndex((r) => r.setup);
+	assert.ok(first > -1 && all.slice(first).every((r) => r.setup), 'every setup row is after every other row');
 });

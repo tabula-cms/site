@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { nextIndex, initTabs } from '../src/scripts/tabs.js';
+import { nextIndex, initTabs, stagger, buildSchedule, PHASES, PLAN } from '../src/scripts/tabs.js';
 
 test('nextIndex: Right and Left wrap around', () => {
 	assert.equal(nextIndex('ArrowRight', 0, 6), 1);
@@ -138,4 +138,45 @@ test('initTabs: the active panel\'s note is mirrored beside the tablist, in-pane
 
 test('initTabs: a group without a tablist is left alone', () => {
 	assert.equal(initTabs(fakeElement()), null);
+});
+
+// ---------------------------------------------------------------------------------------------
+// The assistant's sequence (owner's request of 2026-11-09): the pure schedule.
+
+test('stagger: starts at `start`, spreads over `span`, never more than `max` apart', () => {
+	assert.deepEqual(stagger(0, { span: 400 }), []);
+	assert.deepEqual(stagger(1, { start: 150, span: 400 }), [150]);
+	assert.deepEqual(stagger(5, { start: 100, span: 400, max: 200 }), [100, 200, 300, 400, 500]);
+	// few parts: capped by `max` instead of stretched over the whole span
+	assert.deepEqual(stagger(3, { start: 0, span: 900, max: 90 }), [0, 90, 180]);
+	const many = stagger(40, { start: 0, span: 420 });
+	assert.equal(many[0], 0);
+	assert.ok(many.every((d, i) => i === 0 || d >= many[i - 1]), 'never goes backwards');
+	assert.ok(many.at(-1) <= 420);
+});
+
+test('buildSchedule: the phases come in order and the whole sequence is at most 2.5 s', () => {
+	const s = buildSchedule({ in: 4, words: 22, build: 10 });
+	assert.equal(s.in.length, 4);
+	assert.equal(s.words.length, 22);
+	assert.equal(s.build.length, 10);
+	assert.ok(Math.min(...s.words) >= PHASES.wordsAt, 'typing starts at wordsAt');
+	assert.ok(Math.min(...s.build) >= PHASES.outAt, 'the draft builds only after the thinking');
+	assert.ok(PHASES.thinkAt + PHASES.thinkDur <= PHASES.outAt, '«Готую чернетку…» ends before the draft');
+	assert.ok(PHASES.arrowAt + PHASES.arrowDur <= PHASES.thinkAt, 'the arrow comes before the thinking');
+	assert.ok(s.end <= 2500, `ends at ${s.end} ms`);
+});
+
+test('buildSchedule: every panel of the real plan fits in 2.5 s, with the busiest counts we have', () => {
+	for (const key of Object.keys(PLAN)) assert.ok(PLAN[key].in || PLAN[key].words, `${key} has a «Ви даєте» part`);
+	assert.ok(buildSchedule({ in: 6, words: 60, build: 14 }).end <= 2500);
+	assert.equal(buildSchedule({}).end, PHASES.thinkAt + PHASES.thinkDur);
+});
+
+test('initTabs: onActivate gets the index, the panel and `initial` (true only for the first call)', () => {
+	const g = fakeGroup(['a', 'b']);
+	const calls = [];
+	initTabs(g.root, { onActivate: (index, panel, info) => calls.push([index, panel === g.panels[index], info.initial]) });
+	g.tabs[1].fire('click');
+	assert.deepEqual(calls, [[0, true, true], [1, true, false]]);
 });

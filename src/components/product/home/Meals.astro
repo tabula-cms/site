@@ -8,10 +8,17 @@ import { shots } from '../shots';
 
 const base = import.meta.env.BASE_URL;
 const root = base.endsWith('/') ? base : `${base}/`;
+//
+// From 900 px with scroll-driven animations (CSS only, product.css §18) the section is a scroll story: the
+// heading, the four points and one phone stage stay pinned (`meals__pin`, `display: contents` otherwise) while four
+// invisible spacers (`meals__track`) give the scroll its length and its four timelines; the screens crossfade. The two
+// extra screens below (`meals__alle`, `meals__sheet`) exist only for that story: they are `display: none`
+// everywhere else, and `meals__sheet` is a decorative repeat of the assistant's sheet (`aria-hidden`).
 ---
 
 <section id="meals" class="anchor band">
 	<div class="wrap split">
+		<div class="meals__pin">
 		<div class="reveal split__text">
 			<h2 class="h2">Харчування — за хвилину з&#160;телефона</h2>
 			<ul class="ticks">
@@ -23,11 +30,11 @@ const root = base.endsWith('/') ? base : `${base}/`;
 		</div>
 		<div class="reveal meals__visual">
 			<div class="phone-frame meals__admin">
-				<Shot src={shots.adminMeals} alt="Панель на телефоні: екран «Харчування» з кнопкою «Сфотографувати порцію»" widths={[230, 460]} sizes="230px" />
+				<Shot src={shots.adminMeals} alt="Панель на телефоні: екран «Харчування» з кнопкою «Сфотографувати порцію»" widths={[230, 460, 580]} sizes="(min-width: 900px) 270px, 230px" />
 			</div>
 			<div class="meals__col">
 				<div class="phone-frame meals__day">
-					<Shot src={shots.phoneMealDay} alt="Сторінка дня на сайті з кнопками «Поділитися», Telegram і Viber" widths={[260, 520]} sizes="260px" />
+					<Shot src={shots.phoneMealDay} alt="Сторінка дня на сайті з кнопками «Поділитися», Telegram і Viber" widths={[260, 520, 600]} sizes="(min-width: 900px) 292px, 260px" />
 				</div>
 				<div class="chat">
 					<p class="chat__name">Чат «Батьки 5-А»</p>
@@ -43,6 +50,22 @@ const root = base.endsWith('/') ? base : `${base}/`;
 					</div>
 				</div>
 			</div>
+			<div class="phone-frame meals__alle">
+				<Shot src={shots.phoneMealAllergens} alt="Сторінка дня на сайті: біля кожної страви рядок «алергени: …» і калорійність, під меню — розшифровка кодів" widths={[260, 520, 600]} sizes="292px" />
+			</div>
+			<div class="meals__sheet" aria-hidden="true">
+				<div class="meals__sheet-paper">
+					<p class="meals__sheet-hand">Вівторок<br />Сніданок — каша вівсяна з ягодами, чай<br />Обід — борщ, котлета з пюре, компот</p>
+					<div class="meals__sheet-scan"></div>
+				</div>
+				<div class="meals__sheet-out">
+					<p><b>Сніданок</b> Каша вівсяна з ягодами · Чай</p>
+					<p><b>Обід</b> Борщ · Котлета з пюре</p>
+				</div>
+			</div>
+			<div class="meals__dots" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
 		</div>
+		</div>
+		<div class="meals__track" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
 	</div>
 </section>
