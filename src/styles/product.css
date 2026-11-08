@@ -235,7 +235,14 @@
 	padding: 0 24px;
 }
 .anchor {
+	/* Clears the compact sticky header (60 px at desktop widths, 81 px on phones where the button wraps) and the
+	 * 3 px progress bar, with a little air. */
 	scroll-margin-top: 72px;
+}
+@media (max-width: 900px) {
+	.anchor {
+		scroll-margin-top: 96px;
+	}
 }
 /* The sizes below are the mockup's at desktop width; the clamp() only shrinks them on phones, where the
  * real Unbounded (wide) would otherwise not fit a word on the line. */
@@ -359,15 +366,10 @@
 	padding-top: 8px;
 	padding-bottom: 8px;
 }
-/* The reading progress bar is a fixed bar of its own, outside the header (it stays when the header leaves);
- * it exists only under motion (section 16). */
+/* The reading progress bar is the header's last child, attached to its bottom edge (the header is sticky, so it
+ * is the containing block); it exists only under motion (section 16). */
 .page-progress {
 	display: none;
-}
-/* The header is clipped to its box while visible too, so that clipping can transition; the lower inset leaves
- * room for the shadow and the «Меню» panel. */
-.site-header {
-	clip-path: inset(0 0 -100vh 0);
 }
 .site-header__inner {
 	max-width: 1200px;
@@ -2077,15 +2079,15 @@
 		}
 	}
 
-	/* 3. The reading progress bar, fixed along the top of the viewport: scroll(root), scaleX. */
+	/* 3. The reading progress bar, attached to the bottom edge of the sticky header: scroll(root), scaleX. */
 	@supports (animation-timeline: scroll()) {
 		.page-progress {
 			display: block;
-			position: fixed;
-			z-index: 30;
+			position: absolute;
+			z-index: 1;
 			left: 0;
 			right: 0;
-			top: 0;
+			top: 100%;
 			height: 3px;
 			background: var(--accent);
 			transform-origin: 0 50%;
@@ -2099,18 +2101,8 @@
 			animation-timeline: scroll(root);
 		}
 	}
-	/* The header leaves while the page is read downwards (header.js toggles `is-hidden`). */
 	.site-header {
-		transition:
-			clip-path 0.25s ease-out,
-			box-shadow 0.2s ease-out;
-	}
-	/* Hidden by clipping, not by moving it away: the box stays where it is, so focusing a link in it (a
-	 * programmatic focus() included) never scrolls the page to bring it into view; header.js shows it on focusin.
-	 * The compact padding above switches without a transition and with no change of the document's height. */
-	.site-header.is-hidden {
-		clip-path: inset(0 0 100% 0);
-		pointer-events: none;
+		transition: box-shadow 0.2s ease-out;
 	}
 	.tabs--js .tabpanel--demo:not([hidden]) .thinking {
 		display: block;
