@@ -6,8 +6,8 @@
 // no edit link or pagination, so the default footer would render an empty wrapper there; skip
 // it entirely on those.
 //
-// The "Про проєкт" link is the one internal link here, and unlike every other internal link
-// on this site it can't be written relative (`../pro-proiekt/`, `pro-proiekt/`, ...) — this
+// The site-page links here are the one place internal links can't be written relative
+// (`../pro-proiekt/`, `pro-proiekt/`, ...) — this
 // footer renders on every page at every depth (`/`, `/editor/`, `/editor/novyny/`, ...), so a
 // single relative path can't be correct at all of them. `import.meta.env.BASE_URL` is Astro's
 // own resolved `base` (see astro.config.mjs: `/site` by default, `/` once the custom domain
@@ -15,19 +15,26 @@
 // (leading-slash) href without any base-stripping of its own, because dist/'s own file layout
 // is already base-prefixed to match.
 import Default from '@astrojs/starlight/components/Footer.astro';
+import { operatorLine } from '../config/offer.mjs';
 
 const isSplash = Astro.locals.starlightRoute.entry.data.template === 'splash';
 
 const base = import.meta.env.BASE_URL;
 const baseWithSlash = base.endsWith('/') ? base : `${base}/`;
-const aboutHref = `${baseWithSlash}pro-proiekt/`;
+const pageHref = (path) => `${baseWithSlash}${path}`;
 
+// Story 78: the trust pages first, then the project's own links (GitHub, licence, bug and
+// vulnerability reports are kept from before).
 const links = [
+	{ text: 'Доступність', href: pageHref('dostupnist/') },
+	{ text: 'Обробка персональних даних', href: pageHref('personalni-dani/') },
+	{ text: 'Безпека й дані', href: pageHref('bezpeka-i-dani/') },
+	{ text: 'Встановити самостійно', href: pageHref('vstanovyty-samostiino/') },
+	{ text: 'Про проєкт', href: pageHref('pro-proiekt/') },
 	{ text: 'Репозиторій на GitHub', href: 'https://github.com/tabula-cms/tabula' },
 	{ text: 'Ліцензія AGPL-3.0', href: 'https://github.com/tabula-cms/tabula/blob/main/LICENSE' },
 	{ text: 'Повідомити про помилку', href: 'https://github.com/tabula-cms/tabula/issues/new/choose' },
 	{ text: 'Повідомити про вразливість', href: 'https://github.com/tabula-cms/tabula/security/policy' },
-	{ text: 'Про проєкт', href: aboutHref },
 ];
 ---
 
@@ -45,8 +52,10 @@ const links = [
 		}
 	</nav>
 	<p class="site-footer-tagline">
-		Tabula — вільне програмне забезпечення з відкритим кодом для закладів освіти України.
+		Система вільна й безкоштовна назавжди. Розміщення сайту проєктом — платна послуга, з якої
+		фінансується розвиток системи.
 	</p>
+	<p class="site-footer-operator">{operatorLine}</p>
 </footer>
 
 <style>
@@ -80,6 +89,7 @@ const links = [
 			color: var(--sl-color-gray-5);
 		}
 
+		.site-footer-operator,
 		.site-footer-tagline {
 			margin-top: 0.5rem;
 		}

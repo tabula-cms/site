@@ -1,0 +1,32 @@
+---
+title: Доступність
+description: Як ми перевіряємо доступність сайту й панелі та як повідомити про проблему.
+template: splash
+editUrl: false
+sidebar:
+  hidden: true
+---
+
+import { offer, formatDate } from '../../config/offer.mjs';
+
+<div class="prose-narrow">
+
+<h1 id="_top">Доступність</h1>
+
+Станом на {formatDate(offer.asOf)}. Це опис того, що ми робимо. Це не юридична заява.
+
+## Що ми перевіряємо
+
+Сайт і панель перевіряємо на WCAG 2.2 AA. Для закладів, підпорядкованих міністерствам, ДСТУ EN 301 549:2022 обовʼязковий (постанова КМУ № 757), для комунальних — рекомендований. Джерело: [kmu.gov.ua](https://www.kmu.gov.ua/npas/deiaki-pytannia-dostupnosti-informatsiino-komunikatsiinykh-system-ta-dokumentiv-v-elektronnii-formi-i210723-757).
+
+## Як повідомити про проблему
+
+Напишіть на <a href={`mailto:${offer.contactEmail}`}>{offer.contactEmail}</a>. Вкажіть:
+
+- адресу сторінки;
+- що не вдалося зробити;
+- чим ви користуєтеся: клавіатурою, читачем з екрана чи іншим засобом.
+
+Зазвичай відповідаємо протягом {offer.supportReplyDays} робочих днів.
+
+</div>

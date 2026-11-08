@@ -1,6 +1,6 @@
 ---
-title: Сайт закладу освіти, який школа веде самостійно
-description: "Вільна система з відкритим кодом для сайту школи: новини, документи, інформаційна відкритість за статтею 30 Закону «Про освіту», фотогалереї, колектив. Встановлюється на власний сервер закладу і не потребує ні абонплати, ні програміста в штаті."
+title: Сайт закладу освіти — без програміста
+description: "Ми розміщуємо сайт закладу освіти й стежимо за ним, ви його наповнюєте. Готові розділи за статтею 30 Закону «Про освіту». Пілот безкоштовний, далі — відкрита ціна."
 template: splash
 # The landing page isn't imported from tabula-cms/tabula, so it has no source file to edit
 # there — Starlight's default editLink would otherwise point at this repository's own
@@ -11,199 +11,126 @@ editUrl: false
 ---
 
 import { Icon } from '@astrojs/starlight/components';
+import {
+	offer,
+	includes,
+	formatDate,
+	formatDateLong,
+	formatNumber,
+	nextDay,
+} from '../../config/offer.mjs';
 
 <div class="landing-page">
 
 <section class="landing-band landing-hero-band">
 <div class="landing-container">
-<div class="hero-grid">
 	<div class="landing-hero">
 		<p class="eyebrow">Tabula</p>
 		{/* id="_top" — Starlight's SkipLink always targets #_top; PageTitle (which would
 		    normally provide it) is suppressed on this page, see src/components/PageTitle.astro. */}
-		<h1 id="_top">Сайт закладу освіти, який школа веде самостійно</h1>
+		<h1 id="_top">Сайт закладу освіти — без програміста. <span class="h1-rest">Ми розміщуємо сайт і стежимо за ним, ви його наповнюєте.</span></h1>
 		<p class="subtitle">
-			Вільна система з відкритим кодом для сайту школи: новини, документи, інформаційна
-			відкритість за статтею 30 Закону «Про освіту», фотогалереї, колектив. Встановлюється на
-			власний сервер закладу і не потребує ні абонплати, ні програміста в штаті.
+			Готові розділи для всього, що <a href="zakon-i-sait-shkoly/">стаття 30 Закону „Про освіту“</a> вимагає оприлюднити (станом на {formatDate(offer.asOf)}). До {formatDate(offer.pilotUntil)} — безкоштовно.
 		</p>
 		<div class="hero-actions">
-			<a class="button primary" href="editor/">Посібник для редактора</a>
-			<a class="button secondary" href="install/">Інструкція зі встановлення</a>
+			<a class="button primary" href="zaiavka/">Залишити заявку</a>
+			<a class="button secondary" href="yak-tse-pratsiuie/">Як це працює</a>
 		</div>
 	</div>
-	<aside class="steps-card">
-		<p class="steps-label">Як це працює</p>
-		<ol class="steps-list">
-			<li class="step">
-				<span class="step-num">1</span>
-				<div class="step-body">
-					<p class="step-title">Встановити</p>
-					<p class="step-desc">Технічна людина школи розгортає систему на сервері закладу за інструкцією.</p>
-				</div>
-			</li>
-			<li class="step">
-				<span class="step-num">2</span>
-				<div class="step-body">
-					<p class="step-title">Заповнити</p>
-					<p class="step-desc">Адміністратор проходить майстер першого налаштування і додає документи, новини, колектив.</p>
-				</div>
-			</li>
-			<li class="step">
-				<span class="step-num">3</span>
-				<div class="step-body">
-					<p class="step-title">Вести самостійно</p>
-					<p class="step-desc">Редактори оновлюють сайт з адміністративної панелі; оновлення системи — раз на кілька місяців.</p>
-				</div>
-			</li>
-		</ol>
-	</aside>
 </div>
-</div>
-</section>
-
-<section class="landing-section">
-	<h2>Для кого</h2>
-	<div class="for-whom-grid">
-		<div class="for-whom-item">
-			<Icon name="pencil" class="for-whom-icon" size="1.5rem" />
-			<h3>Керівництву та редакторам сайту</h3>
-			<p>
-				Наповнення і ведення сайту через адміністративну панель у браузері: новини,
-				сторінки, документи, фотографії, колектив. Без програмування і без сторонньої
-				допомоги.
-			</p>
-			<a href="editor/">Посібник для редактора <span aria-hidden="true">→</span></a>
-		</div>
-		<div class="for-whom-item">
-			<Icon name="setting" class="for-whom-icon" size="1.5rem" />
-			<h3>Відповідальному за технічну частину</h3>
-			<p>
-				Учитель інформатики або системний адміністратор встановлює систему за покроковою
-				інструкцією: сервер, домен, встановлення, оновлення, резервне копіювання.
-			</p>
-			<a href="install/">Інструкція зі встановлення <span aria-hidden="true">→</span></a>
-		</div>
-		<div class="for-whom-item">
-			<Icon name="open-book" class="for-whom-icon" size="1.5rem" />
-			<h3>Розробникам</h3>
-			<p>
-				Відкритий код під ліцензією AGPL-3.0, опис архітектури й моделі даних, тести,
-				процес випуску версій.
-			</p>
-			<a href="dev/">Документація для розробників <span aria-hidden="true">→</span></a>
-		</div>
-	</div>
 </section>
 
 <section class="landing-band capabilities-band">
 <div class="landing-container">
-	<h2>Можливості</h2>
+	<h2>Що отримує заклад</h2>
 	<div class="capabilities-grid">
-		<a class="capability-tile" href="editor/novyny/">
-			<Icon name="pencil" class="capability-icon" size="1.25rem" />
-			<span class="capability-term">Новини й публікації</span>
-			<span class="capability-desc">Стрічки публікацій, автори, перевірка перед оприлюдненням, архів.</span>
-		</a>
-		<a class="capability-tile" href="editor/storinky/">
-			<Icon name="document" class="capability-icon" size="1.25rem" />
-			<span class="capability-term">Сторінки</span>
-			<span class="capability-desc">Текстовий редактор із блоками, файли, головна сторінка.</span>
-		</a>
-		<a class="capability-tile" href="editor/dokumenty/">
-			<Icon name="open-book" class="capability-icon" size="1.25rem" />
-			<span class="capability-term">Документи</span>
-			<span class="capability-desc">Бібліотека документів із розділами та групами.</span>
-		</a>
-		<a class="capability-tile" href="editor/prozorist/">
-			<Icon name="approve-check" class="capability-icon" size="1.25rem" />
-			<span class="capability-term">Інформаційна відкритість</span>
-			<span class="capability-desc">Контрольний список за статтею 30 і готова сторінка «Прозорість».</span>
-		</a>
-		<a class="capability-tile" href="editor/foto/">
-			<Icon name="document" class="capability-icon" size="1.25rem" />
-			<span class="capability-term">Фотогалереї</span>
-			<span class="capability-desc">Альбоми та галереї.</span>
-		</a>
-		<a class="capability-tile" href="editor/kolektyv/">
-			<Icon name="information" class="capability-icon" size="1.25rem" />
-			<span class="capability-term">Колектив</span>
-			<span class="capability-desc">Сторінки працівників закладу.</span>
-		</a>
-		<a class="capability-tile" href="editor/menu/">
-			<Icon name="list-format" class="capability-icon" size="1.25rem" />
-			<span class="capability-term">Меню</span>
-			<span class="capability-desc">Конструктор структури сайту.</span>
-		</a>
-		<a class="capability-tile" href="editor/bekapy/">
-			<Icon name="download" class="capability-icon" size="1.25rem" />
-			<span class="capability-term">Резервні копії</span>
-			<span class="capability-desc">Створення і відновлення з адміністративної панелі.</span>
-		</a>
-		<a class="capability-tile" href="editor/poshuk-i-seo/">
-			<Icon name="magnifier" class="capability-icon" size="1.25rem" />
-			<span class="capability-term">Пошук і SEO</span>
-			<span class="capability-desc">Пошук по сайту, карта сайту, RSS, попередній перегляд посилань.</span>
-		</a>
-		<a class="capability-tile" href="editor/korystuvachi/">
-			<Icon name="setting" class="capability-icon" size="1.25rem" />
-			<span class="capability-term">Користувачі та ролі</span>
-			<span class="capability-desc">Адміністратор, редактор, майстер першого налаштування.</span>
-		</a>
+		{includes.map((item) => (
+			<div class="capability-tile">
+				<Icon name={item.icon} class="capability-icon" size="1.25rem" />
+				<span class="capability-term">{item.title}</span>
+				<span class="capability-desc">{item.text}</span>
+			</div>
+		))}
 	</div>
 </div>
 </section>
 
 <section class="landing-section">
-	<h2>Що потрібно для роботи</h2>
-	<div class="needs-grid">
-		<div class="needs-text">
-			<p>
-				Tabula не є хостингом чи сервісом за передплатою. Це програмне забезпечення, яке заклад
-				встановлює на власному сервері. Для роботи потрібні:
-			</p>
-			<ul>
-				<li>віртуальний сервер (VPS) у будь-якого хостинг-провайдера;</li>
-				<li>доменне імʼя закладу;</li>
-				<li>
-					відповідальна особа, яка раз на кілька місяців за інструкцією встановлює оновлення і
-					перевіряє резервні копії.
-				</li>
-			</ul>
-			<p>
-				Система не передбачає абонплати, платних версій і реклами. Код відкритий: його можна
-				перевірити, доопрацювати і передати іншому закладу.
-			</p>
-		</div>
-		<aside class="needs-card">
-			<p class="needs-card-title">Потрібно</p>
-			<ul class="needs-list">
-				<li>
-					<Icon name="approve-check" class="needs-icon" />
-					<span>Віртуальний сервер (VPS) у будь-якого хостинг-провайдера.</span>
-				</li>
-				<li>
-					<Icon name="approve-check" class="needs-icon" />
-					<span>Доменне імʼя закладу.</span>
-				</li>
-				<li>
-					<Icon name="approve-check" class="needs-icon" />
-					<span>Відповідальна особа для оновлень і резервних копій раз на кілька місяців.</span>
-				</li>
-			</ul>
-			<p class="needs-note">Не потрібно: абонплата, платні версії, реклама.</p>
-		</aside>
-	</div>
+	<h2>Три кроки</h2>
+	<ol class="steps-list">
+		<li class="step">
+			<span class="step-num">1</span>
+			<div class="step-body">
+				<p class="step-title">Залишаєте заявку</p>
+				<p class="step-desc">Зазвичай відповідаємо протягом {offer.requestReplyDays} робочих днів.</p>
+			</div>
+		</li>
+		<li class="step">
+			<span class="step-num">2</span>
+			<div class="step-body">
+				<p class="step-title">Ми звʼязуємося й запускаємо сайт</p>
+				<p class="step-desc">Домовляємося про адресу й надсилаємо угоду пілоту.</p>
+			</div>
+		</li>
+		<li class="step">
+			<span class="step-num">3</span>
+			<div class="step-body">
+				<p class="step-title">Ви наповнюєте з підказками в панелі</p>
+				<p class="step-desc">Панель показує, чого ще бракує на сайті.</p>
+			</div>
+		</li>
+	</ol>
+</section>
+
+<section class="landing-section">
+	<h2>Скільки коштує</h2>
+	<p>
+		До {formatDate(offer.pilotUntil)} — безкоштовно. З {formatDateLong(nextDay(offer.pilotUntil))} року — {formatNumber(offer.priceYearUah)} грн на рік ({formatNumber(offer.priceQuarterUah)} грн за квартал), без ПДВ.
+	</p>
+	<p>
+		<a href="khostynh-i-tsina/">Хостинг і ціна <span aria-hidden="true">→</span></a>
+		<br />
+		<a href="dlia-bukhhalterii/">Для бухгалтерії <span aria-hidden="true">→</span></a>
+	</p>
+</section>
+
+<section class="landing-section">
+	<h2>Чому Tabula</h2>
+	<ul class="needs-list">
+		<li>
+			<Icon name="approve-check" class="needs-icon" />
+			<span>Без реклами: унизу сторінки лише рядок „Сайт створено на Tabula“.</span>
+		</li>
+		<li>
+			<Icon name="approve-check" class="needs-icon" />
+			<span>Шаблон і розділи змінюються під заклад.</span>
+		</li>
+		<li>
+			<Icon name="approve-check" class="needs-icon" />
+			<span>Жодних російських сервісів; сайти й копії — на серверах у ЄС.</span>
+		</li>
+		<li>
+			<Icon name="approve-check" class="needs-icon" />
+			<span>Код відкритий: сайт можна забрати й поставити на свій сервер.</span>
+		</li>
+	</ul>
 </section>
 
 <section class="landing-section landing-quiet">
-	<h2>Про проєкт</h2>
+	<h2>Хто це робить</h2>
 	<p>
-		Tabula створена в Корольовському академічному ліцеї міста Житомира як відповідь на
-		просте питання: як школі без програміста в штаті мати сайт, що відповідає вимогам закону
-		і не потребує абонплати.
+		Tabula — відкритий проєкт. Код лежить на <a href="https://github.com/tabula-cms/tabula">GitHub</a>, і
+		його може перевірити кожен. Розміщення (хостинг) сайтів надає фізична особа — підприємець.
 	</p>
-	<p><a href="pro-proiekt/">Історія проєкту <span aria-hidden="true">→</span></a></p>
+	<p><a href="pro-proiekt/">Про проєкт <span aria-hidden="true">→</span></a></p>
+</section>
+
+<section class="landing-section">
+	<h2>Розвиток разом зі школами</h2>
+	<p>
+		Чого бракує вашій школі? Напишіть — ми розвиваємо Tabula разом зі школами.
+	</p>
+	<p><a href="zaiavka/">Залишити заявку <span aria-hidden="true">→</span></a></p>
 </section>
 
 </div>

@@ -1,0 +1,38 @@
+---
+title: Підтримка
+description: Як звернутися по допомогу, що надіслати в листі і де читати інструкції.
+template: splash
+editUrl: false
+sidebar:
+  hidden: true
+---
+
+import { offer } from '../../config/offer.mjs';
+
+<div class="prose-narrow">
+
+<h1 id="_top">Підтримка</h1>
+
+## Як нам написати
+
+Напишіть на <a href={`mailto:${offer.contactEmail}`}>{offer.contactEmail}</a>.
+
+{offer.contactPhone && <p>Телефон: <a href={`tel:${offer.contactPhone}`}>{offer.contactPhone}</a>.</p>}
+
+Зазвичай відповідаємо протягом {offer.supportReplyDays} робочих днів.
+
+## Що надіслати
+
+- назву закладу й адресу сайту;
+- що ви робили і що побачили;
+- знімок екрана без персональних даних.
+
+## Де шукати відповідь самим
+
+Інструкції — в [документації](../editor/). Відповідь на типове питання може бути вже там.
+
+## Стан сервісу
+
+Про проблеми в роботі сервісу повідомляємо на цій сторінці та електронною поштою.
+
+</div>

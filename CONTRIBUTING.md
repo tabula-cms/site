@@ -85,6 +85,18 @@ on its own, without rebuilding, as `npm run check:links`. It replaces
 `starlight-links-validator`, whose `errorOnRelativeLinks` option cannot validate this site's
 relative-link convention (see the comment at the top of `scripts/check-links.mjs`).
 
+The offer's numbers live in `src/config/offer.mjs`. Two environment variables override its form settings at
+build time, for a manual check of the request form against a local control plane:
+
+| Variable | Default | Meaning |
+|---|---|---|
+| `TABULA_CP_URL` | `https://cp.tabula.org.ua` | The control plane the request form posts to. |
+| `TABULA_TURNSTILE_SITEKEY` | empty | Cloudflare Turnstile's public site key for the form. |
+
+`npm run build` also runs `scripts/check-built.mjs` (the header, the forbidden phrases, «станом на», the apostrophe).
+`npm run a11y` runs axe-core (WCAG 2.2 AA) over four pages in headless Chromium against `dist/`; install the
+browser once with `npx playwright install chromium`, build first, and pass the same `SITE_BASE` as the build.
+
 ## Repository settings that are manual
 
 These are set once in GitHub's UI, not in code, in this order:

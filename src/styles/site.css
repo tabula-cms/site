@@ -648,3 +648,80 @@ html:not([data-has-sidebar]) .main-frame {
 .prose-narrow h1 + .sl-heading-wrapper {
 	margin-top: 1.5em;
 }
+
+/* ---------------------------------------------------------------------------------------------
+ * 5. Story 78 pages (yak-tse-pratsiuie, khostynh-i-tsina, dlia-bukhhalterii, ...): small
+ * additions to the `.prose-narrow` pages. Everything else reuses the classes above.
+ * --------------------------------------------------------------------------------------------- */
+
+/* The second sentence of the home page's h1 (a key message): same heading, smaller and lighter. */
+.landing-hero h1 .h1-rest {
+	display: block;
+	margin-top: 0.75rem;
+	font-size: 1.25rem;
+	font-weight: 400;
+	line-height: 1.4;
+	color: var(--sl-color-gray-2);
+}
+
+/* A call-to-action link on a prose page: the landing hero's primary button, outside the hero. */
+.prose-narrow .cta-row {
+	margin-top: 1.5rem;
+}
+
+.prose-narrow .cta-row .button {
+	display: inline-flex;
+	align-items: center;
+	border-radius: 0.25rem;
+	padding: 0.625rem 1.25rem;
+	font-size: var(--sl-text-sm);
+	font-weight: 600;
+	text-decoration: none;
+	background: var(--sl-color-accent);
+	color: var(--sl-color-text-invert);
+}
+
+.prose-narrow .cta-row .button:hover {
+	background: var(--tabula-accent-hover);
+}
+
+/* A plain list of short items (the "Що отримує заклад" list on «Хостинг і ціна»). */
+.prose-narrow .plain-list {
+	padding-inline-start: 1.25rem;
+}
+
+/* The recommended annual-plan line: a quoted block with the accent bar, easy to copy. */
+.prose-narrow .plan-line {
+	border-inline-start: 4px solid var(--sl-color-accent);
+	background: var(--sl-color-accent-low);
+	border-radius: 0.5rem;
+	padding: 0.5rem 1.25rem;
+}
+
+/* Small tables (the calendar, the hosting comparison): fixed layout so three columns still fit
+ * a 320px screen without a horizontal scroll; long words may break. */
+.prose-narrow .compare-table {
+	width: 100%;
+	table-layout: fixed;
+	border-collapse: collapse;
+	overflow-wrap: anywhere;
+}
+
+.prose-narrow .compare-table caption {
+	text-align: start;
+	font-size: var(--sl-text-sm);
+	color: var(--sl-color-gray-2);
+	padding-bottom: 0.5rem;
+}
+
+.prose-narrow .compare-table th,
+.prose-narrow .compare-table td {
+	border: 1px solid var(--sl-color-gray-5);
+	padding: 0.5rem 0.625rem;
+	text-align: start;
+	vertical-align: top;
+}
+
+.prose-narrow .compare-table thead th {
+	background: var(--sl-color-gray-6);
+}

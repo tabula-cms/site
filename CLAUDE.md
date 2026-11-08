@@ -2,7 +2,7 @@
 
 > Internal reference for Claude Code sessions working in this repository.
 >
-> **Last verified: 2026-09-28.**
+> **Last verified: 2026-11-08.**
 >
 > **How to keep this file honest:** every pull request that changes a convention, a command,
 > or the file layout updates the matching section of this file in the same PR.
@@ -39,15 +39,21 @@ Exists now:
 | `src/routeData.ts` | Route data middleware that applies a page's `lang` frontmatter to its `<html lang>` — see Conventions |
 | `src/content/docs/index.mdx` | Landing page content (issue #5, design pass 2) — hand-written `template: splash` MDX sections styled by `src/styles/site.css`: full-bleed tinted bands (hero, "Можливості"), bordered cards ("Три кроки", "Для кого", the "Потрібно" checklist), a tile grid, and small monochrome icons from Starlight's built-in `<Icon name="…" />` set (`@astrojs/starlight/components`) — no `hero` frontmatter and no Starlight `CardGrid`/`Card` |
 | `src/content/docs/pro-proiekt.md` | About-the-project page (issue #5), `template: splash`, hidden from the sidebar, its content column narrowed by `src/styles/site.css`'s `.prose-narrow` |
+| `src/config/offer.mjs` | Story 78 (W1): the **one source of the offer's numbers and dates** — `pilotUntil`, `priceYearUah`, `priceQuarterUah`, `asOf`, reply times, contacts, `cpUrl` / `turnstileSiteKey` (env `TABULA_CP_URL`, `TABULA_TURNSTILE_SITEKEY`), `requestsOpen`, `copiesWhere`; plus the operator line, the "what the institution gets" list (`includes`) and formatters. No page types a price or a date of the offer by hand: such a page is `.mdx` and imports this module |
+| `src/content/docs/{yak-tse-pratsiuie,khostynh-i-tsina,dlia-bukhhalterii,zakon-i-sait-shkoly,bezpeka-i-dani,pidtrymka,dostupnist,personalni-dani,zaiavka}.mdx`, `vstanovyty-samostiino.md` | Story 78 (W1): the site's own pages for schools (committed, `template: splash`, `editUrl: false`, own `<h1 id="_top">`) |
+| `scripts/check-built.mjs` (`npm run check:built`; also runs after the build via `postbuild`) | Story 78: the header's five links and the button, decision 8's forbidden phrases and «станом на» on the own pages, ʼ instead of ' / ’, no foreign script on `zaiavka`. Rules are exported and unit-tested in `test/check-built.test.mjs` |
+| `scripts/a11y.mjs` (`npm run a11y`) | Story 78: axe-core (WCAG 2.2 AA) over four pages at 1280 and 320 px in headless Chromium, served from `dist/` by a tiny static server; CI job `a11y` |
 | `src/styles/site.css` | `customCss` for the Starlight config (issue #5): the deep ink-blue accent palette (`--sl-color-accent*`, light/dark) and the layout/typography for the hand-written landing and about pages — see Conventions |
 | `src/components/Footer.astro` | `Footer` component override (issue #5): a quiet, site-wide link row + tagline; still renders Starlight's default footer (edit link, pagination) above it on `template: doc` pages — see Conventions |
 | `src/components/PageTitle.astro` | `PageTitle` component override (issue #5): suppressed on `template: splash` pages, which write their own top heading in the body — see Conventions |
-| `src/components/Header.astro` | `Header` component override (issue #5, design pass 3): adds site-wide navigation (a `<nav>` on wide viewports, a native `<details>` "Меню" dropdown below 1024px) between the wordmark and the search box — see Conventions |
+| `src/components/Header.astro` | `Header` component override (issue #5, design pass 3): adds site-wide navigation (a `<nav>` of five links and the button «Залишити заявку» from 70rem on pages without a sidebar and from 85rem on doc pages, a native `<details>` "Меню" dropdown below that) between the wordmark and the search box — see Conventions |
 | `src/components/SiteTitle.astro` | `SiteTitle` component override (issue #5, design pass 3): the text-only default plus a small inline SVG wordmark — see Conventions |
 | `public/favicon.svg` | The site's mark (issue #5, design pass 3): the same "tablet" motif as `SiteTitle.astro`'s inline SVG, redrawn at a 32×32 viewBox with hard-coded hex colours and its own `prefers-color-scheme` variant (an `<img>`/browser favicon can't read the page's CSS custom properties) — replaces the Starlight starter's placeholder mark |
 | `scripts/lib/docs-transform.mjs` | Pure functions used by `fetch-docs.mjs`: frontmatter building/serialisation, link rewriting, `sidebar.order` from `docs/INDEX.md`, `editUrl` mapping, back-link removal. No filesystem or network access — this is what `test/docs-transform.test.mjs` unit-tests directly. |
 | `scripts/fetch-docs.mjs` | Imports `docs/{editor,install,qa,dev}` from `tabula-cms/tabula` into the gitignored `src/content/docs/{editor,install,qa,dev}/` (issue #3) — obtains the source (local dir or a sparse git clone), runs the transform, writes the output, prints a summary. See Conventions for the rules it implements. |
 | `scripts/check-links.mjs` (`npm run check:links`; also runs automatically after `npm run build` via `postbuild`) | Walks the built `dist/` and fails if any internal link or `#anchor` resolves to nothing. Replaces `starlight-links-validator`, which cannot validate this site's relative-link convention — see Conventions. |
+| `test/offer.test.mjs` | `node --test` check of `src/config/offer.mjs` (types, real dates, `priceQuarterUah * 4 === priceYearUah`, formatters, apostrophes) |
+| `test/check-built.test.mjs` | `node --test` unit tests of the pure rules exported by `scripts/check-built.mjs` |
 | `test/smoke.test.mjs` | `node --test` check of `astro.config.mjs`'s `site`/`base` defaults and env overrides |
 | `test/docs-transform.test.mjs` | `node --test` fixture-based unit tests for `scripts/lib/docs-transform.mjs` (pure functions only, no network) |
 | `package.json`, `package-lock.json` | npm scripts and locked dependencies |
@@ -186,10 +192,14 @@ happens in each workflow, not in the composite action. Both checkouts pass
   own default footer (`@astrojs/starlight/components/Footer.astro`, imported directly) above
   its own content only on `template: doc` pages, so "Edit this page" and prev/next pagination
   are preserved there; `template: splash` pages (landing, about) get only the quiet link
-  row + tagline, since they have no edit link or pagination to show. The footer's "Про проєкт"
-  link is the one internal link on the site that can't be written relative — the footer renders
-  at every page depth (`/`, `/editor/`, `/editor/novyny/`, ...) — so it's built from
-  `import.meta.env.BASE_URL` (Astro's resolved `base`) joined with `pro-proiekt/`;
+  row + tagline, since they have no edit link or pagination to show. Story 78: the link row is
+  «Доступність», «Обробка персональних даних», «Безпека й дані», «Встановити самостійно»,
+  «Про проєкт», then GitHub, licence, bug and vulnerability links; below it the tagline (the
+  free-system formula) and the operator line of decision 5 (`operatorLine` from `offer.mjs`,
+  checked on every page by `check-built.mjs`). The five site-page links are the only internal
+  links on the site that can't be written relative — the footer renders at every page depth
+  (`/`, `/editor/`, `/editor/novyny/`, ...) — so they're built from `import.meta.env.BASE_URL`
+  (Astro's resolved `base`) joined with each page's path;
   `scripts/check-links.mjs` resolves an absolute (leading-slash) href directly against its own
   base-prefixed page map, so this doesn't need special-casing there.
 - `PageTitle` component override (issue #5): `src/components/PageTitle.astro` replaces
@@ -214,10 +224,11 @@ happens in each workflow, not in the composite action. Both checkouts pass
   aria-label="Основна навігація">` landmark holding both the inline link row (wide viewports)
   and a native `<details>` "Меню" dropdown (narrow viewports) — one landmark for both variants,
   not two, since a screen-reader user only ever sees one of them at a time anyway. The link list
-  (Документація/editor/, Встановлення/install/, Розробникам/dev/, Про проєкт/pro-proiekt/) is
-  base-aware (`import.meta.env.BASE_URL`, the same technique as `Footer.astro`'s "Про проєкт"
-  link) and shared between both variants; "Документація" also matches any `/qa/` page (Tabula's
-  testing docs have no nav link of their own and read as part of the editor docs). Each link
+  (Як це працює, Хостинг і ціна, Для бухгалтерії, Документація/editor/, Підтримка) plus the button
+  «Залишити заявку»/zaiavka/ (last in the inline nav, first in the "Меню" panel) is
+  base-aware (`import.meta.env.BASE_URL`, the same technique as `Footer.astro`'s internal
+  links) and shared between both variants; "Документація" also matches any `/qa/`, `/install/` and `/dev/` page (Tabula's
+  testing, install and developer docs have no nav link of their own). Each link
   gets `aria-current="page"` on an exact match or `aria-current="true"` on a prefix match that
   isn't exact (e.g. `/editor/novyny/`, or any `/qa/...` page, under "Документація") — both
   values are styled identically as "current" (`a[aria-current]`, not `a[aria-current='page']`),
@@ -226,15 +237,14 @@ happens in each workflow, not in the composite action. Both checkouts pass
   (`sl-hidden`/`md:`/`lg:` utility classes, defined in `@astrojs/starlight/dist/style/util.css`)
   sit at 50rem/72rem, neither of which is the 1024px this brief originally asked for, so the
   nav/"Меню" swap uses its own plain `@media` rules instead — at two *different* breakpoints,
-  by page type (review round): Starlight's header grid (below) sizes its title column from the
-  sidebar's own width on pages that have one, so a reviewer found the inline nav still didn't
-  fit at 1024–1100px there (the theme switcher was cut off at 1024px, "Про проєкт" wrapped onto
-  two lines by ~1100px) — confirmed and fixed by giving `[data-has-sidebar]` pages their own
-  72rem (1152px) breakpoint instead, while the landing/about pages (no sidebar, no such column
-  pressure) keep 1024px, both verified by measuring every link's `getClientRects().length` (1,
-  i.e. one line) and the theme switcher's right edge against `clientWidth` at each breakpoint on
-  `/editor/novyny/` and `/`. `.tabula-nav a { white-space: nowrap }` was also needed — without
-  it "Про проєкт" (the longest label) would wrap under column-width pressure instead of the nav
+  by page type: Starlight's header grid (below) sizes its title column from the
+  sidebar's own width on pages that have one, which leaves less room for the nav there. Story 78
+  made the nav longer (five links and a button), so the breakpoints were re-measured: 70rem
+  (1120px) on pages without a sidebar and 85rem (1360px) on `[data-has-sidebar]` doc pages, the
+  smallest widths where every link stays on one line (`getClientRects().length` is 1) and the
+  theme switcher's right edge is inside the viewport, checked on `/` and `/editor/novyny/`; the nav
+  gap is 1rem and the font 0.875rem for the same reason. `.tabula-nav a { white-space: nowrap }` was also needed — without
+  it a long label such as "Для бухгалтерії" would wrap under column-width pressure instead of the nav
   simply taking the width it needs. Starlight's own header becomes a 3-column grid at its 50rem
   breakpoint (title | search `1fr` | right-group `auto`) computed from several sidebar/toc-width
   custom properties; this override keeps that calculation untouched but adds a 4th column (an
@@ -346,6 +356,15 @@ happens in each workflow, not in the composite action. Both checkouts pass
   a correctness bug traded for a cosmetic one. Nothing on the site needs genuine page-level
   horizontal scroll (code blocks scroll within their own `pre`, an independent scroll container
   unaffected by clipping above it).
+- Story 78 pages (W1): the numbers, dates, reply times and contacts of the offer come only from
+  `src/config/offer.mjs`. The operator is only «фізична особа — підприємець» (decision 5) — no name
+  anywhere. The key messages of the spec are quoted verbatim, with ʼ (U+02BC) as the apostrophe on the
+  site's own pages. Every own page that names a law or a procurement rule says «станом на {asOf}»
+  and links its source; `scripts/check-built.mjs` holds this (`pro-proiekt` is exempt: its origin story
+  predates the rule). The header has five links and the button «Залишити заявку»; the inline nav
+  appears from 70rem on pages without a sidebar and from 85rem on doc pages (measured: the nav, the
+  search and the theme switcher fit at 1120 and 1360 px respectively; below that the «Меню» panel is
+  used, with the button first). `npm run a11y` needs `npx playwright install chromium` once.
 - Languages: user-facing text is Ukrainian; developer-facing files and code are English.
 - Acceptance criteria: Gherkin keywords in English, scenario text in Ukrainian (Ukrainian
   issues) or English (English specs).
@@ -360,9 +379,8 @@ happens in each workflow, not in the composite action. Both checkouts pass
   screenshots of its live site) goes anywhere in this repository.
 - Documentation text is never edited in this repository — fix it in `tabula-cms/tabula`.
 - Generated doc folders (`src/content/docs/{editor,install,qa,dev}/`) are gitignored and never
-  committed; `src/content/docs/index.mdx` (the landing page) and `src/content/docs/pro-proiekt.md`
-  (the about page) are the two committed content pages — everything else under
-  `src/content/docs/` is generated.
+  committed; the landing page, the about page and the story 78 pages listed in the repository map are the
+  committed content pages (top-level files of `src/content/docs/`) — the four imported folders are generated.
 - Node: 22 (Astro 7 requires `>=22.12.0`); see `.nvmrc` and `package.json`'s `engines.node`.
 - `astro.config.mjs`'s `site`/`base` default to the GitHub Pages project URL
   (`https://tabula-cms.github.io` / `/site`) and are overridden by the `SITE_URL`/`SITE_BASE`
@@ -460,6 +478,8 @@ TABULA_DOCS_DIR=../tabula/docs npm run docs:fetch   # or clone mode — see CONT
 npm run dev
 npm run build         # runs check-links.mjs afterwards via postbuild; fails on a broken link
 npm run check:links   # same check, standalone, without rebuilding
+npm run check:built   # story 78 rules over dist/ (runs after the build too)
+npm run a11y          # axe over four pages, needs a build and `npx playwright install chromium`
 npm test
 ```
 
