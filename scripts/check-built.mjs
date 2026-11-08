@@ -3,28 +3,30 @@
 // `postbuild` hook, after check-links) and on its own as `npm run check:built`.
 //
 // What it holds:
-//   1. The header: the five links and the "Залишити заявку" button, base-aware, in both the inline
-//      nav and the "Меню" panel (button first there). «Документація» points at `editor/` until W3
-//      adds `dokumentatsiia/`; its target must exist in dist/ unless DOCS_IMPORT_SKIPPED=true.
-//   2. The site's own pages (src/content/docs/*.md(x) outside the imported editor/install/qa/dev):
+//   1. The site's own pages (src/content/pages/*.md(x), the eleven reading pages of story 80, slice S2):
 //      none of decision 8's forbidden phrases («uCoz» is allowed only on the law page), «станом на»
 //      on every page that names a law or a procurement rule, and the apostrophe ʼ (U+02BC) — never
 //      ' or ’ between Cyrillic letters.
-//   3. In the built own pages every «станом на» is followed by the formatted `asOf` date of
+//   2. In the built own pages every «станом на» is followed by the formatted `asOf` date of
 //      offer.mjs (a stale date fails), and the law-pattern/«станом на» rule is applied again to the
 //      text of <main> as built, so text that comes from offer.mjs or a component is covered.
-//   4. `zaiavka`'s <main> has no inline <script> and no script `src` other than Cloudflare
+//   3. `zaiavka`'s <main> has no inline <script> and no script `src` other than Cloudflare
 //      Turnstile's api.js.
-//   5. The footer's operator line (decision 5, verbatim) on EVERY html page of dist/, imported docs
-//      included; the Starlight header (item 1) on every page that is not a product page. Forbidden
-//      phrases stay on the own pages: the imported docs are tabula's text.
-//   6. Story 80 — PRODUCT pages, the built pages whose <html> has `data-product-page` (the home today):
-//      the header's seven links in order and the button «Подати заявку» -> #request (inline and in the
-//      «Меню» panel, which adds «Звʼязатися»); no Starlight chrome; decision 8's forbidden phrases;
-//      ʼ only; a no-break space between a number and ₴ / «року» / «грн» and inside a date (checked on
-//      the raw text, because htmlText() folds &nbsp;); «ШІ-помічник» spelled so; the chip when
-//      `assistantStatus` is 'testing'; a law or procurement word only together with a link to
-//      «Закон і сайт школи» (spec decision 14).
+//   4. The footer's operator line (decision 5, verbatim) on EVERY html page of dist/, imported docs
+//      included. Forbidden phrases stay on the own pages: the imported docs are tabula's text.
+//   5. Story 80 — PRODUCT pages, the built pages whose <html> has `data-product-page` (the home and
+//      the eleven own pages; every own page must be one): the header's seven links in order and the
+//      button «Подати заявку» -> #request (inline and in the «Меню» panel, which adds «Звʼязатися»);
+//      no Starlight chrome; no link from the header or the footer into the documentation (editor/,
+//      install/, qa/, dev/; own-origin absolute links and links without the trailing slash included);
+//      every product page linked from the product footer (so none is orphaned); one <h1>; «Залишити
+//      заявку» nowhere (one CTA name); decision 8's forbidden phrases; ʼ only; a no-break space between
+//      a number and ₴ / «року» / «грн» and inside a date, day-month and month-year (checked on the raw
+//      text, because htmlText() folds &nbsp;, and on the meta description); «ШІ-помічник» spelled so. On the home only: the chip when `assistantStatus` is
+//      'testing' and a law or procurement word only together with a link to «Закон і сайт школи»
+//      (spec decision 14); the other product pages cite their sources and say «станом на» (items 1–2).
+//   6. Documentation pages (Starlight): the header has no site navigation and no request button, and
+//      the footer has the link «На головну Tabula» to the product home. «Залишити заявку» is in neither.
 //   7. Every built html page: every <img> has an alt attribute (`alt`, `alt=""` or text) and nothing
 //      refers to fonts.googleapis.com; the built CSS neither. The demo's address (127.0.0.1,
 //      localhost) is kept out of every page that is not tabula's own imported documentation
@@ -146,62 +148,6 @@ export function checkScripts(fragment) {
 	return problems;
 }
 
-/** The anchors of the first `<nav aria-label="Основна навігація">`: `{ href, text, inPanel }`. */
-export function headerAnchors(html) {
-	const nav = html.match(/<nav\b[^>]*aria-label="Основна навігація"[^>]*>([\s\S]*?)<\/nav>/i);
-	if (!nav) return null;
-	const inner = nav[1];
-	const split = inner.search(/<details\b/i);
-	const anchors = [];
-	const re = /<a\b([^>]*)>([\s\S]*?)<\/a>/gi;
-	let match;
-	while ((match = re.exec(inner))) {
-		const href = match[1].match(/\bhref="([^"]*)"/i);
-		anchors.push({
-			href: href ? href[1] : '',
-			text: htmlText(match[2]),
-			inPanel: split !== -1 && match.index > split,
-		});
-	}
-	return anchors;
-}
-
-/** The header's expected links for `base` (`'/'` or `'/site'`), in nav order. */
-export function expectedHeader(base) {
-	const prefix = base === '/' ? '/' : `${base.replace(/\/$/, '')}/`;
-	return {
-		links: [
-			['Як це працює', `${prefix}yak-tse-pratsiuie/`],
-			['Хостинг і ціна', `${prefix}khostynh-i-tsina/`],
-			['Для бухгалтерії', `${prefix}dlia-bukhhalterii/`],
-			['Документація', `${prefix}editor/`],
-			['Підтримка', `${prefix}pidtrymka/`],
-		],
-		button: ['Залишити заявку', `${prefix}zaiavka/`],
-	};
-}
-
-/** Problems with one page's header: five links and the button, inline and in the panel. */
-export function checkHeader(html, base) {
-	const anchors = headerAnchors(html);
-	if (!anchors) return ['no <nav aria-label="Основна навігація">'];
-	const { links, button } = expectedHeader(base);
-	const fmt = (list) => list.map((a) => `${a.text} -> ${a.href}`).join(' | ');
-	const want = (pairs) => pairs.map(([text, href]) => `${text} -> ${href}`).join(' | ');
-	const problems = [];
-	const inline = anchors.filter((a) => !a.inPanel);
-	const panel = anchors.filter((a) => a.inPanel);
-	const inlineWant = [...links, button];
-	const panelWant = [button, ...links];
-	if (fmt(inline) !== want(inlineWant)) {
-		problems.push(`inline nav is "${fmt(inline)}", expected "${want(inlineWant)}"`);
-	}
-	if (fmt(panel) !== want(panelWant)) {
-		problems.push(`"Меню" panel is "${fmt(panel)}", expected "${want(panelWant)}"`);
-	}
-	return problems;
-}
-
 // ---------------------------------------------------------------------------------------------
 // Story 80: product pages.
 
@@ -281,6 +227,78 @@ export function checkNoStarlight(html) {
 	return problems;
 }
 
+/** The hrefs of the anchors in the first element matching `tag` (with `marker` in its attributes). */
+function hrefsIn(html, tag, marker) {
+	const m = html.match(new RegExp(`<${tag}\\b[^>]*${marker}[^>]*>([\\s\\S]*?)</${tag}>`, 'i'));
+	return m ? anchorsOf(m[1]).map((a) => a.href) : [];
+}
+
+const SITE_ORIGIN = (process.env.SITE_URL ?? 'https://tabula-cms.github.io').replace(/\/$/, '');
+
+/** A href into the documentation: relative or root-relative, or absolute on the site's own origin; with or without the trailing slash. */
+export function isDocsHref(href, origin = SITE_ORIGIN) {
+	let path = href;
+	if (/^[a-z][a-z0-9+.-]*:/i.test(href) || href.startsWith('//')) {
+		const own = href.startsWith('//') ? href.replace(/^\/\//, '').startsWith(origin.replace(/^https?:\/\//, '')) : href.startsWith(origin);
+		if (!own) return false;
+		path = href.replace(/^(?:[a-z][a-z0-9+.-]*:)?\/\/[^/]+/i, '');
+	}
+	return /(^|\/)(editor|install|qa|dev)(?:[/?#]|$)/.test(path.replace(/^(?:\.{1,2}\/)+/, ''));
+}
+
+/** Story 80, decision 3: the product header and footer link nowhere into the documentation. */
+export function checkNoDocsLinks(html, origin = SITE_ORIGIN) {
+	const hrefs = [...hrefsIn(html, 'header', 'data-site-header'), ...hrefsIn(html, 'footer', 'site-footer')];
+	return hrefs.filter((href) => isDocsHref(href, origin)).map((href) => `the header or footer links into the documentation: ${href}`);
+}
+
+/**
+ * Every product page is linked from the product footer, so none can be orphaned: `slugs` are the own pages'
+ * slugs, `base` is `'/'` or `'/site'`.
+ */
+export function checkFooterLinks(html, slugs, base) {
+	const root = base === '/' ? '/' : `${base.replace(/\/$/, '')}/`;
+	const hrefs = hrefsIn(html, 'footer', 'site-footer');
+	return [...slugs]
+		.filter((slug) => !hrefs.includes(`${root}${slug}/`))
+		.map((slug) => `the footer has no link to ${root}${slug}/ (the page would be orphaned)`);
+}
+
+/** One <h1> per product page. */
+export function checkOneH1(html) {
+	const n = (html.match(/<h1\b/gi) ?? []).length;
+	return n === 1 ? [] : [`${n} <h1> elements, expected exactly one`];
+}
+
+/** The content of <meta name="description">, entities left as written, or null. */
+export function metaDescription(html) {
+	const m = html.match(/<meta\b[^>]*\bname="description"[^>]*>/i);
+	const c = m && m[0].match(/\bcontent="([^"]*)"/i);
+	return c ? c[1] : null;
+}
+
+/** Spec decision 12: one CTA name, «Подати заявку»; «Залишити заявку» appears on no product page. */
+export function checkCtaName(html) {
+	return /Залишити\s+заявку/.test(htmlText(html)) ? ['«Залишити заявку» — the CTA is called «Подати заявку» (decision 12)'] : [];
+}
+
+/** A documentation (Starlight) page: no site navigation, no request button, a link to the product home. */
+export function checkDocChrome(html, base) {
+	const problems = [];
+	if (/aria-label="Основна навігація"/.test(html)) problems.push('the documentation header still has the site navigation');
+	if (/(Подати|Залишити)\s+заявку/.test(htmlText(extractHeader(html)))) problems.push('the documentation header has a request button');
+	const root = base === '/' ? '/' : `${base.replace(/\/$/, '')}/`;
+	const home = anchorsOf(html).find((a) => a.text === 'На головну Tabula');
+	if (!home) problems.push('no footer link «На головну Tabula»');
+	else if (home.href !== root) problems.push(`«На головну Tabula» points at "${home.href}", expected "${root}"`);
+	return problems;
+}
+
+function extractHeader(html) {
+	const m = html.match(/<header\b[^>]*>([\s\S]*?)<\/header>/i);
+	return m ? m[1] : '';
+}
+
 const MONTHS = 'січня|лютого|березня|квітня|травня|червня|липня|серпня|вересня|жовтня|листопада|грудня';
 
 /** Visible-ish text with entities left as written (`&#160;` stays), for the no-break space rule. */
@@ -317,7 +335,7 @@ const NB = `(?:[\\u00a0\\u202f]|&nbsp;|&#160;|&#xa0;)`;
 /**
  * A plain space where the copy rules want a no-break one: between a number and ₴ / «року» / «грн»,
  * as the thousands separator of a sum before ₴ / «грн» («4 800 ₴»), and between the day and the
- * month of a date («31 грудня»). Works on rawText().
+ * month of a date («31 грудня»), and between the month and the year («січня 2027»). Works on rawText().
  */
 export function checkNoBreakSpaces(text) {
 	const problems = [];
@@ -328,6 +346,8 @@ export function checkNoBreakSpaces(text) {
 	for (const m of text.matchAll(thousands)) problems.push(`a plain space as the thousands separator in "${show(m[0])}"`);
 	const date = new RegExp(`\\d{1,2}${PLAIN}+(?:${MONTHS})${NOT_CYR_AFTER}`, 'g');
 	for (const m of text.matchAll(date)) problems.push(`a plain space in the date "${show(m[0])}"`);
+	const monthYear = new RegExp(`(?:${MONTHS})${PLAIN}+\\d{4}(?!\\d)`, 'g');
+	for (const m of text.matchAll(monthYear)) problems.push(`a plain space in the date "${show(m[0])}"`);
 	return problems;
 }
 
@@ -426,22 +446,28 @@ export function checkProductScripts(html, readSrc = () => null) {
 	return problems;
 }
 
-/** Every product-page rule on one built page's HTML; `isHome` adds the chip and the claims. */
+/** Every product-page rule on one built page's HTML; `isHome` adds the chip and the claims, `allowUcoz` is the law page's. */
 export function checkProductPage(
 	html,
-	{ isHome = false, assistantStatus = offer.assistantStatus, readSrc = () => null } = {},
+	{ isHome = false, allowUcoz = false, assistantStatus = offer.assistantStatus, readSrc = () => null, slugs = null, base = '/site' } = {},
 ) {
 	const problems = [];
 	problems.push(...checkProductHeader(html));
 	problems.push(...checkNoStarlight(html));
+	problems.push(...checkNoDocsLinks(html));
+	problems.push(...checkCtaName(html));
 	const text = htmlText(html);
-	for (const phrase of findForbidden(text)) problems.push(`forbidden phrase «${phrase}»`);
+	for (const phrase of findForbidden(text, { allowUcoz })) problems.push(`forbidden phrase «${phrase}»`);
 	problems.push(...checkBuiltApostrophe(html));
 	problems.push(...checkNoBreakSpaces(rawText(html)));
+	problems.push(...checkNoBreakSpaces(metaDescription(html) ?? '').map((p) => `meta description: ${p}`));
+	problems.push(...checkOneH1(html));
 	problems.push(...checkAssistantSpelling(text));
 	if (isHome) problems.push(...checkAssistantChip(html, assistantStatus));
-	problems.push(...checkLawClaims(html, { requireClaims: isHome }));
+	// Spec decision 14 exempts the home only (two cited claims); the other pages name their sources and say «станом на».
+	if (isHome) problems.push(...checkLawClaims(html, { requireClaims: true }));
 	problems.push(...checkProductScripts(html, readSrc));
+	if (slugs) problems.push(...checkFooterLinks(html, slugs, base));
 	return problems;
 }
 
@@ -465,16 +491,10 @@ export function checkDemoAddress(html) {
 
 const IMPORTED_DIRS = new Set(['editor', 'install', 'qa', 'dev']);
 
-function walkSources(dir, rel = '') {
-	const files = [];
-	for (const entry of readdirSync(dir, { withFileTypes: true })) {
-		if (rel === '' && entry.isDirectory() && IMPORTED_DIRS.has(entry.name)) continue;
-		const full = path.join(dir, entry.name);
-		const relPath = rel ? `${rel}/${entry.name}` : entry.name;
-		if (entry.isDirectory()) files.push(...walkSources(full, relPath));
-		else if (/\.mdx?$/.test(entry.name)) files.push({ full, rel: relPath });
-	}
-	return files;
+function walkSources(dir) {
+	return readdirSync(dir, { withFileTypes: true })
+		.filter((entry) => entry.isFile() && /\.mdx?$/.test(entry.name))
+		.map((entry) => ({ full: path.join(dir, entry.name), rel: entry.name }));
 }
 
 function distFileFor(distDir, rel) {
@@ -515,9 +535,10 @@ function walkFiles(dir, ext) {
 function main() {
 	const root = fileURLToPath(new URL('../', import.meta.url));
 	const distDir = path.join(root, 'dist');
-	const docsDir = path.join(root, 'src', 'content', 'docs');
+	const pagesDir = path.join(root, 'src', 'content', 'pages');
 	const base = process.env.SITE_BASE ?? '/site';
 	const skipped = process.env.DOCS_IMPORT_SKIPPED === 'true';
+	const ownSlugs = new Set();
 
 	if (!existsSync(distDir)) {
 		console.error(`check-built: ${distDir} not found — run "npm run build" first`);
@@ -528,15 +549,16 @@ function main() {
 	const fail = (where, what) => failures.push(`${where}: ${what}`);
 	const asOfText = formatDate(offer.asOf);
 
-	const pages = walkSources(docsDir);
+	const pages = walkSources(pagesDir);
 	for (const { full, rel } of pages) {
 		const name = rel.replace(/\.mdx?$/, '');
 		const text = readFileSync(full, 'utf8');
-		for (const problem of checkOwnSource(name, text)) fail(`src/content/docs/${rel}`, problem);
+		ownSlugs.add(name);
+		for (const problem of checkOwnSource(name, text)) fail(`src/content/pages/${rel}`, problem);
 
 		const builtFile = distFileFor(distDir, rel);
 		if (!existsSync(builtFile)) {
-			fail(`src/content/docs/${rel}`, `no built page at ${path.relative(root, builtFile)}`);
+			fail(`src/content/pages/${rel}`, `no built page at ${path.relative(root, builtFile)}`);
 			continue;
 		}
 		const html = readFileSync(builtFile, 'utf8');
@@ -551,8 +573,8 @@ function main() {
 		}
 	}
 
-	// The operator line is the site's chrome: held on every page, imported or not. The Starlight
-	// header is held on every page that is not a product page; product pages have their own rules.
+	// The operator line is the site's chrome: held on every page, imported or not. Product pages have
+	// their own rules; every other page is the documentation (Starlight) and has its own.
 	const htmlFiles = walkHtml(distDir);
 	let productPages = 0;
 	for (const file of htmlFiles) {
@@ -561,9 +583,15 @@ function main() {
 		const first = rel.split(path.sep)[0];
 		if (isProductPage(html)) {
 			productPages += 1;
-			for (const problem of checkProductPage(html, { isHome: rel === 'index.html', readSrc: (src) => readBuilt(distDir, base, src) })) fail(`dist/${rel}`, problem);
+			for (const problem of checkProductPage(html, {
+					isHome: rel === 'index.html',
+					allowUcoz: rel === path.join(UCOZ_PAGE, 'index.html'),
+					readSrc: (src) => readBuilt(distDir, base, src),
+					slugs: ownSlugs,
+					base,
+				})) fail(`dist/${rel}`, problem);
 		} else {
-			for (const problem of checkHeader(html, base)) fail(`dist/${rel} header`, problem);
+			for (const problem of checkDocChrome(html, base)) fail(`dist/${rel} header/footer`, problem);
 		}
 		for (const problem of checkOperatorLine(html, operatorLine)) fail(`dist/${rel}`, problem);
 		for (const problem of checkEveryPage(html)) fail(`dist/${rel}`, problem);
@@ -577,8 +605,12 @@ function main() {
 		}
 	}
 
-	if (!skipped && !existsSync(path.join(distDir, 'editor', 'index.html'))) {
-		fail('dist', '"Документація" points at editor/, but dist/editor/ is missing');
+	// Every own page must be rendered in the product layout (and so under the product rules above).
+	for (const slug of ownSlugs) {
+		const file = path.join(distDir, slug, 'index.html');
+		if (existsSync(file) && !isProductPage(readFileSync(file, 'utf8'))) {
+			fail(`dist/${slug}/index.html`, 'an own page that is not in the product layout');
+		}
 	}
 
 	if (failures.length > 0) {

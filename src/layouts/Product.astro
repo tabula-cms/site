@@ -8,6 +8,9 @@
 import '../styles/product.css';
 import Header from '../components/product/Header.astro';
 import Footer from '../components/product/Footer.astro';
+// The two font files the first screen needs (the hero's heading and text): preloaded, so the swap happens early.
+import unboundedCyrillic from '@fontsource/unbounded/files/unbounded-cyrillic-600-normal.woff2?url';
+import manropeCyrillic from '@fontsource/manrope/files/manrope-cyrillic-400-normal.woff2?url';
 
 interface Props {
 	title: string;
@@ -28,6 +31,8 @@ const root = base.endsWith('/') ? base : `${base}/`;
 		<title>{title}</title>
 		{description && <meta name="description" content={description} />}
 		<link rel="icon" type="image/svg+xml" href={`${root}favicon.svg`} />
+		<link rel="preload" as="font" type="font/woff2" href={unboundedCyrillic} crossorigin />
+		<link rel="preload" as="font" type="font/woff2" href={manropeCyrillic} crossorigin />
 		<slot name="head" />
 	</head>
 	<body>
@@ -37,7 +42,7 @@ const root = base.endsWith('/') ? base : `${base}/`;
 			<main id="main">
 				<slot />
 			</main>
-			<Footer help={help} />
+			<Footer help={help} home={home} />
 		</div>
 		<script>
 			import '../scripts/header.js';

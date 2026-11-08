@@ -94,7 +94,7 @@ build time, for a manual check of the request form against a local control plane
 | `TABULA_TURNSTILE_SITEKEY` | empty | Cloudflare Turnstile's public site key for the form. |
 
 `npm run build` also runs `scripts/check-built.mjs` (the header, the forbidden phrases, «станом на», the apostrophe).
-`npm run a11y` runs axe-core (WCAG 2.2 AA) over four pages in headless Chromium against `dist/`; install the
+`npm run a11y` runs axe-core (WCAG 2.2 AA) over the home and every reading page in headless Chromium against `dist/`; install the
 browser once with `npx playwright install chromium`, build first, and pass the same `SITE_BASE` as the build.
 
 ## Regenerating the screenshots of the home page
@@ -158,10 +158,3 @@ Never use a real school's name, city, staff name, or domain in examples, issues,
 comments, commit messages, or screenshots. The only example school allowed is the fictitious
 «Вигаданий ліцей № 0». Screenshots for documentation or issues come only from Tabula's demo
 site (issue #6), never from a real installation.
-
-One deliberate exception, decided by the project owner: the origin story of Tabula (the
-«Про проєкт» block on the landing page and `src/content/docs/pro-proiekt.mdx`) names the lyceum
-where the system was created. It names no people (owner's decision in PR #21): the project
-is presented as «Tabula розробляє команда в Україні». Nothing else about that
-school — its domain, pupils, staff, content, or screenshots of its live site — belongs in this
-repository.

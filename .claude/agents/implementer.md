@@ -20,9 +20,7 @@ Rules:
 - Language rule: user-facing text (README, issue templates, site content) is Ukrainian;
   developer-facing files and code (CONTRIBUTING.md, CLAUDE.md, comments, config) are English.
 - Never introduce a real school, city, person, or domain. The only example school allowed is
-  the fictitious «Вигаданий ліцей № 0». The single exception is the project's origin story on
-  the landing page and in `src/content/docs/pro-proiekt.mdx` (see CONTRIBUTING.md → Privacy);
-  edit those texts only when the brief gives the exact wording.
+  the fictitious «Вигаданий ліцей № 0». There is no exception.
 - If the brief names checks to run (tests, `npm run build`, lint), run them and report their
   actual output — do not guess or assume they pass.
 

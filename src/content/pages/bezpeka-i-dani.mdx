@@ -1,17 +1,9 @@
 ---
 title: Безпека й дані
 description: Де розміщені сайти шкіл і їхні копії, що ми зберігаємо, що виходить за межі ЄС і як закладу забрати свій сайт.
-template: splash
-editUrl: false
-sidebar:
-  hidden: true
 ---
 
 import { offer, formatDate } from '../../config/offer.mjs';
-
-<div class="prose-narrow">
-
-<h1 id="_top">Безпека й дані</h1>
 
 Станом на {formatDate(offer.asOf)}.
 
@@ -51,6 +43,4 @@ import { offer, formatDate } from '../../config/offer.mjs';
 
 ## Проблема з безпекою
 
-Напишіть на <a href={`mailto:${offer.contactEmail}`}>{offer.contactEmail}</a>. Про вразливість у самій системі — також на [сторінці політики безпеки проєкту](https://github.com/tabula-cms/tabula/security/policy).
-
-</div>
+Напишіть на <a href={`mailto:${offer.supportEmail}`}>{offer.supportEmail}</a>. Про вразливість у самій системі — також на [сторінці політики безпеки проєкту](https://github.com/tabula-cms/tabula/security/policy).

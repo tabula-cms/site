@@ -49,15 +49,18 @@ export const PUBLIC_HOST = 'licey0.tabula.org.ua';
  *    `runner: 'kep'` hands the row to scripts/lib/shot-kep-line.cjs (it needs a site of its own).
  *  - kind 'photo': a CC0 photo copied from tabula's test/fixtures/school-seed/photos/<file>.webp.
  */
+// The eight templates of the home's «Такий вигляд матиме ваш сайт», in the order of its tabs.
+export const TEMPLATES = Object.freeze(['panorama', 'vitryna', 'stend', 'shkilna', 'hazeta', 'afisha', 'portal', 'zoshyt']);
+
 export const SHOTS = Object.freeze([
-	...['panorama', 'vitryna', 'stend', 'shkilna'].map((template) => ({
+	...TEMPLATES.map((template) => ({
 		file: `tpl-${template}`,
 		kind: 'page',
 		template,
 		path: '/',
 		viewport: 'desktop',
 	})),
-	...['panorama', 'vitryna', 'stend', 'shkilna'].map((template) => ({
+	...TEMPLATES.map((template) => ({
 		file: `phone-${template}`,
 		kind: 'page',
 		template,
