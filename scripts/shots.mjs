@@ -77,6 +77,22 @@ export const SHOTS = Object.freeze([
 		waitFor: 'main',
 	},
 	{
+		// The home's «Харчування» story, step 3: a day with the allergen marks and the legend. The seed's dishes
+		// carry none, so `setup: 'allergens'` first turns the marks on and marks the dishes of this day (see
+		// SETUPS: it CHANGES the demo's throwaway database, so only this row runs it). The day is the seed's second
+		// day, 2026-11-06 while the seed's «today» is Monday 2026-11-09; with another day the dishes below are not
+		// there and the row fails loudly. It CHANGES the demo's throwaway database (the marks stay on), so it is
+		// always taken last in a full run (orderRows); restart the demo (fresh seed) before re-running any other row. `scrollTo` is a number (CSS pixels) or `{ selector, nth, offset }`.
+		file: 'phone-meal-allergens',
+		kind: 'page',
+		template: 'panorama',
+		path: '/kharchuvannya/2026-11-06',
+		viewport: 'phone',
+		waitFor: '.meals-marks',
+		setup: 'allergens',
+		scrollTo: { selector: '.meals-dayblock', nth: 1, offset: 290 },
+	},
+	{
 		file: 'admin-m-meals',
 		kind: 'page',
 		template: null,
@@ -124,6 +140,15 @@ export function selectRows(rows, { template = null, only = null } = {}) {
 		return [row];
 	}
 	return rows.filter((row) => !template || row.template === null || row.template === template);
+}
+
+/**
+ * The order the rows are taken in: rows with a `setup` come last (stable otherwise). A setup changes the demo's
+ * throwaway database (the allergens row turns the marks on), so every row that does not run one is shot first, on the
+ * seeded data. After a full run the demo is no longer as seeded: restart it (a fresh seed) before shooting any other row.
+ */
+export function orderRows(rows) {
+	return [...rows].sort((a, b) => Number(Boolean(a.setup)) - Number(Boolean(b.setup)));
 }
 
 /** `--template x`, `--only y` (also `--template=x`). */
@@ -188,7 +213,75 @@ async function toWebp(png) {
 		.toBuffer();
 }
 
+// The dishes of the shot's day and what the screen «Страви й алергени» gets for each: the codes of додаток 13
+// (Г глютен, Л лактоза, Я яйця, МП молочні продукти …), `none` for «Без алергенів», kcal from a technological card.
+export const ALLERGEN_DISHES = Object.freeze([
+	{ name: 'Оладки зі сметаною', codes: ['Г', 'Л', 'Я'], kcal: 310 },
+	{ name: 'Какао', codes: ['Л'], kcal: 120 },
+	{ name: 'Суп гороховий', none: true, kcal: 180 },
+	{ name: 'Гречка з тушкованою куркою', none: true, kcal: 290 },
+	{ name: 'Огірок свіжий', none: true, kcal: 15 },
+	{ name: 'Узвар', none: true, kcal: 70 },
+]);
+
+/** Turns on «Позначати алергени й калорійність у меню» and marks ALLERGEN_DISHES on «Страви й алергени». */
+async function setupAllergens(browser) {
+	const context = await browser.newContext({ viewport: VIEWPORTS.desktop, locale: 'uk-UA', reducedMotion: 'reduce' });
+	try {
+		const page = await context.newPage();
+		await signIn(page);
+		await page.goto(`${demoUrl}/admin/settings/kharchuvannia`, { waitUntil: 'networkidle' });
+		await page.locator('input[name="allergens"]').check();
+		await Promise.all([page.waitForLoadState('networkidle'), page.locator('form[action="/admin/settings/kharchuvannia"] button[type="submit"]').last().click()]);
+
+		const todo = new Map(ALLERGEN_DISHES.map((dish) => [dish.name, dish]));
+		let url = `${demoUrl}/admin/kharchuvannia/stravy`;
+		for (let pageNo = 1; pageNo <= 20 && url; pageNo += 1) {
+			await page.goto(url, { waitUntil: 'networkidle' });
+			let touched = 0;
+			for (const fieldset of await page.locator('form[action="/admin/kharchuvannia/stravy"] fieldset').all()) {
+				const name = ((await fieldset.locator('legend').innerText()).split('\n')[0] ?? '').replace(/Перевірте алергени$/, '').trim();
+				const dish = todo.get(name);
+				if (!dish) continue;
+				if (dish.none) await fieldset.locator('input[data-dish-none]').check();
+				else {
+					for (const box of await fieldset.locator('input[name^="a_"]').all()) {
+						if (dish.codes.includes(await box.getAttribute('value'))) await box.check();
+					}
+				}
+				await fieldset.locator('input[inputmode="numeric"]').first().fill(String(dish.kcal));
+				todo.delete(name);
+				touched += 1;
+			}
+			if (touched > 0) {
+				await Promise.all([page.waitForLoadState('networkidle'), page.locator('form[action="/admin/kharchuvannia/stravy"] button[type="submit"]').last().click()]);
+			}
+			const next = page.locator('a', { hasText: 'Далі' });
+			url = (await next.count()) > 0 ? new URL(await next.first().getAttribute('href'), demoUrl).href : null;
+			if (todo.size === 0) break;
+		}
+		if (todo.size > 0) throw new Error(`allergens setup: dishes not found on «Страви й алергени»: ${[...todo.keys()].join(', ')}`);
+	} finally {
+		await context.close();
+	}
+}
+
+/** The named setup steps of the rows (`row.setup`); each gets the browser and may change the demo's database. */
+const SETUPS = { allergens: setupAllergens };
+
+// A number is a scroll position in CSS pixels; `{ selector, nth, offset }` puts that element `offset` px below the top.
+async function scrollPage(page, to) {
+	if (typeof to === 'number') {
+		await page.evaluate((y) => globalThis.scrollTo(0, y), to);
+		return;
+	}
+	const box = page.locator(to.selector).nth(to.nth ?? 0);
+	const top = await box.evaluate((el) => el.getBoundingClientRect().top + globalThis.scrollY);
+	await page.evaluate((y) => globalThis.scrollTo(0, y), Math.max(0, top - (to.offset ?? 0)));
+}
+
 async function takePage(browser, row) {
+	if (row.setup) await SETUPS[row.setup](browser);
 	const viewport = VIEWPORTS[row.viewport];
 	const context = await browser.newContext({
 		viewport,
@@ -213,6 +306,7 @@ async function takePage(browser, row) {
 		await page.evaluate(() => globalThis.document.fonts.ready);
 		await page.evaluate(() => globalThis.document.activeElement?.blur?.());
 		if (row.facts === 'law') await writeLawFacts(page);
+		if (row.scrollTo) await scrollPage(page, row.scrollTo);
 		await maskDemoAddress(page);
 		const png = await page.screenshot({ type: 'png', ...(row.clip ? { clip: row.clip } : {}) });
 		return toWebp(png);
@@ -242,7 +336,7 @@ async function takePhoto(row) {
 }
 
 async function main() {
-	const rows = selectRows(SHOTS, parseArgs(process.argv.slice(2)));
+	const rows = orderRows(selectRows(SHOTS, parseArgs(process.argv.slice(2))));
 	mkdirSync(OUT_DIR, { recursive: true });
 	const pageRows = rows.filter((r) => r.kind === 'page' && r.runner !== 'kep');
 	const browser = pageRows.length > 0 ? await chromium.launch() : null;

@@ -39,43 +39,58 @@ async function scan(tab, label, started) {
 	return violations.length;
 }
 
-// The live header (story 80): after a long anchor jump, a deep link and a programmatic focus the header must be
-// visible and the page must not move. Motion allowed here (the other contexts use reduced motion, where the
-// header never hides). Returns the number of problems.
-async function liveHeader(browser, origin) {
-	const context = await browser.newContext({ viewport: { width: 1280, height: 800 }, reducedMotion: 'no-preference' });
+// The home with motion ALLOWED (1280 px): scrolled to the bottom in steps (so every section enters the
+// viewport and its effects play, the assistant's sequence and the scroll story included) and left for 3 s, so
+// the end state of every effect is measured by axe too. Returns the number of violations.
+async function homeWithMotion(browser, origin, started) {
+	const context = await browser.newContext({ viewport: { width: 1280, height: 900 }, reducedMotion: 'no-preference' });
 	const tab = await context.newPage();
-	const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
-	const hidden = () => tab.evaluate(() => document.querySelector('[data-site-header]').classList.contains('is-hidden'));
-	const root = `${origin}${baseNoSlash}/`;
+	await tab.goto(`${origin}${baseNoSlash}/`, { waitUntil: 'load' });
+	const height = await tab.evaluate(() => document.documentElement.scrollHeight);
+	for (let y = 0; y < height; y += 600) {
+		await tab.evaluate((top) => window.scrollTo({ top, behavior: 'instant' }), y);
+		await new Promise((resolve) => setTimeout(resolve, 80));
+	}
+	await tab.evaluate(() => window.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'instant' }));
+	await new Promise((resolve) => setTimeout(resolve, 3000));
+	const count = await scan(tab, '/ @ 1280px, motion allowed, scrolled to the bottom + 3 s', started);
+	await context.close();
+	return count;
+}
+
+// The header is always visible (story 80): after scrolling down 2000 px and after a long anchor jump it is in the
+// viewport and fully shown, at a desktop and a phone width. Motion allowed here (the other contexts use reduced
+// motion). Returns the number of problems.
+async function visibleHeader(browser, origin) {
 	let problems = 0;
+	const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 	const expect = (ok, what) => {
-		console.log(`a11y: live header — ${what}: ${ok ? 'ok' : 'FAILED'}`);
+		console.log(`a11y: header always visible — ${what}: ${ok ? 'ok' : 'FAILED'}`);
 		if (!ok) problems += 1;
 	};
-	await tab.goto(`${root}#faq`, { waitUntil: 'load' });
-	await wait(1800);
-	expect(!(await hidden()), 'deep link /#faq ends with the header shown');
-	await tab.evaluate(() => window.scrollTo({ top: 0, behavior: 'instant' }));
-	await wait(300);
-	await tab.click('.nav-links a[href="#faq"]');
-	await wait(2200);
-	expect(!(await hidden()), 'a long jump to #faq ends with the header shown');
-	await tab.evaluate(() => window.scrollTo({ top: 3000, behavior: 'instant' }));
-	await wait(300);
-	await tab.mouse.move(600, 500);
-	for (let i = 0; i < 4; i += 1) {
+	for (const width of [1280, 390]) {
+		const context = await browser.newContext({ viewport: { width, height: 800 }, reducedMotion: 'no-preference' });
+		const tab = await context.newPage();
+		const shown = () =>
+			tab.evaluate(() => {
+				const box = document.querySelector('[data-site-header]').getBoundingClientRect();
+				return box.top >= 0 && box.bottom > 0 && box.bottom <= innerHeight && getComputedStyle(document.querySelector('[data-site-header]')).clipPath === 'none';
+			});
+		await tab.goto(`${origin}${baseNoSlash}/`, { waitUntil: 'load' });
+		await tab.evaluate(() => window.scrollTo({ top: 2000, behavior: 'instant' }));
+		await tab.mouse.move(600, 500);
 		await tab.mouse.wheel(0, 200);
-		await wait(120);
+		await wait(500);
+		expect(await shown(), `@${width} after scrolling down 2000 px`);
+		await tab.evaluate(() => window.scrollTo({ top: 0, behavior: 'instant' }));
+		await wait(300);
+		await tab.evaluate(() => {
+			location.hash = 'faq';
+		});
+		await wait(2500);
+		expect(await shown(), `@${width} after a long jump to #faq`);
+		await context.close();
 	}
-	await wait(400);
-	expect(await hidden(), 'reading downwards hides the header');
-	const before = await tab.evaluate(() => window.scrollY);
-	await tab.evaluate(() => document.querySelector('.nav-links a').focus());
-	await wait(300);
-	const after = await tab.evaluate(() => window.scrollY);
-	expect(before === after && !(await hidden()), 'focusing a link in the hidden header shows it without scrolling the page');
-	await context.close();
 	return problems;
 }
 
@@ -122,7 +137,8 @@ async function main() {
 				await context.close();
 			}
 		}
-		violations += await liveHeader(browser, origin);
+		violations += await homeWithMotion(browser, origin, Date.now());
+		violations += await visibleHeader(browser, origin);
 	} finally {
 		await browser.close();
 		server.close();

@@ -7,6 +7,7 @@ import cropOverview from '../../assets/shots/crop-overview.webp';
 import food2 from '../../assets/shots/food-2.webp';
 import kepLine from '../../assets/shots/kep-line.webp';
 import phoneMealDay from '../../assets/shots/phone-meal-day.webp';
+import phoneMealAllergens from '../../assets/shots/phone-meal-allergens.webp';
 import phonePanorama from '../../assets/shots/phone-panorama.webp';
 import phoneShkilna from '../../assets/shots/phone-shkilna.webp';
 import phoneStend from '../../assets/shots/phone-stend.webp';
@@ -34,6 +35,7 @@ export const shots = {
 	food2,
 	kepLine,
 	phoneMealDay,
+	phoneMealAllergens,
 	phonePanorama,
 	phoneShkilna,
 	phoneStend,

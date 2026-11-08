@@ -37,7 +37,7 @@ Exists now:
 | `tsconfig.json` | `astro/tsconfigs/strict` |
 | `src/content.config.ts` | Starlight's `docs` collection (`docsLoader()` + `docsSchema()`, extended with an optional `lang` field) |
 | `src/routeData.ts` | Route data middleware that applies a page's `lang` frontmatter to its `<html lang>` — see Conventions |
-| `src/pages/index.astro` | Story 80 (S1): the home, sections 1–13 in the product layout (`src/components/product/home/*`); replaced `src/content/docs/index.mdx`, which was deleted |
+| `src/pages/index.astro` | Story 80 (S1): the home, sections 1–13 (plus «Для шкіл, садочків і коледжів», id `kinds`, after the four things: four tiles for the kinds of institution, `Kinds.astro`, no header link) in the product layout (`src/components/product/home/*`); replaced `src/content/docs/index.mdx`, which was deleted |
 | `src/layouts/Product.astro`, `src/styles/product.css` | Story 80: the product layout (`<html data-product-page>`, skip link, one `<h1>`, own CSS, self-hosted fonts) — see Conventions |
 | `src/components/product/` | Story 80: `Header.astro`, `Footer.astro` (with the `help` slot), `Shot.astro` (responsive `astro:assets` image), `Tick.astro`, `shots.ts` (the screenshots + hero preload options), `home/*.astro` (one component per section) |
 | `src/scripts/tabs.js`, `src/scripts/header.js` | Story 80: the only two scripts of the product pages (tabs with keyboard support; header shadow and «Меню») |
@@ -177,14 +177,14 @@ happens in each workflow, not in the composite action. Both checkouts pass
 - Product pages (story 80, S1): `src/layouts/Product.astro` is the layout of the site's own pages — `<html lang="uk" data-product-page>`,
   a skip link to `#main`, one `<h1>`, no Starlight; `src/styles/product.css` is its stylesheet (the mockup's values as classes;
   tokens as CSS custom properties on `:root[data-product-page]`, focus `3px #2F7FD6`, 44 px targets below 900 px). The home is
-  `src/pages/index.astro`, sections 1–13 as components in `src/components/product/home/`; `Header.astro` (sticky, seven links +
+  `src/pages/index.astro`, sections 1–13 (and the `kinds` band after the four things) as components in `src/components/product/home/`; `Header.astro` (sticky, seven links +
   «Подати заявку», a `<details>` «Меню» below 900 px; links are `#…` on the home and `{BASE_URL}#…` elsewhere, prop `home`) and
   `Footer.astro` (four columns, a `help` slot «Довідка» that renders nothing until the docs story) are in `src/components/product/`.
   Fonts are self-hosted from `@fontsource/{unbounded,manrope,caveat}` — own `@font-face` rules with `unicode-range` in
   `product.css` (the packages' per-subset CSS has none), Cyrillic + Latin files of the used weights only, no Google Fonts.
   Fonts have metric-matched Arial fallbacks (`size-adjust`/`ascent-override`… in `product.css`) and the first screen's two woff2 files are preloaded (CLS 0.000 measured at 1440 and 390, was 0.07–0.27). Unbounded is wide: `product.css` shrinks the display sizes with `clamp()` on phones (the mockup's screenshots were evidently
   rendered without it, so its line breaks differ). ₴ is not in the Cyrillic/Latin subsets and falls back to a system font.
-  Only two scripts (header.js also holds the live header; Starlight's link prefetch is switched off with `prefetch: false` in `astro.config.mjs`, so no `page.*.js` loads;
+  Only two scripts (header.js is the compact-header state and the «Меню» close; Starlight's link prefetch is switched off with `prefetch: false` in `astro.config.mjs`, so no `page.*.js` loads;
   `check-built` fails a product page that loads any other script): `src/scripts/tabs.js` (WAI-ARIA tabs for both tablists; without JS the tablists are `hidden`, every panel
   is shown under its own `[data-tab-heading]` and has no `tabpanel` role — the script sets role, `aria-labelledby` and `tabindex`; `nextIndex()` is pure and unit-tested) and `src/scripts/header.js` (header shadow
   via IntersectionObserver, «Меню» closes on link/Escape). Motion lives only in `product.css` §16 and `header.js`, all behind `prefers-reduced-motion: no-preference`; scroll-driven
@@ -193,12 +193,38 @@ happens in each workflow, not in the composite action. Both checkouts pass
   stagger by `--i` shifting each item's `animation-range`; devices once as they enter (laptops tilt, phones/chat slide ~40 px, КЕП/law cards
   rise; they end at rest at entry 100 %); the hero's devices settle once by time on load (transform only, the LCP image never starts
   invisible); the price marker and three H2 key phrases (`.marker--scroll`) draw on scroll, the hero's (`.marker--load`) on load;
-  a reading-progress bar (`.page-progress`, a fixed 3 px bar of its own, outside the header, `scroll(root)`); and the live header (`header.js`: hides by `clip-path` — the box stays in place, so focusing a link in it never scrolls the page — after ~400 px and 10 px of accumulated downward movement, returns on any scroll up, never while focus is inside or «Меню» is open; an anchor, deep link or restored position holds it shown until `scrollend`/150 ms of quiet, then re-baselines; compact padding once scrolled switches without a transition, compensated by a margin so the document keeps its height; `scripts/a11y.mjs` checks the deep link, a long jump and focus in a motion-allowed context). Device effects end at `entry 40%` and the slides are transform-only. No parallax, counters or scroll hijacking; transform/opacity only.
+  a reading-progress bar (`.page-progress`, a fixed 3 px bar of its own, outside the header, `scroll(root)`); the header's progress bar sits on its bottom edge (the header is sticky; the bar is its last child, `top: 100%`). The header itself is always visible — there is no hide-on-scroll (owner's decision: a vanishing menu with only the bar left was confusing); `header.js` only toggles the compact `is-scrolled` state (shadow, smaller padding, compensated by a margin so the document keeps its height) with an IntersectionObserver and closes «Меню» on link/Escape. `.anchor`'s `scroll-margin-top` clears the compact header (72 px; 96 px below 900 px, where the button wraps and the header is 81 px). `scripts/a11y.mjs` checks the header is in the viewport after scrolling 2000 px and after a long jump, at 1280 and 390 px. Device effects end at `entry 40%` and the slides are transform-only. No scroll hijacking; transform/opacity only (the richer effects below were added on 2026-11-09).
   `src/assets/shots/*.webp` through `astro:assets` (`components/product/Shot.astro`); the hero laptop is the LCP image (eager,
   `fetchpriority=high`, preloaded in `<head>` with the same widths/sizes from `shots.ts`). Every number, date, sum and address on the
   home comes from `offer.mjs` (`formatDateLongYear`, `formatUah`, `withinWorkingDays`, `includesShort`, `supportEmail`, `assistantStatus`,
   `demoSiteUrl`); reply times always say «зазвичай» (story 78 decision 24). The «23 з 24» figure is `src/assets/shots/facts.json`.
   The request section renders no form while `requestsOpen` is false (the form is slice S3: see `TODO(S3)` in `Request.astro`).
+- Richer motion on the home (owner's request, 2026-11-09; **the owner widened spec decision 10 the same day: light parallax, number
+  counters and a scroll-linked story are allowed on the home**). Still without exception: everything is off under
+  `prefers-reduced-motion: reduce` (all of it is in `product.css` §18 inside `@media (prefers-reduced-motion: no-preference)`; the
+  full-page screenshots under reduced motion are pixel-identical to the page before it); no scroll hijacking (no snapping, no wheel/touch
+  interception, no auto-advancing carousel; the page never changes the scroll); content never hidden without JS, without
+  `animation-timeline` or with reduced motion; screen readers get the real text once (animated duplicates are `aria-hidden`); `translate`/
+  `scale` (individual properties) so a rule's own `transform` is never clobbered; scroll-driven effects as longhands. The effects:
+  (1) **the assistant plays** (`src/scripts/tabs.js`, `PHASES`/`stagger`/`buildSchedule`/`PLAN`, unit-tested): when the section first enters
+  the viewport (IntersectionObserver, once) and on every tab switch the panel runs «Ви даєте» (pills pop, the message is typed word by word
+  from spans the script wraps around the real words, thumbs/files/photos fade in) → the arrow pulses and draws (`stroke-dashoffset`) →
+  «Готую чернетку…» → the draft builds part by part (card, title, text, the `[уточніть: хто]` and «неясно — перевірте» highlights flash
+  amber twice, notes slide in, buttons pop; table rows, descriptions, the plan items one by one; «Було» fades into «Стало»), in at most 2.5 s,
+  restarting on a switch. The script marks parts with `data-p` and delays `--d`; CSS (`.is-playing`, `.is-primed` until the first play) does the rest.
+  (2) **the hero**: on load the laptop rises, the phone slides in, the AI card pops and its title is typed (spans added by the script
+  only when motion is allowed), `без рутини` draws; then idle loops (phone and card float ±4 px, 6.5 s / 7 s; the mint blob drifts 26 s),
+  transform-only and left running off screen (compositor-only, no layout or paint). (3) **parallax**, ≤ 24 px, `translate`: the hero's phone and
+  card over the first 700 px of scroll (`scroll(root)`), the blob slower; the second card of «Документи з КЕП» and the phone of «Такий вигляд»
+  (`view()` cover). None on text blocks, none in «Харчування». (4) **counters**: «23 з 24» and the price count up while they enter
+  (`@property` integers on an `aria-hidden` overlay `.count__anim`, `entry 0%` → `cover 45%`); the real text (`.count__real`) stays in the DOM
+  and is transparent only while the overlay shows the same text; the sum counts the thousands and the three digits separately.
+  (5) **«Харчування» as a scroll story**, from 900 px and only with `animation-timeline: view()`: the four points are four 75 vh steps (each its
+  own view timeline `--s1…--s4`, `timeline-scope` on the section); the phones become one sticky stage whose screens crossfade (admin → day page + the chat
+  card sliding in → `phone-meal-allergens` → the handwritten sheet with a scanning line and the «Сніданок / Обід» lines); the current step is the dark
+  one — by colour, not opacity, so every step keeps ≥ 4.5:1. `phone-meal-allergens` is a real shot of the public day page with the marks on: its row in `scripts/shots.mjs` has `setup: 'allergens'` (signs in as the fixture admin, turns on «Позначати алергени й калорійність у меню», marks the shot's day dishes with codes and kcal — it CHANGES the demo's throwaway database, so only that row runs it) and scrolls to the dishes and the legend. The script is inlined
+  into the home page whatever its size (`assetsInlineLimit` in `astro.config.mjs`): as a separate file it ran after the first paint and the panels it hides flashed.
+  `npm run a11y` also scans the home at 1280 px with motion allowed after scrolling to the bottom in steps and waiting 3 s.
 - Screenshots (story 80, decision 11): `scripts/shots.mjs` (`npm run shots`) drives Playwright against a running tabula demo
   (`npm run demo -- --seed school --template <key>` in a tabula checkout; `TABULA_DEMO_URL`, default `http://127.0.0.1:3100`) and
   writes WebP into `src/assets/shots/` (committed); its exported `SHOTS` table is the list of files. `--template <key>` shoots that

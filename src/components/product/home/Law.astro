@@ -17,7 +17,7 @@ const lawHref = `${root}zakon-i-sait-shkoly/`;
 			<a class="quiet" href={lawHref}>Закон і сайт школи</a>
 		</div>
 		<p class="law__figure">
-			{facts.lawFilled}&#160;з&#160;{facts.lawTotal} <span>заповнено на демо-сайті</span>
+			<i class="count count--n" style={`--to:${facts.lawFilled}`}><i class="count__real">{facts.lawFilled}</i><i class="count__anim" aria-hidden="true"></i></i>&#160;з&#160;{facts.lawTotal} <span>заповнено на демо-сайті</span>
 		</p>
 	</div>
 </section>
