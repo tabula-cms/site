@@ -21,7 +21,11 @@ test('offer: the fields exist with the right types', () => {
 	assert.ok(offer.pilotValueUah === null || Number.isInteger(offer.pilotValueUah));
 	assert.match(offer.contactEmail, /^[^@\s]+@[^@\s]+\.[a-z]+$/);
 	assert.ok(offer.contactPhone === null || typeof offer.contactPhone === 'string');
-	assert.ok(offer.operatorEmail === null || typeof offer.operatorEmail === 'string');
+	assert.ok(offer.operatorEmail === null || /^[^@\s]+@[^@\s]+\.[a-z]+$/.test(offer.operatorEmail));
+});
+
+test('offer: pilotValueUah is the monthly value, priceYearUah / 12', () => {
+	if (offer.pilotValueUah !== null) assert.equal(offer.pilotValueUah * 12, offer.priceYearUah);
 	assert.equal(typeof offer.cpUrl, 'string');
 	assert.equal(typeof offer.turnstileSiteKey, 'string');
 	assert.equal(typeof offer.requestsOpen, 'boolean');

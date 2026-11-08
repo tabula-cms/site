@@ -15,9 +15,10 @@ export const offer = Object.freeze({
 	priceYearUah: 4800,
 	// Decision 3: the quarterly instalment; must equal priceYearUah / 4 (test/offer.test.mjs).
 	priceQuarterUah: 1200,
-	// Decision 24: the value of the pilot's free services for the institution's books. The owner
-	// sets it; pages show it only when it is a number.
-	pilotValueUah: null,
+	// Decision 24: the value of the pilot's free services for the institution's books, per MONTH
+	// of the pilot: priceYearUah / 12 = 4 800 / 12 = 400 (test/offer.test.mjs holds this). Pages
+	// say «— {pilotValueUah} грн за кожен місяць пілоту», never a lump sum.
+	pilotValueUah: 400,
 	// Decision 8: the date the law and procurement texts were last checked against their sources.
 	asOf: '2026-11-08',
 	// Decision 24: the usual reply time to a request, in working days. Pages always write
@@ -29,9 +30,9 @@ export const offer = Object.freeze({
 	contactEmail: 'support@tabula.org.ua',
 	// Decision 24: an optional public phone number; pages show it only when set.
 	contactPhone: null,
-	// Decision 5 and 24: a role mailbox for the controller's details. Null until the owner sets
-	// it; see privacyEmail() for what the pages use meanwhile.
-	operatorEmail: null,
+	// Decision 5 and 24: the role mailbox for the controller's details and data-subject requests
+	// (set by the owner in PR #21). privacyEmail() falls back to contactEmail if it is ever null.
+	operatorEmail: 'privacy@tabula.org.ua',
 	// Decision 24: the control plane's address; TABULA_CP_URL overrides it at build time for a
 	// manual check against a local control plane.
 	cpUrl: process.env.TABULA_CP_URL || 'https://cp.tabula.org.ua',

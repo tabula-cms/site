@@ -56,7 +56,9 @@ import { offer, formatDate, privacyEmail } from '../../config/offer.mjs';
 ## Кому ми передаємо дані
 
 - Hetzner — сервери платформи та її копії, ЄС.
-- Поштовий сервіс — доставка листів.
+- Resend (Resend, Inc., США) — через нього платформа надсилає листи закладам: код для входу, листи про пілот, підтвердження заявки. Листи відправляються з регіону ЄС (Ірландія). Як Resend обробляє дані: [resend.com](https://resend.com/legal/dpa), станом на {formatDate(offer.asOf)}.
+- Cloudflare (Email Routing) — приймає листи на {offer.contactEmail} і {offer.operatorEmail} і пересилає їх у поштову скриньку. Як Cloudflare обробляє дані: [cloudflare.com](https://www.cloudflare.com/cloudflare-customer-dpa/), станом на {formatDate(offer.asOf)}.
+- Google (Gmail) — у цій поштовій скриньці зберігаються листи, які заклади пишуть нам. Як Google обробляє дані: [policies.google.com](https://policies.google.com/privacy?hl=uk), станом на {formatDate(offer.asOf)}.
 - Cloudflare — перевірка, що заявку надіслала людина (Turnstile), США.
 - GitHub Pages — розміщення (хостинг) цього сайту.
 - Telegram — повідомлення власнику з назвою закладу й місцем, за межами ЄС.
