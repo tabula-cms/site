@@ -123,6 +123,37 @@
 	unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
 
+/* Metric-matched fallbacks: until a web font arrives (or when it fails) the text is set in Arial scaled to the
+ * font's width and line metrics, so the swap moves little (layout shift). Measured: Unbounded 600 is 1.28 x
+ * Arial's width, Manrope about 1.0; the overrides are the fonts' hhea metrics divided by size-adjust. */
+@font-face {
+	font-family: 'Unbounded Fallback';
+	font-weight: 600;
+	src: local('Arial Bold'), local('Arial-BoldMT'), local('Helvetica Bold'), local('Liberation Sans Bold');
+	size-adjust: 128%;
+	ascent-override: 77.7%;
+	descent-override: 19.1%;
+	line-gap-override: 0%;
+}
+@font-face {
+	font-family: 'Manrope Fallback';
+	font-weight: 400 600;
+	src: local('Arial'), local('ArialMT'), local('Helvetica'), local('Liberation Sans');
+	size-adjust: 100%;
+	ascent-override: 106.6%;
+	descent-override: 30%;
+	line-gap-override: 0%;
+}
+@font-face {
+	font-family: 'Manrope Fallback';
+	font-weight: 700 800;
+	src: local('Arial Bold'), local('Arial-BoldMT'), local('Helvetica Bold'), local('Liberation Sans Bold');
+	size-adjust: 100%;
+	ascent-override: 106.6%;
+	descent-override: 30%;
+	line-gap-override: 0%;
+}
+
 /* ---------------------------------------------------------------------------------------------
  * 2. Tokens (decision 7), base, focus, helpers.
  * --------------------------------------------------------------------------------------------- */
@@ -141,8 +172,8 @@
 	--hand: #2b4c9b;
 	--pen: #b8432a;
 	--focus: #2f7fd6;
-	--display: 'Unbounded', sans-serif;
-	--body: 'Manrope', system-ui, sans-serif;
+	--display: 'Unbounded', 'Unbounded Fallback', sans-serif;
+	--body: 'Manrope', 'Manrope Fallback', system-ui, sans-serif;
 }
 
 [data-product-page] body {
@@ -317,10 +348,26 @@
 	z-index: 20;
 	background: rgba(247, 249, 248, 0.94);
 	border-bottom: 1px solid var(--line);
-	transition: box-shadow 0.2s ease-out;
 }
 .site-header.is-scrolled {
 	box-shadow: 0 6px 18px rgba(23, 40, 58, 0.08);
+	/* Compact once scrolled. The header is in the flow (sticky), so its 12 px of lost padding come back as a
+	 * margin: the document keeps its height and nothing below it moves. */
+	margin-bottom: 12px;
+}
+.site-header.is-scrolled .site-header__inner {
+	padding-top: 8px;
+	padding-bottom: 8px;
+}
+/* The reading progress bar is a fixed bar of its own, outside the header (it stays when the header leaves);
+ * it exists only under motion (section 16). */
+.page-progress {
+	display: none;
+}
+/* The header is clipped to its box while visible too, so that clipping can transition; the lower inset leaves
+ * room for the shadow and the «Меню» panel. */
+.site-header {
+	clip-path: inset(0 0 -100vh 0);
 }
 .site-header__inner {
 	max-width: 1200px;
@@ -574,7 +621,8 @@
 	color: var(--text);
 }
 
-/* The marker under «без рутини» and under the price. */
+/* The marker under «без рутини» and under the price, and under a key phrase of three headings. It is
+ * drawn in full by default; section 16 animates it (on load for the hero, on scroll for the others). */
 .marker {
 	background-image: linear-gradient(transparent 60%, var(--marker) 60%);
 	background-repeat: no-repeat;
@@ -1833,28 +1881,236 @@
  * 16. Motion (decision 10). Everything here is off under `prefers-reduced-motion: reduce`;
  * content is never hidden when a feature is missing.
  * --------------------------------------------------------------------------------------------- */
+@keyframes rise {
+	from {
+		opacity: 0;
+		transform: translateY(24px);
+	}
+	to {
+		opacity: 1;
+		transform: none;
+	}
+}
+@keyframes rise-far {
+	from {
+		opacity: 0;
+		transform: translateY(40px);
+	}
+	to {
+		opacity: 1;
+		transform: none;
+	}
+}
+@keyframes tilt {
+	from {
+		transform: perspective(1200px) rotateX(10deg) scale(0.96);
+	}
+	to {
+		transform: none;
+	}
+}
+@keyframes from-right {
+	from {
+		transform: translateX(40px);
+	}
+	to {
+		transform: none;
+	}
+}
+@keyframes from-left {
+	from {
+		transform: translateX(-40px);
+	}
+	to {
+		transform: none;
+	}
+}
+@keyframes hero-settle {
+	from {
+		transform: translateY(14px) scale(0.985);
+	}
+	to {
+		transform: none;
+	}
+}
+@keyframes progress {
+	from {
+		transform: scaleX(0);
+	}
+	to {
+		transform: scaleX(1);
+	}
+}
+
+/* Staggering without time delays: each item's index (--i) shifts its own scroll range. */
+:is(.ticks, .panel__list, .price-card__list, .why__table, .four__inner, .steps) > :nth-child(1) { --i: 0; }
+:is(.ticks, .panel__list, .price-card__list, .why__table, .four__inner, .steps) > :nth-child(2) { --i: 1; }
+:is(.ticks, .panel__list, .price-card__list, .why__table, .four__inner, .steps) > :nth-child(3) { --i: 2; }
+:is(.ticks, .panel__list, .price-card__list, .why__table, .four__inner, .steps) > :nth-child(4) { --i: 3; }
+:is(.ticks, .panel__list, .price-card__list, .why__table, .four__inner, .steps) > :nth-child(5) { --i: 4; }
+:is(.ticks, .panel__list, .price-card__list, .why__table, .four__inner, .steps) > :nth-child(6) { --i: 5; }
+.faq__inner > .faq-item:nth-of-type(1) { --i: 0; }
+.faq__inner > .faq-item:nth-of-type(2) { --i: 1; }
+.faq__inner > .faq-item:nth-of-type(3) { --i: 2; }
+.faq__inner > .faq-item:nth-of-type(4) { --i: 3; }
+.faq__inner > .faq-item:nth-of-type(5) { --i: 4; }
+
 @media (prefers-reduced-motion: no-preference) {
 	html[data-product-page] {
 		scroll-behavior: smooth;
 	}
-	.marker {
+	/* The hero's «без рутини»: drawn once on load. */
+	.marker--load {
 		animation: draw 0.8s ease-out 0.3s both;
 	}
+	/* The hero's devices settle once, by time, on load (transform only: the LCP image never starts
+	 * invisible). At most 600 ms in all. */
+	.hero__visual .laptop {
+		animation: hero-settle 0.5s ease-out both;
+	}
+	.hero__phone {
+		animation: hero-settle 0.5s ease-out 0.1s both;
+	}
+	.hero__card {
+		animation: hero-settle 0.5s ease-out 0.1s both;
+	}
 	@supports (animation-timeline: view()) {
-		/* Longhands, and the timeline in its own rule: a minifier folds `animation: … ; animation-timeline: view()`
-		 * into one shorthand with `view()` inside, which Chromium rejects (the reveal then never runs). */
-		.reveal {
-			animation-name: appear;
+		/* Everything below is scroll-driven and written as longhands, the timeline in its own rule: a
+		 * minifier folds `animation: … ; animation-timeline: view()` into one shorthand with `view()`
+		 * inside, which Chromium rejects (the effect then never runs). Each effect ends at rest when the
+		 * element has fully entered; transform and opacity only, so nothing shifts. */
+
+		/* 1. Reveal: sections rise ~24 px with a fade over entry 0–40 %; items follow one after another. */
+		.reveal,
+		:is(.ticks, .panel__list, .price-card__list, .why__table, .four__inner, .steps) > *,
+		.faq__inner > .faq-item {
+			animation-name: rise;
 			animation-timing-function: linear;
 			animation-fill-mode: both;
 		}
-		.reveal {
+		.reveal,
+		:is(.ticks, .panel__list, .price-card__list, .why__table, .four__inner, .steps) > *,
+		.faq__inner > .faq-item {
 			animation-timeline: view();
 		}
 		.reveal {
 			animation-range-start: entry 0%;
-			animation-range-end: entry 35%;
+			animation-range-end: entry 40%;
 		}
+		:is(.ticks, .panel__list, .price-card__list, .why__table, .four__inner, .steps) > *,
+		.faq__inner > .faq-item {
+			animation-range-start: entry calc(var(--i, 0) * 5%);
+			animation-range-end: entry calc(40% + var(--i, 0) * 5%);
+		}
+
+		/* 2. Devices come alive once as they enter. */
+		.look__panel .laptop,
+		.panel__laptop {
+			transform-origin: 50% 100%;
+			animation-name: tilt;
+			animation-timing-function: linear;
+			animation-fill-mode: both;
+		}
+		.look__panel .laptop,
+		.panel__laptop {
+			animation-timeline: view();
+		}
+		.look__panel .laptop,
+		.panel__laptop {
+			animation-range-start: entry 0%;
+			animation-range-end: entry 40%;
+		}
+		.meals__admin,
+		.look__phone {
+			animation-name: from-right;
+			animation-timing-function: linear;
+			animation-fill-mode: both;
+		}
+		.meals__admin {
+			animation-name: from-left;
+		}
+		.meals__day,
+		.chat {
+			animation-name: from-right;
+			animation-timing-function: linear;
+			animation-fill-mode: both;
+		}
+		.docs-card {
+			animation-name: rise-far;
+			animation-timing-function: linear;
+			animation-fill-mode: both;
+		}
+		.meals__admin,
+		.look__phone,
+		.meals__day,
+		.chat,
+		.docs-card {
+			animation-timeline: view();
+		}
+		.meals__admin,
+		.look__phone,
+		.meals__day,
+		.chat,
+		.docs-card {
+			animation-range-start: entry 0%;
+			animation-range-end: entry 40%;
+		}
+
+		/* 4. The marker draws when its phrase (or, for the price, the whole card) enters. */
+		.marker--scroll {
+			animation-name: draw;
+			animation-timing-function: linear;
+			animation-fill-mode: both;
+		}
+		.marker--scroll {
+			animation-timeline: view();
+		}
+		.marker--scroll {
+			animation-range-start: entry 10%;
+			animation-range-end: entry 60%;
+		}
+		.price-card {
+			view-timeline-name: --price-card;
+		}
+		.price-card .marker--scroll {
+			animation-timeline: --price-card;
+		}
+	}
+
+	/* 3. The reading progress bar, fixed along the top of the viewport: scroll(root), scaleX. */
+	@supports (animation-timeline: scroll()) {
+		.page-progress {
+			display: block;
+			position: fixed;
+			z-index: 30;
+			left: 0;
+			right: 0;
+			top: 0;
+			height: 3px;
+			background: var(--accent);
+			transform-origin: 0 50%;
+			transform: scaleX(0);
+			pointer-events: none;
+			animation-name: progress;
+			animation-timing-function: linear;
+			animation-fill-mode: both;
+		}
+		.page-progress {
+			animation-timeline: scroll(root);
+		}
+	}
+	/* The header leaves while the page is read downwards (header.js toggles `is-hidden`). */
+	.site-header {
+		transition:
+			clip-path 0.25s ease-out,
+			box-shadow 0.2s ease-out;
+	}
+	/* Hidden by clipping, not by moving it away: the box stays where it is, so focusing a link in it (a
+	 * programmatic focus() included) never scrolls the page to bring it into view; header.js shows it on focusin.
+	 * The compact padding above switches without a transition and with no change of the document's height. */
+	.site-header.is-hidden {
+		clip-path: inset(0 0 100% 0);
+		pointer-events: none;
 	}
 	.tabs--js .tabpanel--demo:not([hidden]) .thinking {
 		display: block;
@@ -1893,7 +2149,6 @@
 	.btn,
 	.card-hover,
 	.tab,
-	.site-header,
 	.faq-item .plus {
 		transition: none;
 	}

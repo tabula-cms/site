@@ -16,6 +16,14 @@ import tplPanorama from '../../assets/shots/tpl-panorama.webp';
 import tplShkilna from '../../assets/shots/tpl-shkilna.webp';
 import tplStend from '../../assets/shots/tpl-stend.webp';
 import tplVitryna from '../../assets/shots/tpl-vitryna.webp';
+import phoneHazeta from '../../assets/shots/phone-hazeta.webp';
+import tplHazeta from '../../assets/shots/tpl-hazeta.webp';
+import phoneAfisha from '../../assets/shots/phone-afisha.webp';
+import tplAfisha from '../../assets/shots/tpl-afisha.webp';
+import phonePortal from '../../assets/shots/phone-portal.webp';
+import tplPortal from '../../assets/shots/tpl-portal.webp';
+import phoneZoshyt from '../../assets/shots/phone-zoshyt.webp';
+import tplZoshyt from '../../assets/shots/tpl-zoshyt.webp';
 import facts from '../../assets/shots/facts.json';
 
 export const shots = {
@@ -35,6 +43,14 @@ export const shots = {
 	tplShkilna,
 	tplStend,
 	tplVitryna,
+	phoneHazeta,
+	tplHazeta,
+	phoneAfisha,
+	tplAfisha,
+	phonePortal,
+	tplPortal,
+	phoneZoshyt,
+	tplZoshyt,
 };
 
 export { facts };
