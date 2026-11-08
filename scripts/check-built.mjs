@@ -45,10 +45,6 @@ export const FORBIDDEN_PHRASES = [
 export const UCOZ_PAGE = 'zakon-i-sait-shkoly';
 // Decision 8: a page whose text matches this must say «станом на».
 export const LAW_PATTERN = /Закон|постанов|Prozorro|КЕКВ|ДК 021/;
-// pro-proiekt.md carries the project's origin story, written before story 78; its mention of
-// Article 30 is history, not a claim about what the law asks today. Reported to the lead.
-// The owner decides whether it stays exempt; main() prints a notice on every run meanwhile.
-export const AS_OF_EXEMPT = ['pro-proiekt'];
 
 export const TURNSTILE_SRC = 'https://challenges.cloudflare.com/turnstile/v0/api.js';
 
@@ -69,7 +65,7 @@ export function checkOwnSource(name, text) {
 	for (const phrase of findForbidden(text, { allowUcoz: name === UCOZ_PAGE })) {
 		problems.push(`forbidden phrase «${phrase}»`);
 	}
-	if (LAW_PATTERN.test(text) && !/станом на/i.test(text) && !AS_OF_EXEMPT.includes(name)) {
+	if (LAW_PATTERN.test(text) && !/станом на/i.test(text)) {
 		problems.push('names a law or a procurement rule but has no «станом на»');
 	}
 	if (BAD_APOSTROPHE.test(text)) {
@@ -91,8 +87,7 @@ export function checkAsOfDate(bodyText, asOfText) {
 }
 
 /** The law-pattern rule on a built page's <main> text: a law or procurement rule needs «станом на». */
-export function checkBuiltAsOf(name, bodyText) {
-	if (AS_OF_EXEMPT.includes(name)) return [];
+export function checkBuiltAsOf(_name, bodyText) {
 	if (LAW_PATTERN.test(bodyText) && !/станом на/i.test(bodyText)) {
 		return ['the built page names a law or a procurement rule but has no «станом на»'];
 	}
@@ -280,9 +275,6 @@ function main() {
 		fail('dist', '"Документація" points at editor/, but dist/editor/ is missing');
 	}
 
-	for (const name of AS_OF_EXEMPT) {
-		console.log(`check-built: notice: ${name} is exempt from the «станом на» rule (its origin story predates it; the owner decides)`);
-	}
 	if (failures.length > 0) {
 		console.error(`check-built: ${failures.length} problem(s):`);
 		for (const failure of failures) console.error(`  - ${failure}`);

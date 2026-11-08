@@ -41,8 +41,8 @@ test('checkOwnSource: a law page needs «станом на»', () => {
 	assert.deepEqual(checkOwnSource('x', 'Про сайт.'), []);
 });
 
-test('checkOwnSource: the exempt page and the uCoz page', () => {
-	assert.deepEqual(checkOwnSource('pro-proiekt', 'Закон каже.'), []);
+test('checkOwnSource: no page is exempt from «станом на»; the uCoz page', () => {
+	assert.equal(checkOwnSource('pro-proiekt', 'Закон каже.').length, 1);
 	assert.deepEqual(checkOwnSource('zakon-i-sait-shkoly', 'станом на 1. Закон. uCoz'), []);
 	assert.equal(checkOwnSource('other', 'станом на 1. Закон. uCoz').length, 1);
 });
@@ -69,7 +69,7 @@ test('checkBuiltAsOf: the law pattern in built text needs «станом на»'
 	assert.equal(checkBuiltAsOf('x', 'Текст з offer.mjs: постанова № 1.').length, 1);
 	assert.deepEqual(checkBuiltAsOf('x', 'постанова № 1. Станом на 08.11.2026'), []);
 	assert.deepEqual(checkBuiltAsOf('x', 'Про сайт.'), []);
-	assert.deepEqual(checkBuiltAsOf('pro-proiekt', 'Закон'), []);
+	assert.equal(checkBuiltAsOf('pro-proiekt', 'Закон').length, 1);
 });
 
 test('checkOperatorLine: the footer carries the operator line verbatim', () => {

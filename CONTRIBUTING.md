@@ -136,7 +136,8 @@ comments, commit messages, or screenshots. The only example school allowed is th
 site (issue #6), never from a real installation.
 
 One deliberate exception, decided by the project owner: the origin story of Tabula (the
-«Про проєкт» block on the landing page and `src/content/docs/pro-proiekt.md`) names the lyceum
-where the system was created and the two people who initiated it. Nothing else about that
+«Про проєкт» block on the landing page and `src/content/docs/pro-proiekt.mdx`) names the lyceum
+where the system was created. It names no people (owner's decision in PR #21): the project
+is presented as «Tabula розробляє команда в Україні». Nothing else about that
 school — its domain, pupils, staff, content, or screenshots of its live site — belongs in this
 repository.

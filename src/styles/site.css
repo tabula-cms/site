@@ -631,7 +631,7 @@ html:not([data-has-sidebar]) .main-frame {
 }
 
 /* ---------------------------------------------------------------------------------------------
- * 4. About page (src/content/docs/pro-proiekt.md) — narrower measure for a long-form page.
+ * 4. About page (src/content/docs/pro-proiekt.mdx) — narrower measure for a long-form page.
  * --------------------------------------------------------------------------------------------- */
 .prose-narrow {
 	max-width: 72ch;

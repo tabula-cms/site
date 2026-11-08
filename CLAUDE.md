@@ -38,7 +38,7 @@ Exists now:
 | `src/content.config.ts` | Starlight's `docs` collection (`docsLoader()` + `docsSchema()`, extended with an optional `lang` field) |
 | `src/routeData.ts` | Route data middleware that applies a page's `lang` frontmatter to its `<html lang>` — see Conventions |
 | `src/content/docs/index.mdx` | Landing page content (issue #5, design pass 2) — hand-written `template: splash` MDX sections styled by `src/styles/site.css`: full-bleed tinted bands (hero, "Можливості"), bordered cards ("Три кроки", "Для кого", the "Потрібно" checklist), a tile grid, and small monochrome icons from Starlight's built-in `<Icon name="…" />` set (`@astrojs/starlight/components`) — no `hero` frontmatter and no Starlight `CardGrid`/`Card` |
-| `src/content/docs/pro-proiekt.md` | About-the-project page (issue #5), `template: splash`, hidden from the sidebar, its content column narrowed by `src/styles/site.css`'s `.prose-narrow` |
+| `src/content/docs/pro-proiekt.mdx` | About-the-project page (issue #5), `template: splash`, hidden from the sidebar, its content column narrowed by `src/styles/site.css`'s `.prose-narrow`; `.mdx` since PR #21 so it can import `offer.mjs` for its «станом на» date |
 | `src/config/offer.mjs` | Story 78 (W1): the **one source of the offer's numbers and dates** — `pilotUntil`, `priceYearUah`, `priceQuarterUah`, `asOf`, reply times, contacts, `cpUrl` / `turnstileSiteKey` (env `TABULA_CP_URL`, `TABULA_TURNSTILE_SITEKEY`), `requestsOpen`, `copiesWhere`; plus the operator line, the "what the institution gets" list (`includes`) and formatters. No page types a price or a date of the offer by hand: such a page is `.mdx` and imports this module |
 | `src/content/docs/{yak-tse-pratsiuie,khostynh-i-tsina,dlia-bukhhalterii,zakon-i-sait-shkoly,bezpeka-i-dani,pidtrymka,dostupnist,personalni-dani,zaiavka}.mdx`, `vstanovyty-samostiino.md` | Story 78 (W1): the site's own pages for schools (committed, `template: splash`, `editUrl: false`, own `<h1 id="_top">`) |
 | `scripts/check-built.mjs` (`npm run check:built`; also runs after the build via `postbuild`) | Story 78: the header's five links and the button, decision 8's forbidden phrases and «станом на» on the own pages, ʼ instead of ' / ’, no foreign script on `zaiavka`. Rules are exported and unit-tested in `test/check-built.test.mjs` |
@@ -139,7 +139,7 @@ happens in each workflow, not in the composite action. Both checkouts pass
 
 ## Conventions
 
-- Landing (`src/content/docs/index.mdx`) and about (`src/content/docs/pro-proiekt.md`) page
+- Landing (`src/content/docs/index.mdx`) and about (`src/content/docs/pro-proiekt.mdx`) page
   content (issue #5): hand-written `template: splash` MDX/Markdown sections with plain classed
   `<div>`/`<section>` markup, styled in `src/styles/site.css` — not Starlight's `hero`
   frontmatter or `CardGrid`/`Card` components, which read as decorative for this site's
@@ -360,8 +360,8 @@ happens in each workflow, not in the composite action. Both checkouts pass
   `src/config/offer.mjs`. The operator is only «фізична особа — підприємець» (decision 5) — no name
   anywhere. The key messages of the spec are quoted verbatim, with ʼ (U+02BC) as the apostrophe on the
   site's own pages. Every own page that names a law or a procurement rule says «станом на {asOf}»
-  and links its source; `scripts/check-built.mjs` holds this (`pro-proiekt` is exempt: its origin story
-  predates the rule). The header has five links and the button «Залишити заявку»; the inline nav
+  and links its source; `scripts/check-built.mjs` holds this on every own page, `pro-proiekt` included (its
+  exemption was removed in PR #21). The header has five links and the button «Залишити заявку»; the inline nav
   appears from 70rem on pages without a sidebar and from 85rem on doc pages (measured: the nav, the
   search and the theme switcher fit at 1120 and 1360 px respectively; below that the «Меню» panel is
   used, with the button first). `npm run a11y` needs `npx playwright install chromium` once.
@@ -374,8 +374,8 @@ happens in each workflow, not in the composite action. Both checkouts pass
   or screenshots. The only example school is the fictitious «Вигаданий ліцей № 0»; screenshots
   come only from Tabula's demo site. **One deliberate exception** (owner's decision,
   2026-09-27): the project's origin story — the «Про проєкт» block on the landing page and
-  `src/content/docs/pro-proiekt.md` — names the lyceum where Tabula was created and the two
-  people who initiated it. Nothing else about that school (its domain, pupils, staff, content,
+  `src/content/docs/pro-proiekt.mdx` — names the lyceum where Tabula was created, and no people
+  (owner's decision in PR #21, 2026-11-08: «Tabula розробляє команда в Україні»). Nothing else about that school (its domain, pupils, staff, content,
   screenshots of its live site) goes anywhere in this repository.
 - Documentation text is never edited in this repository — fix it in `tabula-cms/tabula`.
 - Generated doc folders (`src/content/docs/{editor,install,qa,dev}/`) are gitignored and never
