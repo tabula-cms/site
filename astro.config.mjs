@@ -63,7 +63,7 @@ export default defineConfig({
 			// typography — see CLAUDE.md's Conventions and issue #5.
 			customCss: ['./src/styles/site.css'],
 			components: {
-				// The landing (index.mdx) and about (pro-proiekt.md) pages are hand-written
+				// The landing (index.mdx) and about (pro-proiekt.mdx) pages are hand-written
 				// `template: splash` pages that write their own top heading directly in the
 				// body as a raw `<h1 id="_top">` (the landing's custom hero h1, the about
 				// page's own `<h1 id="_top">Про проєкт</h1>`) — Starlight's automatic

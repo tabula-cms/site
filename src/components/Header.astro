@@ -5,8 +5,10 @@
 // is Starlight's own doc-sidebar hamburger, which is meaningless on the landing/about pages
 // that have no sidebar at all).
 //
-// This adds a `<nav>` of the site's four top-level sections between the title and the search
-// box on wide viewports, and a native `<details>` "Меню" dropdown in its place below 1024px
+// This adds a `<nav>` of five links (Як це працює, Хостинг і ціна, Для бухгалтерії, Документація,
+// Підтримка) and the button "Залишити заявку" between the title and the search box on wide
+// viewports (story 78: from 70rem on pages without a sidebar, from 85rem on doc pages), and a
+// native `<details>` "Меню" dropdown in its place below that, with the button first in its panel
 // (Starlight's own sidebar hamburger, `MobileMenuToggle`, is unrelated — it lives in
 // PageFrame.astro, not here, toggles the *doc* sidebar, and only renders on pages that have
 // one; it stays untouched).
@@ -43,10 +45,16 @@ const base = import.meta.env.BASE_URL;
 const baseWithSlash = base.endsWith('/') ? base : `${base}/`;
 
 const navLinks = [
-	{ label: 'Документація', path: 'editor/', matchPaths: ['editor/', 'qa/'] },
-	{ label: 'Встановлення', path: 'install/' },
-	{ label: 'Розробникам', path: 'dev/' },
-	{ label: 'Про проєкт', path: 'pro-proiekt/' },
+	{ label: 'Як це працює', path: 'yak-tse-pratsiuie/' },
+	{ label: 'Хостинг і ціна', path: 'khostynh-i-tsina/' },
+	{ label: 'Для бухгалтерії', path: 'dlia-bukhhalterii/' },
+	// The docs' pages (editor/, install/, dev/ and the testing docs under qa/) all light this link.
+	{
+		label: 'Документація',
+		path: 'editor/',
+		matchPaths: ['editor/', 'qa/', 'install/', 'dev/'],
+	},
+	{ label: 'Підтримка', path: 'pidtrymka/' },
 ].map(({ label, path, matchPaths }) => {
 	const href = `${baseWithSlash}${path}`;
 	const pathname = Astro.url.pathname;
@@ -57,6 +65,10 @@ const navLinks = [
 	const ariaCurrent = isExact ? 'page' : isCurrent ? 'true' : undefined;
 	return { label, href, isCurrent, ariaCurrent };
 });
+
+// The call-to-action button: last in the inline nav, first in the "Меню" panel.
+const requestHref = `${baseWithSlash}zaiavka/`;
+const requestCurrent = Astro.url.pathname.startsWith(requestHref) ? 'page' : undefined;
 ---
 
 <div class="header">
@@ -72,6 +84,7 @@ const navLinks = [
 					</a>
 				))
 			}
+			<a class="tabula-nav-button" href={requestHref} aria-current={requestCurrent}>Залишити заявку</a>
 		</div>
 		<details class="tabula-mobile-nav">
 			<summary>
@@ -79,6 +92,7 @@ const navLinks = [
 				<Icon name="down-caret" class="tabula-mobile-nav-icon-caret" size="1rem" />
 			</summary>
 			<div class="tabula-mobile-nav-panel">
+				<a class="tabula-nav-button" href={requestHref} aria-current={requestCurrent}>Залишити заявку</a>
 				{
 					navLinks.map(({ label, href, ariaCurrent }) => (
 						<a href={href} aria-current={ariaCurrent}>
@@ -149,21 +163,23 @@ const navLinks = [
 			display: none;
 		}
 
-		/* Review round: the inline nav's own breakpoint has to differ by page type. Starlight's
-		 * header grid (below) sizes the title column from the *sidebar's* width on pages that
-		 * have one (`[data-has-sidebar]`, every imported doc page) — that column is already
-		 * wide there, so a reviewer found the nav still didn't fit at 1024–1100px on doc pages
-		 * (the theme switcher got cut off at 1024, "Про проєкт" wrapped up to ~1100). The
-		 * landing/about pages have no sidebar and no such column pressure, so 1024px continues
-		 * to fit there (verified below). `:global(:root: ...)` — not a plain `:root: ...`
+		/* The inline nav's own breakpoint differs by page type, and both are measured (story 78: five
+		 * links and a button are longer than the four links of design pass 3). Starlight's header
+		 * grid (below) sizes the title column from the *sidebar's* width on pages that have one
+		 * (`[data-has-sidebar]`, every imported doc page), so those pages need more room. Measured in
+		 * headless Chromium at the smallest widths where every link stays on one line
+		 * (`getClientRects().length === 1`) and the theme switcher's right edge is inside the
+		 * viewport: 70rem (1120px) on pages without a sidebar, 85rem (1360px) on doc pages such as
+		 * `/editor/novyny/`. Below those widths the "Меню" dropdown is used. The nav gap is 1rem
+		 * and the font 0.875rem for the same reason. `:global(:root: ...)` — not a plain `:root: ...`
 		 * selector — because Astro scopes unwrapped selectors in a component's own `<style>` to
 		 * this component's elements only; `:root`/`html` need `:global()` to actually reach the
 		 * document root, the same pattern already used below for the `--__sidebar-pad`/
 		 * `--__toc-width` custom properties. */
-		@media (min-width: 64rem) {
+		@media (min-width: 70rem) {
 			:global(:root:not([data-has-sidebar])) .tabula-nav {
 				display: flex;
-				gap: 1.5rem;
+				gap: 1rem;
 				align-items: center;
 			}
 
@@ -172,10 +188,10 @@ const navLinks = [
 			}
 		}
 
-		@media (min-width: 72rem) {
+		@media (min-width: 85rem) {
 			:global(:root[data-has-sidebar]) .tabula-nav {
 				display: flex;
-				gap: 1.5rem;
+				gap: 1rem;
 				align-items: center;
 			}
 
@@ -189,7 +205,7 @@ const navLinks = [
 			 * lines under column-width pressure from the grid below, instead of the nav simply
 			 * taking the width it needs. */
 			white-space: nowrap;
-			font-size: 0.9375rem;
+			font-size: 0.875rem;
 			font-weight: 500;
 			line-height: 1;
 			color: var(--sl-color-gray-2);
@@ -209,6 +225,27 @@ const navLinks = [
 			color: var(--sl-color-accent);
 			text-decoration: underline;
 			text-decoration-thickness: 2px;
+		}
+
+		/* The "Залишити заявку" button (story 78): accent-filled like the landing's primary button
+		 * (same accent / invert-text pairing, measured at >= 5.9:1 in both themes). Colour is never
+		 * the only signal: it is also a bordered box with its own label. */
+		.tabula-nav a.tabula-nav-button {
+			padding: 0.5rem 0.875rem;
+			border-radius: 0.25rem;
+			background: var(--sl-color-accent);
+			color: var(--sl-color-text-invert);
+			text-decoration: none;
+		}
+
+		.tabula-nav a.tabula-nav-button:hover {
+			background: var(--tabula-accent-hover);
+			color: var(--sl-color-text-invert);
+		}
+
+		.tabula-mobile-nav-panel a.tabula-nav-button {
+			color: var(--sl-color-accent);
+			font-weight: 700;
 		}
 
 		.tabula-nav a:focus-visible,

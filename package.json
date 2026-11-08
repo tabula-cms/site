@@ -9,16 +9,22 @@
   "scripts": {
     "dev": "astro dev",
     "build": "astro build",
-    "postbuild": "node scripts/check-links.mjs",
+    "postbuild": "node scripts/check-links.mjs && node scripts/check-built.mjs",
     "preview": "astro preview",
     "astro": "astro",
     "test": "node --test",
     "docs:fetch": "node scripts/fetch-docs.mjs",
-    "check:links": "node scripts/check-links.mjs"
+    "check:links": "node scripts/check-links.mjs",
+    "check:built": "node scripts/check-built.mjs",
+    "a11y": "node scripts/a11y.mjs"
   },
   "dependencies": {
     "@astrojs/starlight": "^0.42.5",
     "astro": "^7.3.7",
     "sharp": "^0.35.3"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "4.14.0",
+    "playwright": "1.65.0"
   }
 }
