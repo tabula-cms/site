@@ -1,0 +1,52 @@
+---
+// Section 2b (owner's request, 2026-11-09): the four kinds of institution the site is made for, right after the
+// «four things» band. Four tiles: a row at desktop widths, 2×2 at tablet, stacked on phones. The icons are small,
+// monochrome and decorative.
+const kinds = [
+	{
+		title: 'Школи, гімназії й ліцеї',
+		text: 'Заклади загальної середньої освіти, зокрема спеціальні школи й НРЦ.',
+		icon: 'M3 10l9-6 9 6M5 10v9h14v-9M9 19v-5h6v5',
+	},
+	{
+		title: 'Садочки',
+		text: 'Заклади дошкільної освіти: «вихованці» замість «учнів», свої сторінки й перелік.',
+		icon: 'M12 4l2.5 5 5.5.8-4 3.9.9 5.5-4.9-2.6-4.9 2.6.9-5.5-4-3.9 5.5-.8z',
+	},
+	{
+		title: 'Фахові коледжі',
+		text: 'Заклади фахової передвищої освіти, зокрема відокремлені підрозділи університетів.',
+		icon: 'M2 9l10-5 10 5-10 5zM6 11.5V16c0 1.5 3 3 6 3s6-1.5 6-3v-4.5',
+	},
+	{
+		title: 'Професійна освіта',
+		text: 'Заклади професійної (професійно-технічної) освіти.',
+		icon: 'M14.5 6.5a4 4 0 0 0-5 5L4 17l3 3 5.5-5.5a4 4 0 0 0 5-5l-2.5 2.5-2.5-.5-.5-2.5z',
+	},
+];
+---
+
+<section id="kinds" class="anchor">
+	<div class="wrap kinds__inner">
+		<div class="reveal kinds__head">
+			<h2 class="h2">Для шкіл, садочків і коледжів</h2>
+			<p class="lead">
+				Під час першого налаштування ви обираєте вид закладу — і сайт підлаштовується: перелік «Інформації за законом», готові
+				сторінки й слова на сайті.
+			</p>
+		</div>
+		<div class="kinds__grid">
+			{
+				kinds.map((kind) => (
+					<div class="kinds__tile">
+						<span class="kinds__icon" aria-hidden="true">
+							<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1F6F66" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d={kind.icon} /></svg>
+						</span>
+						<h3 class="kinds__title">{kind.title}</h3>
+						<p class="kinds__text">{kind.text}</p>
+					</div>
+				))
+			}
+		</div>
+	</div>
+</section>

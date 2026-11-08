@@ -39,6 +39,25 @@ async function scan(tab, label, started) {
 	return violations.length;
 }
 
+// The home with motion ALLOWED (1280 px): scrolled to the bottom in steps (so every section enters the
+// viewport and its effects play, the assistant's sequence and the scroll story included) and left for 3 s, so
+// the end state of every effect is measured by axe too. Returns the number of violations.
+async function homeWithMotion(browser, origin, started) {
+	const context = await browser.newContext({ viewport: { width: 1280, height: 900 }, reducedMotion: 'no-preference' });
+	const tab = await context.newPage();
+	await tab.goto(`${origin}${baseNoSlash}/`, { waitUntil: 'load' });
+	const height = await tab.evaluate(() => document.documentElement.scrollHeight);
+	for (let y = 0; y < height; y += 600) {
+		await tab.evaluate((top) => window.scrollTo({ top, behavior: 'instant' }), y);
+		await new Promise((resolve) => setTimeout(resolve, 80));
+	}
+	await tab.evaluate(() => window.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'instant' }));
+	await new Promise((resolve) => setTimeout(resolve, 3000));
+	const count = await scan(tab, '/ @ 1280px, motion allowed, scrolled to the bottom + 3 s', started);
+	await context.close();
+	return count;
+}
+
 // The header is always visible (story 80): after scrolling down 2000 px and after a long anchor jump it is in the
 // viewport and fully shown, at a desktop and a phone width. Motion allowed here (the other contexts use reduced
 // motion). Returns the number of problems.
@@ -118,6 +137,7 @@ async function main() {
 				await context.close();
 			}
 		}
+		violations += await homeWithMotion(browser, origin, Date.now());
 		violations += await visibleHeader(browser, origin);
 	} finally {
 		await browser.close();

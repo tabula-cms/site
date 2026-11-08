@@ -45,6 +45,15 @@ export default defineConfig({
 	// Story 80, decision 9 (no framework JS): Starlight turns Astro's link prefetch on (a page.*.js
 	// bundle on every page); the product pages must not load it, and the documentation works without it.
 	prefetch: false,
+	vite: {
+		build: {
+			// The home's script (the tabs and the assistant's sequence, src/scripts/tabs.js) is inlined into the page
+			// whatever its size (Astro's default limit is 4 KB): loaded as a separate file it ran after the first
+			// paint, and the panels that it hides were shown (and their fonts fetched) for a moment first.
+			// Everything else keeps the default limit.
+			assetsInlineLimit: (file) => (/index\.astro_astro_type_script/.test(file) ? true : undefined),
+		},
+	},
 	integrations: [
 		sitemap({ filter: (page) => page !== slashless }),
 		starlight({
