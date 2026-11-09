@@ -2,7 +2,7 @@
 
 > Internal reference for Claude Code sessions working in this repository.
 >
-> **Last verified: 2026-11-09 (footer and audience pages).**
+> **Last verified: 2026-11-10 (spec 83: audience pages v2).**
 >
 > **How to keep this file honest:** every pull request that changes a convention, a command,
 > or the file layout updates the matching section of this file in the same PR.
@@ -47,7 +47,11 @@ Exists now:
 | `THIRD_PARTY_LICENSES.md` | The fonts (SIL OFL 1.1, via Fontsource) and the CC0 photos |
 | `test/tabs.test.mjs`, `test/shots.test.mjs` | `node --test`: tabs keyboard logic (pure helper + a fake DOM); the `SHOTS` table (every file exists, starts `RIFF….WEBP`, `facts.json` valid) |
 | `src/content/pages/*.md(x)`, `src/pages/[slug].astro`, `src/layouts/ProductPage.astro` | Story 80 (S2): the thirteen reading pages of the site (the `pages` collection), at `/<slug>/` in the product layout; the `.mdx` ones import `offer.mjs` for the numbers and dates |
-| `src/config/offer.mjs` | Story 78 (W1): the **one source of the offer's numbers and dates** — `pilotUntil`, `priceYearUah`, `priceQuarterUah`, `asOf`, reply times, contacts, `cpUrl` / `turnstileSiteKey` (env `TABULA_CP_URL`, `TABULA_TURNSTILE_SITEKEY`), `requestsOpen`, `copiesWhere` (Hetzner), `backupRetentionDays`, `exitClosedDays`; plus `footerLine` (the footer bottom line), `exitText`, the "what the institution gets" list (`includes`) and formatters. No page types a price or a date of the offer by hand: such a page is `.mdx` and imports this module; story 80 added `assistantStatus`, `demoSiteUrl`, `supportEmail` (the one public address; `contactEmail` is gone), `includesShort` (the price card's lines, each with `coveredBy` indexes into `includes`) and the helpers `withinWorkingDays`, `formatDateLongYear`, `yearOf`, `formatUah`; story 82 (S1a) added `complaintEmail` (the owner fills it in; `complaintEmail()` falls back to `privacyEmail()` while it is null), used by the section «Демо» (`#demo`) of `personalni-dani.mdx`; story 82 (S1b) added `demoOpen` (false), `demoKinds` (`['school']`), `demoUrl` (env `TABULA_DEMO_URL`), `demoTurnstileSiteKey` (env `TABULA_DEMO_TURNSTILE_SITEKEY`), `DEMO_KINDS`, `DEMO_ROLES` and `demoHeading()` |
+| `src/config/offer.mjs` | Story 78 (W1): the **one source of the offer's numbers and dates** — `pilotUntil`, `priceYearUah`, `priceQuarterUah`, `asOf`, reply times, contacts, `cpUrl` / `turnstileSiteKey` (env `TABULA_CP_URL`, `TABULA_TURNSTILE_SITEKEY`), `requestsOpen`, `copiesWhere` (Hetzner), `backupRetentionDays`, `exitClosedDays`; plus `footerLine` (the footer bottom line), `exitText`, the "what the institution gets" list (`includes`) and formatters. No page types a price or a date of the offer by hand: such a page is `.mdx` and imports this module; story 80 added `assistantStatus`, `demoSiteUrl`, `supportEmail` (the one public address; `contactEmail` is gone), `includesShort` (the price card's lines, each with `coveredBy` indexes into `includes`) and the helpers `withinWorkingDays`, `formatDateLongYear`, `yearOf`, `formatUah`; story 82 (S1a) added `complaintEmail` (the owner fills it in; `complaintEmail()` falls back to `privacyEmail()` while it is null), used by the section «Демо» (`#demo`) of `personalni-dani.mdx`; story 82 (S1b) added `demoOpen` (false), `demoKinds` (`['school']`), `demoUrl` (env `TABULA_DEMO_URL`), `demoTurnstileSiteKey` (env `TABULA_DEMO_TURNSTILE_SITEKEY`), `DEMO_KINDS`, `DEMO_ROLES` and `demoHeading()`; spec 83 added `checkedOn` («Перевірено …»), `urgentSubject`, `documentsSubject`, `firstWeekHours`, `weeklyMinutes`, `trashDays`, `addressHoldMonths`, `contractUntil`, `paymentBankDays`, `graceDays`, `noticeDays`, `law` (procurement limits and working-day deadlines), the codes (`dk021*`, `kekv*`), `operator` and `lyceum` (null until the owner fills them in), `authorsLine` (and `footerLine` built from it), `decisions` + `decided()`, `documents`, `priceIncludes`, `exitSteps` |
+| `src/layouts/RolePage.astro`, `src/config/audience.mjs`, `src/components/product/audience/*`, `src/styles/audience.css`, `src/scripts/page-tools.js` | Spec 83: the role pages and «Ціна й оплата» (hero, «На цій сторінці», the components of spec §10, print, «Скопіювати»/«Роздрукувати») — see Conventions |
+| `src/components/product/PreFooterCta.astro` | Spec 83 §9: the band above the footer of every product page but `zaiavka` |
+| `src/lib/typo.mjs`, `src/components/product/Typo.astro` | Spec 83: `typo()`/`typoHtml()` (no-break spaces) and `slugUk()` (Latin heading ids); `Typo.astro` runs them over every own page's body |
+| `test/typo.test.mjs` | `node --test`: `typo()`, `typoHtml()`, `slugUk()` |
 | `src/pages/sprobuvaty.astro`, `src/scripts/demo-try.js`, `src/styles/try.css` | Story 82 (S1b): «Спробувати», the demo's sign-in — see Conventions |
 | `test/demo-try.test.mjs` | `node --test`: the pure helpers of `demo-try.js` (answers → states, plural, timer, referrer domain, stored attempt) |
 | `scripts/check-built.mjs` (`npm run check:built`; also runs after the build via `postbuild`) | Story 78/80: the product-page rules on all thirteen product pages (header, no Starlight chrome, no header/footer link into the docs, forbidden phrases, ʼ, no-break spaces, «станом на» on the own pages, `zaiavka` scripts), the doc-page chrome rules, `footerLine` on every page, `CLOSED_SERVICE_PATTERNS` on the product pages, the «Спробувати» rules (`checkTryPage`, `checkTryLinks`). Rules are exported and unit-tested in `test/check-built.test.mjs` |
@@ -60,7 +64,7 @@ Exists now:
 | `scripts/lib/docs-transform.mjs` | Pure functions used by `fetch-docs.mjs`: frontmatter building/serialisation, link rewriting, `sidebar.order` from `docs/INDEX.md`, `editUrl` mapping, back-link removal. No filesystem or network access — this is what `test/docs-transform.test.mjs` unit-tests directly. |
 | `scripts/fetch-docs.mjs` | Imports `docs/{editor,install,qa,dev}` from `tabula-cms/tabula` into the gitignored `src/content/docs/{editor,install,qa,dev}/` (issue #3) — obtains the source (local dir or a sparse git clone), runs the transform, writes the output, prints a summary. See Conventions for the rules it implements. |
 | `scripts/check-links.mjs` (`npm run check:links`; also runs automatically after `npm run build` via `postbuild`) | Walks the built `dist/` and fails if any internal link or `#anchor` resolves to nothing. Replaces `starlight-links-validator`, which cannot validate this site's relative-link convention — see Conventions. |
-| `test/offer.test.mjs` | `node --test` check of `src/config/offer.mjs` (types, real dates, `priceQuarterUah * 4 === priceYearUah`, formatters, apostrophes) |
+| `test/offer.test.mjs` | `node --test` check of `src/config/offer.mjs` (types, real dates, `priceQuarterUah * 4 === priceYearUah`, formatters, apostrophes; spec 83: `decided()` shows nothing unconfirmed, the operator and lyceum stay null, the decisions take their numbers from `offer`) |
 | `test/check-built.test.mjs` | `node --test` unit tests of the pure rules exported by `scripts/check-built.mjs` |
 | `test/smoke.test.mjs` | `node --test` check of `astro.config.mjs`'s `site`/`base` defaults and env overrides |
 | `test/docs-transform.test.mjs` | `node --test` fixture-based unit tests for `scripts/lib/docs-transform.mjs` (pure functions only, no network) |
@@ -166,21 +170,41 @@ happens in each workflow, not in the composite action. Both checkouts pass
   `--sl-color-accent-high` (dark mode in `:root`, light mode in `:root[data-theme='light']`), following Starlight's own
   theme-colour convention. Light-mode accent ≈ `#1f3d63`, dark-mode ≈ `#8fb3e0` (≥ 5.7:1 contrast). The neutral gray scale
   is untouched. That is all `site.css` holds since S2: the landing/about/W1 rules were removed with those pages.
-- The product footer (`src/components/product/Footer.astro`, footer-and-audience-pages spec): the brand column (mark, «Сайти для
-  шкіл, садочків і коледжів — з готовими розділами за законом.», «Про проєкт»), then «Для кого» (Для директора, Для відповідального
-  за сайт, Для бухгалтерії), «Корисно знати» (Як це працює, Ціна й оплата, Закон і сайт школи, Безпека й дані), «Допомога» (Часті
-  запитання, Підтримка, the support address); a bottom row with Обробка персональних даних · Доступність · the privacy address,
-  `footerLine` of `offer.mjs` and «© 2026 Tabula». The link to the current page has `aria-current="page"`. Below 900 px the brand
-  and «Допомога» take whole rows and the other two columns sit side by side. `check-built` fails an own page the footer does
-  not link, except `FOOTER_EXEMPT` (`demo`, `zaiavka`), which must be linked from some other product page. No operator (ФОП)
-  line anywhere in the chrome: «Про виконавця» is a section of «Для бухгалтерії» (`#vykonavets`), the full details on request.
-  `CommunityNote.astro` («Ви з відділу освіти громади?») closes «Для директора», «Для бухгалтерії» and «Ціна й оплата»;
-  `DocFlow.astro` is the accessible (text, list-based) document flow of «Для бухгалтерії». The exit text is `exitText` of `offer.mjs`.
+- The product footer (`src/components/product/Footer.astro`, spec 83 §9): the brand column (mark, «Сайти для шкіл, садочків і
+  коледжів із готовими розділами за законом», «Про проєкт»), then «Для кого» (Для директора, Для того, хто веде сайт, Для
+  бухгалтерії), «Про сервіс» (Як це працює, Ціна й оплата, Безпека й дані, Закон і сайт школи), «Допомога» (Часті запитання,
+  Посібник редактора, Підтримка, the support address); a bottom row with Обробка персональних даних · Доступність · the privacy
+  address, `footerLine` of `offer.mjs` (the authors line) and «© 2026 Tabula». The link to the current page has
+  `aria-current="page"`. Below 900 px the brand and «Допомога» take whole rows and the other two columns sit side by side.
+  `check-built` fails an own page the footer does not link, except `FOOTER_EXEMPT` (`demo`, `zaiavka`), which must be linked
+  from some other product page. Above the footer every product page but `zaiavka` has the band `PreFooterCta.astro`
+  («Безкоштовно до {pilotUntil}» · Подати заявку · Подивитися шаблони; `Product.astro` prop `cta`).
+- The role pages (spec 83, 2026-11-09): «Для директора», «Для того, хто веде сайт», «Для бухгалтерії» and «Ціна й оплата» are
+  MDX pages of the `pages` collection with frontmatter `hero: <key>`; `[slug].astro` renders them with
+  `src/layouts/RolePage.astro`: the switcher of the three role pages (`RoleSwitcher`, a sideways-scrolling row on phones), the
+  hero (`RoleHero`: label, H1, lead, `KeyFacts`, buttons, «Перевірено {checkedOn}»), «На цій сторінці» (`OnThisPage`, from
+  `render()`'s headings — Starlight's TOC needs Starlight's route data and `sl-` chrome; sticky on the right from 1100 px, a
+  closed `<details>` below), the body, then «Що далі», «Інші сторінки» (`RelatedRoles`) and `CommunityLine`. The hero and the
+  end are data in `src/config/audience.mjs`; the components are in `src/components/product/audience/` (`Steps`/`Step`,
+  `Timeline`/`TimelineStage`, `AnswerList`, `CardGrid`/`ChoiceCards`/`Card`, `Faq`, `Callout`, `StatusBadge`,
+  `DocumentTable`, `CopyBlock`, `Requisites`, `SourceRef`/`SourceList`, `ShareButton`, `PriceCard`, `Actions`); styles in
+  `src/styles/audience.css` (imported by the layout only). Every own page's body goes through `src/components/product/Typo.astro`
+  (`typoHtml()` of `src/lib/typo.mjs`: the no-break spaces of the spec's rules are put by code); on the role pages it also
+  turns Astro's Cyrillic heading ids into Latin ones (`slugUk()`, the national transliteration), the ids «На цій сторінці»
+  links to. `src/scripts/page-tools.js` (marker `data-page-tools`, allowed by check-built on `data-role-page` pages only)
+  shows and runs «Скопіювати» and «Роздрукувати»; without JavaScript both stay hidden. Print (`audience.css`): no chrome,
+  buttons or «докладніше», questions printed open, the page address and «Перевірено …» at the bottom; «Роздрукувати» of
+  «Для бухгалтерії» adds `print-summary` to `<html>` and prints only `[data-print-summary]` blocks (Коротко, the details,
+  the plan line) on one A4 sheet (`npm run a11y` checks it). The operator's details (`offer.operator`, owner's decision
+  «Реквізити»), the lyceum of «Хто ми» (`offer.lyceum`) are null until the owner fills them in; a null field is not shown.
+  Texts that wait for the owner's confirmation are `offer.decisions.*` (`confirmed: false`); pages show them only through
+  `decided()`, so an unconfirmed promise never renders.
 - The Starlight chrome (S2 of story 80): Starlight is the documentation only. The header is Starlight's own (wordmark via
   `src/components/SiteTitle.astro`, search, theme switch) — no site navigation, no request button; the wordmark leads to
   the product home. `src/components/Footer.astro` keeps Starlight's default footer (edit link, pagination) and adds the link
   «На головну Tabula» (base-aware), «Підтримка», `footerLine` and «© 2026 Tabula». The
-  product pages never link into `editor/`, `install/`, `qa/`, `dev/` from their header or footer (`check-built`); a body
+  product pages never link into `editor/`, `install/`, `qa/`, `dev/` from their header or footer (`check-built`), except the
+  footer's «Посібник редактора», exactly `{base}/editor/` (spec 83 §9, `GUIDE_SLUG`); a body
   link from a text page into the docs is allowed. `qa/` is in no menu. `public/favicon.svg` is the product header's mark
   with literal hex colours (a favicon cannot read CSS custom properties); `favicon: '/favicon.svg'` in `astro.config.mjs`
   is Starlight's own default, kept only to document that. The light-mode header border in `site.css` targets
@@ -275,12 +299,17 @@ happens in each workflow, not in the composite action. Both checkouts pass
   Cloudflare; without a site key the page shows the closed state. Texts are the spec's phase-1 variants (nothing about saving), ʼ as the
   apostrophe. The page sets `<meta name="referrer" content="strict-origin-when-cross-origin">` and must never be `no-referrer` (the broker
   checks `Origin`, decision 32). While `demoOpen` is false (phase 1, by invitation) the page is `noindex`, out of the sitemap and linked
-  from nowhere; true adds the footer link «Спробувати демо» (column «Корисно знати»). `check-built` holds all of it (`checkTryPage`, `checkTryLinks`, the page's
+  from nowhere; true adds the footer link «Спробувати демо» (column «Про сервіс»). `check-built` holds all of it (`checkTryPage`, `checkTryLinks`, the page's
   own script allowed by `data-demo-try`); `npm run a11y` scans it with every hidden state shown. Its styles are `src/styles/try.css`, imported by that page only.
 - Story 78 pages (W1, now the reading pages of S2): the numbers, dates, reply times and contacts of the offer come only from
-  `src/config/offer.mjs`. The operator is only «фізична особа — підприємець» (decision 5) — no name anywhere. The key messages
+  `src/config/offer.mjs`. The operator's details are published only from `offer.operator` on «Для бухгалтерії» (spec 83 replaced decision 5); never typed anywhere else. The key messages
   of the spec are quoted verbatim, with ʼ (U+02BC) as the apostrophe. Every own page that names a law or a procurement rule
-  says «станом на {asOf}» and links its source; `scripts/check-built.mjs` holds this on every own page. Sums in running text
+  says «станом на {asOf}» and links its source — or, on the spec-83 pages (`hero:`), «Перевірено {checkedOn}» in the hero and
+  a numbered «Джерела» list; `scripts/check-built.mjs` holds this on every own page. Spec 83's checks (`check-built`): no
+  «[уточнити», «{рішення», «{дані» in any built page; the price, the free-period date, «Перевірено» and the reply times on
+  every product page equal `offer.mjs` (`checkOfferNumbers`); no straight quotes or apostrophe, paired «» and „“, digit
+  groups joined by U+00A0 in <main> and the footer (`checkTypography`). `npm run a11y` also fails a product page that
+  scrolls sideways at 360 px. Sums in running text
   come from `formatGrn()` (no-break spaces) and dates with a year from `formatDateLongYear()`. `npm run a11y` needs
   `npx playwright install chromium` once.
 - Languages: user-facing text is Ukrainian; developer-facing files and code are English.
