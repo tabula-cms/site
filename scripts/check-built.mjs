@@ -41,7 +41,7 @@
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
-import { offer, footerLine, formatDate } from '../src/config/offer.mjs';
+import { offer, footerLine, formatDate, formatDateLongYear, formatGrn } from '../src/config/offer.mjs';
 
 export const LAW_PAGE_SLUG = 'zakon-i-sait-shkoly';
 
@@ -83,7 +83,8 @@ export function checkOwnSource(name, text) {
 	for (const phrase of findForbidden(text, { allowUcoz: name === UCOZ_PAGE })) {
 		problems.push(`forbidden phrase «${phrase}»`);
 	}
-	if (LAW_PATTERN.test(text) && !/станом на/i.test(text)) {
+	// Spec 83: a page with `hero` says «Перевірено {checkedOn}» in its hero (RolePage.astro) instead of «станом на».
+	if (LAW_PATTERN.test(text) && !/станом на/i.test(text) && !/^hero:/m.test(text)) {
 		problems.push('names a law or a procurement rule but has no «станом на»');
 	}
 	if (BAD_APOSTROPHE.test(text)) {
@@ -106,10 +107,23 @@ export function checkAsOfDate(bodyText, asOfText) {
 
 /** The law-pattern rule on a built page's <main> text: a law or procurement rule needs «станом на». */
 export function checkBuiltAsOf(_name, bodyText) {
-	if (LAW_PATTERN.test(bodyText) && !/станом на/i.test(bodyText)) {
-		return ['the built page names a law or a procurement rule but has no «станом на»'];
+	if (LAW_PATTERN.test(bodyText) && !/станом на|Перевірено/i.test(bodyText)) {
+		return ['the built page names a law or a procurement rule but has neither «станом на» nor «Перевірено»'];
 	}
 	return [];
+}
+
+/**
+ * Spec 83: every «Перевірено …» (and «перевірено …») of a built page is followed by the checked date of offer.mjs,
+ * `formatDateLongYear(checkedOn)` («9 листопада 2026 року»); `checkedText` is that text with plain spaces.
+ */
+export function checkCheckedDate(bodyText, checkedText) {
+	const problems = [];
+	const folded = bodyText.replace(/[\u00a0\u202f]/g, ' ');
+	for (const m of folded.matchAll(/[Пп]еревірено\s+(\d{1,2} \S+ \d{4} року)/g)) {
+		if (m[1] !== checkedText) problems.push(`«Перевірено» is followed by "${m[1]}", expected "${checkedText}"`);
+	}
+	return problems;
 }
 
 /** Problems with the footer line (`footerLine`, verbatim) on one built page. */
@@ -271,9 +285,18 @@ export function isDocsHref(href, origin = SITE_ORIGIN) {
 	return /(^|\/)(editor|install|qa|dev)(?:[/?#]|$)/.test(path.replace(/^(?:\.{1,2}\/)+/, ''));
 }
 
-/** Story 80, decision 3: the product header and footer link nowhere into the documentation. */
-export function checkNoDocsLinks(html, origin = SITE_ORIGIN) {
-	const hrefs = [...hrefsIn(html, 'header', 'data-site-header'), ...hrefsIn(html, 'footer', 'site-footer')];
+/**
+ * Story 80, decision 3: the product header and footer link nowhere into the documentation — except, since spec 83 §9,
+ * the footer's «Посібник редактора», which is exactly `{base}/editor/` (GUIDE_SLUG).
+ */
+export const GUIDE_SLUG = 'editor';
+export function checkNoDocsLinks(html, origin = SITE_ORIGIN, base = process.env.SITE_BASE ?? '/site') {
+	const root = base === '/' ? '/' : `${base.replace(/\/$/, '')}/`;
+	const guide = `${root}${GUIDE_SLUG}/`;
+	const hrefs = [
+		...hrefsIn(html, 'header', 'data-site-header'),
+		...hrefsIn(html, 'footer', 'site-footer').filter((href) => href !== guide),
+	];
 	return hrefs.filter((href) => isDocsHref(href, origin)).map((href) => `the header or footer links into the documentation: ${href}`);
 }
 
@@ -464,8 +487,9 @@ export function checkLawClaims(html, { requireClaims = false } = {}) {
  * `data-tabs` or `data-site-header`. `readSrc(src)` returns the file's text or null. The page «Спробувати»
  * (story 82, S1b; `allowTry`) also loads its own script, the one that contains `data-demo-try`.
  */
-export function checkProductScripts(html, readSrc = () => null, { allowTry = false } = {}) {
-	const ours = allowTry ? /data-tabs|data-site-header|data-demo-try/ : /data-tabs|data-site-header/;
+export function checkProductScripts(html, readSrc = () => null, { allowTry = false, allowTools = false } = {}) {
+	const marks = ['data-tabs', 'data-site-header', ...(allowTry ? ['data-demo-try'] : []), ...(allowTools ? ['data-page-tools'] : [])];
+	const ours = new RegExp(marks.join('|'));
 	const problems = [];
 	const re = /<script\b([^>]*)>([\s\S]*?)<\/script>/gi;
 	let m;
@@ -502,8 +526,87 @@ export function checkProductPage(
 	if (isHome) problems.push(...checkAssistantChip(html, assistantStatus));
 	// Spec decision 14 exempts the home only (two cited claims); the other pages name their sources and say «станом на».
 	if (isHome) problems.push(...checkLawClaims(html, { requireClaims: true }));
-	problems.push(...checkProductScripts(html, readSrc, { allowTry: isTry }));
+	// Spec 83: a role page (RolePage.astro, `data-role-page`) also loads src/scripts/page-tools.js (copy, print).
+	problems.push(...checkProductScripts(html, readSrc, { allowTry: isTry, allowTools: /\bdata-role-page\b/.test(html) }));
+	problems.push(...checkOfferNumbers(text));
+	problems.push(...checkTypography(visibleText(extractMain(html))).map((p) => `<main>: ${p}`));
+	problems.push(...checkTypography(visibleText(footerHtml(html))).map((p) => `footer: ${p}`));
 	if (slugs) problems.push(...checkFooterLinks(html, slugs, base));
+	return problems;
+}
+
+// ---------------------------------------------------------------------------------------------
+// Spec 83, «Перевірки».
+
+/** Placeholders of the spec that must never reach a built page: «[уточнити», «{рішення», «{дані». */
+export const PLACEHOLDERS = ['[уточнити', '{рішення', '{дані'];
+
+export function checkPlaceholders(html) {
+	const lower = html.toLowerCase();
+	return PLACEHOLDERS.filter((mark) => lower.includes(mark)).map((mark) => `a placeholder of the spec is left in the page: «${mark}»`);
+}
+
+const fold = (text) => text.replace(/[  ]/g, ' ').replace(/\s+/g, ' ');
+
+/**
+ * Spec 83: the price, the dates and the reply times are the same on every page — the ones of offer.mjs. In the text of
+ * a product page: a sum «… грн/₴ на рік» is the year's price (unless it is a limit: «менше ніж», «від», «понад»,
+ * «разом»); «… грн/₴ щокварталу / за квартал» the quarter's; «безкоштовно до …» and «до … безкоштовно» the end of the
+ * pilot; «Перевірено …» the checked date; «відповідаємо протягом N» / «відповімо протягом N» the reply times.
+ */
+export function checkOfferNumbers(text, o = offer) {
+	const t = fold(text);
+	const problems = [];
+	const want = (what, got, expected) => {
+		if (got !== expected) problems.push(`${what} is "${got}", offer.mjs says "${expected}"`);
+	};
+	const sum = (n) => fold(formatGrn(n)).replace(/ грн$/, '');
+	const limit = /(?:ніж|менше|від|понад|разом|більше) $/;
+	for (const m of t.matchAll(/(\d{1,3}(?: \d{3})*) ?(?:грн|₴)(?: \/)? (?:на рік|за рік|рік)(?![А-Яа-яіїєґ])/g)) {
+		if (!limit.test(t.slice(Math.max(0, m.index - 12), m.index))) want('the year price', m[1], sum(o.priceYearUah));
+	}
+	for (const m of t.matchAll(/(\d{1,3}(?: \d{3})*) ?(?:грн|₴) (?:щокварталу|за квартал|на квартал)/g)) {
+		want('the quarter price', m[1], sum(o.priceQuarterUah));
+	}
+	const pilotEnd = fold(formatDateLongYear(o.pilotUntil)).replace(/ року$/, '');
+	for (const m of t.matchAll(/[Бб]езкоштовно до (\d{1,2} [а-яії]+ \d{4})/g)) want('the end of the free period', m[1], pilotEnd);
+	for (const m of t.matchAll(/[Дд]о (\d{1,2} [а-яії]+ \d{4}) року[^.]{0,40}?безкоштовно/g)) want('the end of the free period', m[1], pilotEnd);
+	const checked = fold(formatDateLongYear(o.checkedOn)).replace(/ року$/, '');
+	for (const m of t.matchAll(/[Пп]еревірено (\d{1,2} [а-яії]+ \d{4})/g)) want('the checked date', m[1], checked);
+	for (const m of t.matchAll(/відповідаємо протягом (\d+) робоч/g)) want('the support reply time', Number(m[1]), o.supportReplyDays);
+	for (const m of t.matchAll(/відповімо протягом (\d+) робоч/g)) want('the request reply time', Number(m[1]), o.requestReplyDays);
+	return problems;
+}
+
+/** The text of an HTML fragment for the typography rules: tags removed, entities decoded, U+00A0 kept. */
+export function visibleText(html) {
+	return decodeApostrophes(rawText(html))
+		.replace(/&nbsp;|&#160;|&#xa0;/gi, ' ')
+		.replace(/&quot;|&#34;|&#x22;/gi, '"')
+		.replace(/&laquo;/gi, '«')
+		.replace(/&raquo;/gi, '»')
+		.replace(/&amp;/gi, '&');
+}
+
+/** The product footer and the band above it, for the typography rules. */
+function footerHtml(html) {
+	const footer = html.match(/<footer\b[^>]*site-footer[^>]*>[\s\S]*?<\/footer>/i);
+	const band = html.match(/<section\b[^>]*prefooter[^>]*>[\s\S]*?<\/section>/i);
+	return `${band ? band[0] : ''} ${footer ? footer[0] : ''}`;
+}
+
+/**
+ * Spec 83 §3 and §11, typography of the visitor's text: no straight quotes (" ') — «ялинки», „лапки“ and ʼ instead;
+ * every „ has its “ and every « its »; digit groups are separated by a no-break space (U+00A0), never a plain one.
+ */
+export function checkTypography(text) {
+	const problems = [];
+	if (text.includes('"')) problems.push('a straight double quote " — use «» or „“');
+	if (text.includes("'")) problems.push("a straight apostrophe ' — use ʼ (U+02BC)");
+	const count = (ch) => text.split(ch).length - 1;
+	if (count('„') !== count('“')) problems.push(`„ without its “ (${count('„')} „, ${count('“')} “)`);
+	if (count('«') !== count('»')) problems.push(`« without its » (${count('«')} «, ${count('»')} »)`);
+	for (const m of text.matchAll(/\d[  ]\d{3}(?!\d)/g)) problems.push(`a digit group without U+00A0 in "${m[0]}"`);
 	return problems;
 }
 
@@ -647,6 +750,7 @@ function main() {
 	const failures = [];
 	const fail = (where, what) => failures.push(`${where}: ${what}`);
 	const asOfText = formatDate(offer.asOf);
+	const checkedText = formatDateLongYear(offer.checkedOn).replace(/\u00a0/g, ' ');
 
 	const pages = walkSources(pagesDir);
 	for (const { full, rel } of pages) {
@@ -664,6 +768,7 @@ function main() {
 		const body = htmlText(extractMain(html));
 		for (const problem of checkAsOfDate(body, asOfText)) fail(`dist (${rel})`, problem);
 		for (const problem of checkBuiltAsOf(name, body)) fail(`dist (${rel})`, problem);
+		for (const problem of checkCheckedDate(body, checkedText)) fail(`dist (${rel})`, problem);
 		for (const phrase of findForbidden(body, { allowUcoz: name === UCOZ_PAGE })) {
 			fail(`dist (${rel})`, `forbidden phrase «${phrase}»`);
 		}
@@ -704,6 +809,7 @@ function main() {
 		}
 		for (const problem of checkFooterLine(html, footerLine)) fail(`dist/${rel}`, problem);
 		for (const problem of checkEveryPage(html)) fail(`dist/${rel}`, problem);
+		for (const problem of checkPlaceholders(html)) fail(`dist/${rel}`, problem);
 		if (!IMPORTED_DIRS.has(first)) {
 			for (const problem of checkDemoAddress(html)) fail(`dist/${rel}`, problem);
 		}

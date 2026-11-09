@@ -310,13 +310,16 @@ test('checkNoDocsLinks: the product header and footer do not link into the docum
 	const footer = (...hrefs) => `<footer class="site-footer">${hrefs.map((h) => `<a href="${h}">x</a>`).join('')}</footer>`;
 	const page = (f) => productPage('', productHeader()) + f;
 	assert.deepEqual(checkNoDocsLinks(page(footer('/site/dlia-bukhhalterii/', '/site/vstanovyty-samostiino/', 'https://example.org/editor/'))), []);
-	for (const bad of ['/site/editor/', '/site/install/vstanovlennia/', '../qa/', '/dev/']) {
-		assert.equal(checkNoDocsLinks(page(footer(bad))).length, 1, bad);
+	for (const bad of ['/site/editor/zmist/', '/site/install/vstanovlennia/', '../qa/', '/dev/', '/site/editor']) {
+		assert.equal(checkNoDocsLinks(page(footer(bad)), undefined, '/site').length, 1, bad);
 	}
+	// spec 83 §9: the footer's «Посібник редактора» is exactly {base}/editor/
+	assert.deepEqual(checkNoDocsLinks(page(footer('/site/editor/')), undefined, '/site'), []);
+	assert.deepEqual(checkNoDocsLinks(page(footer('/editor/')), undefined, '/'), []);
 	// a body link into the docs is text, not navigation
 	assert.deepEqual(checkNoDocsLinks(productPage('<a href="../editor/">посібник</a>') + footer('/site/')), []);
 	const headerLink = productHeader().replace('href="#price"', 'href="/site/editor/"');
-	assert.equal(checkNoDocsLinks(productPage('', headerLink)).length, 1);
+	assert.equal(checkNoDocsLinks(productPage('', headerLink), undefined, '/site').length, 1);
 });
 
 test('checkDocChrome: no site navigation or request button, a footer link to the product home', () => {
@@ -412,4 +415,55 @@ test('checkProductScripts: the try page\'s own bundle only where allowed', () =>
 	const read = () => 'document.querySelector("[data-demo-try]")';
 	assert.equal(checkProductScripts(own, read).length, 1);
 	assert.deepEqual(checkProductScripts(own, read, { allowTry: true }), []);
+});
+
+import {
+	checkPlaceholders,
+	checkOfferNumbers,
+	checkTypography,
+	checkCheckedDate,
+	visibleText,
+} from '../scripts/check-built.mjs';
+import { offer as offerForRules } from '../src/config/offer.mjs';
+
+test('spec 83: a placeholder of the spec fails the page', () => {
+	assert.deepEqual(checkPlaceholders('<p>Готово</p>'), []);
+	for (const bad of ['[уточнити: перелік]', '{рішення: хто}', '{дані: ПІБ}', '{Дані}']) {
+		assert.equal(checkPlaceholders(`<p>${bad}</p>`).length, 1, bad);
+	}
+});
+
+test('spec 83: the price, the dates and the reply times are the ones of offer.mjs', () => {
+	const nb = '\u00a0';
+	const good = `Безкоштовно до 31${nb}грудня${nb}2026 року. 4${nb}800${nb}грн на рік, 1${nb}200 грн щокварталу. Перевірено 9 листопада 2026 року. Ми відповімо протягом 2 робочих днів; відповідаємо протягом 2 робочих днів. Послуги вартістю менше ніж 200 000 грн на рік. До 31 грудня 2026 року сайт працює безкоштовно.`;
+	assert.deepEqual(checkOfferNumbers(good), []);
+	assert.equal(checkOfferNumbers('4 900 грн на рік').length, 1);
+	assert.equal(checkOfferNumbers('4 800 ₴ / рік').length, 0);
+	assert.equal(checkOfferNumbers('1 500 грн щокварталу').length, 1);
+	assert.equal(checkOfferNumbers('безкоштовно до 30 грудня 2026 року').length, 1);
+	assert.equal(checkOfferNumbers('до 1 січня 2027 року сайт працює безкоштовно').length, 1);
+	assert.equal(checkOfferNumbers('Перевірено 8 листопада 2026 року').length, 1);
+	assert.equal(checkOfferNumbers('ми відповімо протягом 3 робочих днів').length, 1);
+	assert.equal(checkOfferNumbers('відповідаємо протягом 5 робочих днів').length, 1);
+	// a different offer: the same text then fails
+	assert.equal(checkOfferNumbers('4 800 грн на рік', { ...offerForRules, priceYearUah: 6000 }).length, 1);
+});
+
+test('spec 83: «Перевірено» is followed by checkedOn', () => {
+	assert.deepEqual(checkCheckedDate('Перевірено 9\u00a0листопада 2026 року.', '9 листопада 2026 року'), []);
+	assert.equal(checkCheckedDate('Перевірено 1 листопада 2026 року.', '9 листопада 2026 року').length, 1);
+});
+
+test('spec 83: typography — no straight quotes, paired quotes, U+00A0 in digit groups', () => {
+	assert.deepEqual(checkTypography('«Про освіту», „так“, 4\u00a0800\u00a0грн, обовʼязок'), []);
+	assert.equal(checkTypography('"так"').length, 1);
+	assert.equal(checkTypography("обов'язок").length, 1);
+	assert.equal(checkTypography('„так').length, 1);
+	assert.equal(checkTypography('«так').length, 1);
+	assert.equal(checkTypography('4 800 грн').length, 1);
+	assert.equal(checkTypography('4\u202f800 грн').length, 1);
+	assert.equal(checkTypography('з 2026 року, № 305, КЕКВ 2240').length, 0);
+	// entities are decoded first
+	assert.equal(checkTypography(visibleText('<p>&quot;так&quot;</p>')).length, 1);
+	assert.equal(checkTypography(visibleText('<p>4&nbsp;800</p>')).length, 0);
 });
