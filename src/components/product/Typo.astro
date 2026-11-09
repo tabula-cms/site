@@ -1,0 +1,17 @@
+---
+// Spec 83, «Мовні правила»: the no-break spaces are put by code, not by the author. Wraps a rendered MDX body (or any
+// slot) and runs typoHtml() over its text. With `headings` (render()'s list), every heading whose id is the
+// Cyrillic slug Astro made gets the Latin one of slugUk() instead, the same id «На цій сторінці» links to.
+import { typoHtml, slugUk } from '../../lib/typo.mjs';
+
+interface Props {
+	headings?: { depth: number; slug: string; text: string }[];
+}
+const { headings = [] } = Astro.props;
+let html = typoHtml(await Astro.slots.render('default'));
+for (const heading of headings) {
+	if (/[^\x00-\x7f]/.test(heading.slug)) html = html.replaceAll(`id="${heading.slug}"`, `id="${slugUk(heading.text)}"`);
+}
+---
+
+<Fragment set:html={html} />
