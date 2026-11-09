@@ -9,7 +9,8 @@ import {
 	formatUah,
 	formatGrn,
 	yearOf,
-	operatorLine,
+	footerLine,
+	exitText,
 	parseIsoDate,
 	formatDate,
 	formatDateLong,
@@ -50,14 +51,28 @@ test('offer: the checked date is not after the end of the pilot', () => {
 
 test('offer: no ASCII or right-quote apostrophe between Cyrillic letters in the shared texts', () => {
 	const bad = /[А-ЯҐЄІЇа-яґєії]['’][А-ЯҐЄІЇа-яґєії]/;
-	for (const text of [operatorLine, offer.copiesWhere, ...includes.flatMap((i) => [i.title, i.text])]) {
+	for (const text of [footerLine, exitText, offer.copiesWhere, ...includes.flatMap((i) => [i.title, i.text])]) {
 		assert.doesNotMatch(text, bad, text);
 	}
 });
 
-test('operatorLine: names the operator by kind only', () => {
-	assert.match(operatorLine, /^Послуги надає фізична особа — підприємець, платник єдиного податку 3-ї групи, без ПДВ\./);
-	assert.doesNotMatch(operatorLine, /ФОП/);
+test('footerLine: who made Tabula, verbatim from the spec, no operator details', () => {
+	assert.equal(
+		footerLine,
+		'Tabula зробили вчителі з досвідом програмування — для інших шкіл. Щоб сайт закладу вів його працівник, а не найнятий програміст.',
+	);
+	assert.doesNotMatch(footerLine, /ФОП|підприєм|ПДВ/);
+});
+
+test('exit: copies on Hetzner for 30 days; the exit text takes its number from offer', () => {
+	assert.equal(offer.copiesWhere, 'Hetzner, ЄС');
+	assert.equal(offer.backupRetentionDays, 30);
+	assert.ok(exitText.includes(`через ${offer.exitClosedDays} днів видаляємо разом із копіями`));
+	assert.doesNotMatch(exitText, /Backblaze|відкрит|власн\S* сервер/);
+});
+
+test('includes: nothing about open code or an own server', () => {
+	for (const item of includes) assert.doesNotMatch(`${item.title} ${item.text}`, /[Вв]ідкритий код|власний сервер/);
 });
 
 test('includes: nine items with a title, a text and an icon', () => {

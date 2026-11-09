@@ -3,25 +3,22 @@
 // every Starlight page is a documentation page (`template: doc`), so Starlight's own footer content —
 // edit link, pagination — is kept above ours.
 //
-// Ours: one link back to the product home («На головну Tabula»), the project's own GitHub links, the
-// tagline and the operator line of story 78's decision 5 (`operatorLine` from `offer.mjs`, checked on
-// every page by `check-built.mjs`). The documentation is not linked from the product pages, so this is
+// Ours: the link back to the product home («На головну Tabula»), «Підтримка», and the footer line of the
+// footer-and-audience-pages spec (`footerLine` from `offer.mjs`, checked on every page by
+// `check-built.mjs`). No GitHub, licence or vulnerability links: Tabula is a closed service now. The documentation is not linked from the product pages, so this is
 // the only way back. The home link is built from `import.meta.env.BASE_URL` (Astro's resolved `base`):
 // this footer renders at every page depth, so a single relative path cannot be correct everywhere;
 // `scripts/check-links.mjs` resolves an absolute (leading-slash) href against its own base-prefixed page
 // map.
 import Default from '@astrojs/starlight/components/Footer.astro';
-import { operatorLine } from '../config/offer.mjs';
+import { footerLine } from '../config/offer.mjs';
 
 const base = import.meta.env.BASE_URL;
 const home = base.endsWith('/') ? base : `${base}/`;
 
 const links = [
 	{ text: 'На головну Tabula', href: home },
-	{ text: 'Репозиторій на GitHub', href: 'https://github.com/tabula-cms/tabula' },
-	{ text: 'Ліцензія AGPL-3.0', href: 'https://github.com/tabula-cms/tabula/blob/main/LICENSE' },
-	{ text: 'Повідомити про помилку', href: 'https://github.com/tabula-cms/tabula/issues/new/choose' },
-	{ text: 'Повідомити про вразливість', href: 'https://github.com/tabula-cms/tabula/security/policy' },
+	{ text: 'Підтримка', href: `${home}pidtrymka/` },
 ];
 ---
 
@@ -38,11 +35,8 @@ const links = [
 			))
 		}
 	</nav>
-	<p class="site-footer-tagline">
-		Система вільна й безкоштовна назавжди. Розміщення сайту проєктом — платна послуга, з якої
-		фінансується розвиток системи.
-	</p>
-	<p class="site-footer-operator">{operatorLine}</p>
+	<p class="site-footer-tagline">{footerLine}</p>
+	<p class="site-footer-operator">© 2026 Tabula</p>
 </footer>
 
 <style>

@@ -1,21 +1,22 @@
 ---
-title: Хостинг і ціна
+title: Ціна й оплата
 description: Що входить у розміщення сайту закладу освіти, скільки це коштує, як відбувається оплата і що буде, якщо заклад піде.
 ---
 
 import {
 	offer,
 	includes,
-	operatorLine,
+	exitText,
 	formatDate,
 	formatDateLongYear,
 	formatGrn,
 	nextDay,
 } from '../../config/offer.mjs';
+import CommunityNote from '../../components/product/CommunityNote.astro';
 
 Станом на {formatDate(offer.asOf)}.
 
-Система Tabula вільна й безкоштовна назавжди. Розміщення (хостинг) сайту проєктом — платна послуга. З неї фінансується розвиток системи.
+Tabula — сервіс: ми розміщуємо, оновлюємо й підтримуємо сайт, а заклад платить за рік. Ціна відома наперед.
 
 ## Що отримує заклад
 
@@ -29,7 +30,7 @@ import {
 
 До {formatDate(offer.pilotUntil)} — безкоштовно. З {formatDateLongYear(nextDay(offer.pilotUntil))} — {formatGrn(offer.priceYearUah)} на рік ({formatGrn(offer.priceQuarterUah)} за квартал), без ПДВ.
 
-<p>{operatorLine}</p>
+Без ПДВ, ФОП на єдиному податку. Докладно — у розділі [„Про виконавця“](../dlia-bukhhalterii/#vykonavets) на сторінці [„Для бухгалтерії“](../dlia-bukhhalterii/).
 
 <p class="cta-row"><a class="btn btn-main" href="../zaiavka/">Подати заявку</a></p>
 
@@ -48,33 +49,8 @@ import {
 
 Поки договір реєструють і платіж іде через казначейство, сайт працює як завжди — до 45 днів.
 
-## Якщо заклад піде
+<h2 id="vykhid">Якщо заклад піде</h2>
 
-Архів усього сайту можна завантажити самостійно: „Резервні копії“ › „Завантажити“. На запит надішлемо його протягом 5 робочих днів. Власний домен лишається вашим.
+<p>{exitText}</p>
 
-## Пакет для громади
-
-Для відділу освіти, який хоче сайти для кількох закладів: один договір і одна ціна за сайт; напишіть нам. Від 11 сайтів сума за рік перевищує 50 000 грн — потрібен звіт про договір у Prozorro.
-
-Від 50 000 грн потрібен звіт про договір у Prozorro протягом 10 робочих днів після підписання договору (станом на {formatDate(offer.asOf)}). Джерело: [Мінекономіки](https://me.gov.ua/InfoRez/Details/ee922d65-5e66-4082-82f8-9851e7236da6?lang=uk-UA). Межу рахують за предметом закупівлі за рік, а не за одним договором. Джерело: [Radnyk Academy](https://radnyk.academy/blog/shodo-zakupivel-do-50-tis-grn).
-
-## Хостинг Tabula чи власний сервер
-
-<div class="reading-table" tabindex="0" role="region" aria-label="Порівняння двох способів мати сайт на Tabula">
-<table>
-<caption>Порівняння двох способів мати сайт на Tabula</caption>
-<thead>
-<tr><th scope="col">Що</th><th scope="col">Хостинг Tabula</th><th scope="col">Власний сервер</th></tr>
-</thead>
-<tbody>
-<tr><th scope="row">Ціна</th><td>{formatGrn(offer.priceYearUah)} на рік після пілоту</td><td>Система безкоштовна; сервер і домен оплачуєте самі</td></tr>
-<tr><th scope="row">Оновлення</th><td>Оновлюємо ми</td><td>Ставите за інструкцією</td></tr>
-<tr><th scope="row">Резервні копії</th><td>Щоденні, зашифровані</td><td>Налаштовуєте самі</td></tr>
-<tr><th scope="row">Підтримка</th><td>Електронною поштою</td><td>Документація й GitHub</td></tr>
-<tr><th scope="row">Сертифікат (https)</th><td>Налаштовуємо й оновлюємо ми</td><td>Налаштовуєте самі</td></tr>
-<tr><th scope="row">Хто виправляє, якщо щось зламалося</th><td>Ми</td><td>Ваш технічний фахівець</td></tr>
-</tbody>
-</table>
-</div>
-
-Хочете свій сервер? Див. [«Встановити самостійно»](../vstanovyty-samostiino/).
+<CommunityNote />

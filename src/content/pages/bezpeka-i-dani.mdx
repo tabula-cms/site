@@ -3,13 +3,13 @@ title: Безпека й дані
 description: Де розміщені сайти шкіл і їхні копії, що ми зберігаємо, що виходить за межі ЄС і як закладу забрати свій сайт.
 ---
 
-import { offer, formatDate } from '../../config/offer.mjs';
+import { offer, exitText, formatDate } from '../../config/offer.mjs';
 
 Станом на {formatDate(offer.asOf)}.
 
 ## Де що розміщено
 
-Сайти шкіл — на серверах Hetzner у ЄС. Копії — зашифровані, теж у ЄС ({offer.copiesWhere}).
+Сайти шкіл — на серверах Hetzner у ЄС. Копії — зашифровані, на серверах Hetzner у ЄС, зберігаються {offer.backupRetentionDays} днів.
 
 Цей сайт, tabula.org.ua, розміщено на GitHub Pages.
 
@@ -17,7 +17,7 @@ import { offer, formatDate } from '../../config/offer.mjs';
 
 ## Резервні копії
 
-Копії щоденні й зашифровані. Заклад може завантажити архів сайту сам — див. нижче.
+Копії щоденні й зашифровані, зберігаються {offer.backupRetentionDays} днів. Документи, фото й новини заклад може забрати архівом — див. нижче.
 
 ## Російські сервіси
 
@@ -39,8 +39,8 @@ import { offer, formatDate } from '../../config/offer.mjs';
 
 ## Якщо заклад піде
 
-Архів усього сайту можна завантажити самостійно: „Резервні копії“ › „Завантажити“. На запит надішлемо його протягом 5 робочих днів. Власний домен лишається вашим.
+<p>{exitText}</p>
 
 ## Проблема з безпекою
 
-Напишіть на <a href={`mailto:${offer.supportEmail}`}>{offer.supportEmail}</a>. Про вразливість у самій системі — також на [сторінці політики безпеки проєкту](https://github.com/tabula-cms/tabula/security/policy).
+Напишіть на <a href={`mailto:${offer.supportEmail}`}>{offer.supportEmail}</a> з темою „Безпека“. Відповімо протягом двох робочих днів.
