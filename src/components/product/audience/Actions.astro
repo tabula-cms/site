@@ -1,0 +1,43 @@
+---
+// A row of buttons (spec 83: «Кнопки», «Що далі»). The first `primary` one is the main button. Links are relative to
+// the site's root; `share` is a ShareButton; `print` is a button that only JavaScript shows (src/scripts/page-tools.js).
+import ShareButton from './ShareButton.astro';
+import { typo } from '../../../lib/typo.mjs';
+
+interface Action {
+	kind: 'link' | 'share' | 'print';
+	text?: string;
+	href?: string;
+	to?: string;
+	mode?: string;
+	primary?: boolean;
+}
+interface Props {
+	actions: Action[];
+	class?: string;
+}
+const { actions, class: extra = '' } = Astro.props;
+const base = import.meta.env.BASE_URL;
+const root = base.endsWith('/') ? base : `${base}/`;
+const href = (h: string) => (/^[a-z]+:/.test(h) || h.startsWith('#') ? h : `${root}${h}`);
+---
+
+{
+	actions.length > 0 && (
+		<p class:list={['actions', extra]}>
+			{actions.map((action) =>
+				action.kind === 'share' ? (
+					<ShareButton to={action.to!} primary={action.primary} />
+				) : action.kind === 'print' ? (
+					<button type="button" class="btn btn-line" data-print={action.mode ?? 'page'} hidden>
+						{typo(action.text ?? 'Роздрукувати')}
+					</button>
+				) : (
+					<a class:list={['btn', action.primary ? 'btn-main' : 'btn-line']} href={href(action.href!)}>
+						{typo(action.text!)}
+					</a>
+				),
+			)}
+		</p>
+	)
+}

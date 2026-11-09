@@ -1,0 +1,16 @@
+---
+// Spec 83 §10: one question of a list of questions — a <details> with its own anchor (`id`); `open` for the first.
+import { typo } from '../../../lib/typo.mjs';
+
+interface Props {
+	id: string;
+	q: string;
+	open?: boolean;
+}
+const { id, q, open = false } = Astro.props;
+---
+
+<details class="faq" id={id} open={open}>
+	<summary>{typo(q)}</summary>
+	<div class="faq__body"><slot /></div>
+</details>

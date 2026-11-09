@@ -1,0 +1,15 @@
+---
+// Spec 83 §3: the state labels — «Готово», «У підготовці», «На запит», «Ще не ввімкнено».
+interface Props {
+	status: 'ready' | 'preparing' | 'onRequest' | 'off';
+}
+const STATUS_TEXT = {
+	ready: 'Готово',
+	preparing: 'У підготовці',
+	onRequest: 'На запит',
+	off: 'Ще не ввімкнено',
+};
+const { status } = Astro.props;
+---
+
+<span class:list={['badge', `badge--${status}`]}>{STATUS_TEXT[status]}</span>

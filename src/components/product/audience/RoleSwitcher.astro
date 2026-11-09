@@ -1,0 +1,26 @@
+---
+// Spec 83 §4: the row of the three role pages under the header; the current one has aria-current="page". On phones a
+// row of chips that scrolls sideways (audience.css).
+import { ROLES } from '../../../config/audience.mjs';
+
+interface Props {
+	current: string;
+}
+const { current } = Astro.props;
+const base = import.meta.env.BASE_URL;
+const root = base.endsWith('/') ? base : `${base}/`;
+---
+
+<nav class="role-switch" aria-label="Сторінки для закладу">
+	<ul>
+		{
+			ROLES.map((role) => (
+				<li>
+					<a href={`${root}${role.slug}/`} aria-current={role.slug === current ? 'page' : undefined}>
+						{role.title}
+					</a>
+				</li>
+			))
+		}
+	</ul>
+</nav>

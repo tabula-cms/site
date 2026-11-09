@@ -1,0 +1,711 @@
+/* Spec 83: the role pages («Для директора», «Для того, хто веде сайт», «Для бухгалтерії») and «Ціна й оплата» —
+ * src/layouts/RolePage.astro and src/components/product/audience/*. Imported by that layout only; the tokens are
+ * product.css's. The body text reuses product.css §17 (`.reading`). */
+
+/* ---- The switcher of the three role pages (under the header; a row of chips that scrolls sideways on phones). ---- */
+.role-switch {
+	border-bottom: 1px solid var(--line);
+	background: var(--surface);
+}
+.role-switch ul {
+	max-width: 1120px;
+	margin: 0 auto;
+	padding: 10px 24px;
+	list-style: none;
+	display: flex;
+	gap: 8px;
+	overflow-x: auto;
+	scrollbar-width: thin;
+}
+.role-switch li {
+	flex: none;
+}
+.role-switch a {
+	display: inline-flex;
+	align-items: center;
+	min-height: 44px;
+	box-sizing: border-box;
+	padding: 0 16px;
+	border: 1px solid var(--line);
+	border-radius: 999px;
+	color: var(--text);
+	font-weight: 600;
+	font-size: 15px;
+	text-decoration: none;
+	white-space: nowrap;
+}
+.role-switch a:hover {
+	border-color: var(--accent);
+	color: var(--ink);
+}
+.role-switch a[aria-current='page'] {
+	border-color: var(--ink);
+	background: var(--ink);
+	color: #ffffff;
+}
+@media (max-width: 600px) {
+	.role-switch ul {
+		padding: 8px 16px;
+	}
+}
+
+/* ---- The page. ---- */
+.role {
+	max-width: 1120px;
+	margin: 0 auto;
+	padding: 40px 24px 72px;
+	color: var(--text);
+}
+@media (max-width: 600px) {
+	.role {
+		padding: 28px 16px 56px;
+	}
+}
+.role-hero {
+	max-width: 820px;
+}
+.role-hero__label {
+	display: inline-block;
+	margin: 0 0 14px;
+	padding: 4px 12px;
+	border-radius: 8px;
+	background: var(--mint);
+	color: var(--ink);
+	font-weight: 700;
+	font-size: 15px;
+}
+.role-hero h1 {
+	margin: 0 0 18px;
+	font-family: var(--display);
+	font-weight: 600;
+	font-size: clamp(24px, 6.4vw, 40px);
+	line-height: 1.18;
+	letter-spacing: -0.02em;
+	color: var(--ink);
+	overflow-wrap: break-word;
+}
+.role-hero__lead {
+	margin: 0 0 24px;
+	font-size: 19px;
+	line-height: 1.6;
+	color: var(--ink);
+}
+.facts {
+	margin: 0 0 24px;
+}
+.facts__title {
+	margin: 0 0 10px;
+	font-family: var(--body);
+	font-weight: 800;
+	font-size: 15px;
+	letter-spacing: 0.02em;
+	text-transform: uppercase;
+	color: var(--text);
+}
+.facts__list {
+	margin: 0;
+	padding: 0;
+	list-style: none;
+	display: grid;
+	gap: 12px;
+}
+@media (min-width: 700px) {
+	.facts__list {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+}
+.facts__item {
+	padding: 16px 18px;
+	border: 1px solid #dce5e2;
+	border-radius: 14px;
+	background: var(--surface);
+	font-size: 16px;
+	line-height: 1.5;
+}
+.facts__item strong {
+	color: var(--ink);
+}
+.actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 12px;
+	margin: 0 0 16px;
+}
+.actions .btn,
+.copy__actions .btn {
+	padding: 13px 22px;
+	font-size: 16px;
+	font-family: inherit;
+	min-height: 44px;
+	box-sizing: border-box;
+	display: inline-flex;
+	align-items: center;
+}
+.role-hero__note {
+	margin: 0;
+	font-size: 15px;
+	line-height: 1.6;
+	color: #5f6e83;
+}
+
+/* ---- «На цій сторінці» and the body: one column; from 1100 px the list stands right of the text and stays in view. ---- */
+.role__grid {
+	margin-top: 28px;
+}
+.toc ul {
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+.toc a {
+	display: block;
+	padding: 8px 0;
+	color: var(--text);
+	font-size: 15px;
+	line-height: 1.4;
+	text-decoration: none;
+}
+.toc a:hover {
+	color: var(--accent);
+	text-decoration: underline;
+}
+.toc--narrow {
+	margin: 0 0 8px;
+	padding: 4px 16px;
+	border: 1px solid var(--line);
+	border-radius: 12px;
+	background: var(--surface);
+}
+.toc--narrow summary {
+	min-height: 44px;
+	display: flex;
+	align-items: center;
+	cursor: pointer;
+	font-weight: 700;
+	color: var(--ink);
+}
+.toc--narrow ul {
+	padding-bottom: 8px;
+}
+.toc--narrow a {
+	min-height: 44px;
+	box-sizing: border-box;
+	display: flex;
+	align-items: center;
+}
+.toc--wide {
+	display: none;
+}
+.toc__title {
+	margin: 0 0 6px;
+	font-weight: 800;
+	font-size: 14px;
+	color: var(--ink);
+}
+@media (min-width: 1100px) {
+	.role--toc .role__grid {
+		display: grid;
+		grid-template-columns: minmax(0, 720px) 250px;
+		justify-content: space-between;
+		gap: 56px;
+	}
+	.toc--narrow {
+		display: none;
+	}
+	.toc--wide {
+		display: block;
+		grid-column: 2;
+		grid-row: 1;
+		align-self: start;
+		position: sticky;
+		top: 96px;
+		padding-left: 18px;
+		border-left: 2px solid var(--line);
+	}
+	.role--toc .role__body {
+		grid-column: 1;
+		grid-row: 1;
+	}
+}
+.role .role__body.reading {
+	max-width: 720px;
+	margin: 0;
+	padding: 0;
+}
+.role .reading h2 {
+	scroll-margin-top: 96px;
+}
+.role .reading h2:first-child,
+.role .reading [data-print-summary]:first-child > h2:first-child {
+	margin-top: 0.8em;
+}
+
+/* ---- Steps and the timeline: a CSS counter, so the timeline's numbers run on across its stages. ---- */
+.reading .steps-list {
+	margin: 0 0 1.4em;
+	padding: 0;
+	list-style: none;
+	counter-reset: step;
+}
+.timeline {
+	counter-reset: step;
+}
+.steps-list--timeline {
+	counter-reset: none;
+}
+.reading .step {
+	position: relative;
+	margin: 0 0 14px;
+	padding: 0 0 0 52px;
+	counter-increment: step;
+}
+.reading .step + .step {
+	margin-top: 0;
+}
+.step::before {
+	content: counter(step);
+	position: absolute;
+	left: 0;
+	top: 0;
+	width: 36px;
+	height: 36px;
+	border-radius: 50%;
+	background: var(--mint);
+	color: var(--ink);
+	font-weight: 800;
+	font-size: 16px;
+	line-height: 36px;
+	text-align: center;
+}
+.reading .step__head {
+	margin: 0 0 4px;
+	padding-top: 4px;
+	display: flex;
+	flex-wrap: wrap;
+	align-items: baseline;
+	gap: 4px 10px;
+}
+.step__title {
+	color: var(--ink);
+}
+.step__time,
+.who {
+	display: inline-block;
+	padding: 1px 9px;
+	border-radius: 8px;
+	background: #eef3f1;
+	color: var(--ink);
+	font-weight: 600;
+	font-size: 14px;
+	line-height: 1.5;
+}
+.who {
+	white-space: nowrap;
+}
+.who {
+	background: var(--ink);
+	color: #ffffff;
+}
+.step__body > :last-child {
+	margin-bottom: 0;
+}
+.timeline__stage {
+	margin: 0 0 1.6em;
+	padding: 18px 18px 6px;
+	border: 1px solid #dce5e2;
+	border-radius: 16px;
+	background: var(--surface);
+}
+.reading .timeline__title {
+	margin: 0 0 14px;
+	font-size: clamp(17px, 4.4vw, 19px);
+}
+
+/* ---- «Коротко» of «Для бухгалтерії», the details, cards, questions, notes, labels. ---- */
+.answers,
+.requisites {
+	margin: 0 0 1.2em;
+	border: 1px solid #dce5e2;
+	border-radius: 16px;
+	background: var(--surface);
+	font-size: 16px;
+	line-height: 1.5;
+}
+.answers__row,
+.requisites__row {
+	padding: 10px 16px;
+	border-bottom: 1px solid #eef1f0;
+}
+.answers__row:last-child,
+.requisites__row:last-child {
+	border-bottom: 0;
+}
+.answers dt,
+.requisites dt {
+	font-weight: 800;
+	color: var(--ink);
+}
+.answers dd,
+.requisites dd {
+	margin: 2px 0 0;
+}
+@media (min-width: 640px) {
+	.answers__row,
+	.requisites__row {
+		display: grid;
+		grid-template-columns: 34% minmax(0, 1fr);
+		gap: 16px;
+	}
+	.answers dd,
+	.requisites dd {
+		margin: 0;
+	}
+}
+.reading a.more {
+	color: var(--accent);
+	font-size: 0.92em;
+	white-space: nowrap;
+}
+.reading .card-grid {
+	margin: 0 0 1.4em;
+	padding: 0;
+	list-style: none;
+	display: grid;
+	gap: 12px;
+}
+@media (min-width: 760px) {
+	.card-grid:not(.card-grid--choices) {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+}
+.reading .card,
+.reading .card + .card {
+	margin: 0;
+	padding: 16px 18px;
+	border: 1px solid #dce5e2;
+	border-radius: 14px;
+	background: var(--surface);
+	font-size: 16px;
+	line-height: 1.55;
+}
+.reading .card__title {
+	margin: 0 0 6px;
+	font-weight: 800;
+	color: var(--ink);
+}
+.card__body > :last-child {
+	margin-bottom: 0;
+}
+.reading .faq {
+	padding: 0;
+}
+.reading .faq summary {
+	min-height: 44px;
+	box-sizing: border-box;
+	display: flex;
+	align-items: center;
+	padding: 10px 16px;
+}
+.faq__body {
+	padding: 0 16px 4px;
+	font-size: 17px;
+}
+.callout {
+	margin: 0 0 1.2em;
+	padding: 14px 18px;
+	border-left: 4px solid var(--accent);
+	border-radius: 0 12px 12px 0;
+	background: var(--surface);
+	font-size: 17px;
+}
+.callout--important {
+	border-left-color: #b8432a;
+}
+.reading .callout__label {
+	margin: 0 0 4px;
+	font-weight: 800;
+	font-size: 14px;
+	text-transform: uppercase;
+	letter-spacing: 0.03em;
+	color: var(--ink);
+}
+.callout > :last-child {
+	margin-bottom: 0;
+}
+.badge {
+	display: inline-block;
+	padding: 1px 8px;
+	border-radius: 8px;
+	font-weight: 700;
+	font-size: 13px;
+	line-height: 1.6;
+	white-space: nowrap;
+	vertical-align: 0.1em;
+}
+.badge--ready {
+	background: var(--mint);
+	color: #134a43;
+}
+.badge--preparing,
+.badge--onRequest {
+	background: var(--amber-bg);
+	color: var(--amber-ink);
+}
+.badge--off {
+	background: #eceff3;
+	color: #3e4e63;
+}
+.doc-table__action {
+	display: block;
+	margin-top: 4px;
+	font-size: 14px;
+	white-space: normal;
+}
+.copy {
+	margin: 10px 0 1em;
+}
+.reading .copy__label {
+	font-weight: 700;
+	color: var(--ink);
+	font-size: 15px;
+}
+.reading .copy__text {
+	margin: 6px 0 8px;
+}
+.reading .copy__actions {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 12px;
+	margin: 0;
+}
+.copy__status {
+	font-size: 15px;
+}
+.ref {
+	line-height: 0;
+}
+/* At least 24 × 24 px (WCAG 2.2, 2.5.8). */
+.reading .ref a {
+	display: inline-block;
+	min-width: 24px;
+	min-height: 24px;
+	line-height: 24px;
+	text-align: center;
+	text-decoration: none;
+	font-size: 0.8em;
+}
+.sources {
+	font-size: 16px;
+	line-height: 1.55;
+}
+.reading .sources__back {
+	display: inline-block;
+	min-height: 24px;
+	line-height: 24px;
+	font-size: 14px;
+}
+.price-box {
+	margin: 0 0 1.6em;
+	padding: 22px 24px;
+	border: 1px solid #dce5e2;
+	border-radius: 18px;
+	background: var(--surface);
+}
+.reading .price-box__sum {
+	margin: 0 0 8px;
+	font-family: var(--display);
+	font-size: clamp(24px, 6vw, 32px);
+	line-height: 1.2;
+}
+.reading .price-box__list {
+	margin: 0;
+}
+
+/* ---- The end of the page: «Що далі», «Інші сторінки», the line for the education department. ---- */
+.role__end {
+	max-width: 720px;
+	margin-top: 48px;
+	padding-top: 28px;
+	border-top: 1px solid var(--line);
+}
+.role__end h2 {
+	margin: 0 0 14px;
+	font-family: var(--display);
+	font-weight: 600;
+	font-size: clamp(19px, 5vw, 22px);
+	color: var(--ink);
+}
+.related {
+	margin-top: 28px;
+}
+.related__list {
+	margin: 0;
+	padding: 0;
+	list-style: none;
+	display: grid;
+	gap: 12px;
+}
+@media (min-width: 640px) {
+	.related__list {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+}
+.related__card {
+	padding: 16px 18px;
+	border: 1px solid #dce5e2;
+	border-radius: 14px;
+	background: var(--surface);
+	font-size: 16px;
+	line-height: 1.5;
+}
+.related__card a {
+	display: inline-block;
+	margin-bottom: 4px;
+	font-weight: 800;
+	font-size: 17px;
+}
+.related__card span {
+	display: block;
+}
+.community {
+	margin: 28px 0 0;
+	font-size: 17px;
+	line-height: 1.5;
+}
+.community a {
+	display: inline-block;
+	padding: 10px 0;
+	font-weight: 700;
+}
+
+/* ---- Print (spec 83 §4): no chrome, no buttons, no «докладніше»; questions open; the address and «Перевірено» at the
+ * bottom. With `print-summary` on <html> («Роздрукувати» of «Для бухгалтерії») only [data-print-summary] blocks and
+ * what holds them are printed, on one A4 sheet. ---- */
+.print-only {
+	display: none;
+}
+@media print {
+	@page {
+		size: A4;
+		margin: 14mm 14mm 16mm;
+	}
+	[data-product-page] body,
+	.page {
+		background: #ffffff;
+	}
+	.site-header,
+	.site-footer,
+	.prefooter,
+	.skip-link,
+	.role-switch,
+	.toc,
+	.actions,
+	.copy__actions,
+	.btn,
+	a.more,
+	.role__end,
+	.role-hero__note a {
+		display: none !important;
+	}
+	.role {
+		max-width: none;
+		padding: 0;
+		font-size: 11pt;
+	}
+	.role .role__body.reading {
+		max-width: none;
+		font-size: 11pt;
+		line-height: 1.45;
+	}
+	.role-hero h1 {
+		font-size: 20pt;
+	}
+	.role-hero__lead {
+		font-size: 12pt;
+		margin-bottom: 10pt;
+	}
+	.facts__list {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+	.facts__item,
+	.answers,
+	.requisites,
+	.card,
+	.timeline__stage,
+	.price-box,
+	.callout {
+		break-inside: avoid;
+		border-color: #9aa8a4;
+	}
+	.answers__row,
+	.requisites__row {
+		display: grid;
+		grid-template-columns: 34% minmax(0, 1fr);
+		gap: 10pt;
+		padding: 4pt 8pt;
+	}
+	.reading h2 {
+		break-after: avoid;
+		margin-top: 1.2em;
+	}
+	.reading-table {
+		overflow: visible;
+	}
+	.reading-table table {
+		min-width: 0;
+	}
+	.print-only {
+		display: block;
+	}
+	.print-stamp {
+		margin: 18pt 0 0;
+		padding-top: 6pt;
+		border-top: 1px solid #9aa8a4;
+		font-size: 9pt;
+		color: #3e4e63;
+	}
+	/* «Роздрукувати» of «Для бухгалтерії»: the summary only. */
+	.print-summary main *:not([data-print-summary]):not([data-print-summary] *):not(:has([data-print-summary])) {
+		display: none !important;
+	}
+	.print-summary .role .role__body.reading {
+		font-size: 10pt;
+		line-height: 1.35;
+	}
+	.print-summary .role-hero h1 {
+		font-size: 15pt;
+		margin-bottom: 8pt;
+	}
+	.print-summary .reading h2 {
+		margin: 8pt 0 4pt;
+		font-size: 12pt;
+	}
+	.print-summary .answers,
+	.print-summary .requisites {
+		margin-bottom: 6pt;
+		font-size: 9.5pt;
+		line-height: 1.35;
+	}
+	.print-summary .answers__row,
+	.print-summary .requisites__row {
+		padding: 2.5pt 6pt;
+	}
+	.print-summary .copy__text {
+		margin: 2pt 0 0;
+		padding: 6pt 8pt;
+		font-size: 9.5pt;
+	}
+	.print-summary .step::before {
+		display: none;
+	}
+	.print-summary .reading .step,
+	.print-summary .timeline__stage {
+		margin: 0;
+		padding: 0;
+		border: 0;
+	}
+	.print-summary .print-stamp {
+		margin-top: 8pt;
+	}
+}

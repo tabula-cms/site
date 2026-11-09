@@ -1,0 +1,25 @@
+---
+// Spec 83 §4: «Коротко» — four fact cards: a bold first sentence and an optional second one.
+import { typo } from '../../../lib/typo.mjs';
+
+interface Props {
+	items: { title: string; text?: string }[];
+}
+const { items } = Astro.props;
+---
+
+{
+	items.length > 0 && (
+		<section class="facts" aria-labelledby="korotko-facts">
+			<h2 id="korotko-facts" class="facts__title">Коротко</h2>
+			<ul class="facts__list">
+				{items.map((item) => (
+					<li class="facts__item">
+						<strong>{typo(item.title)}</strong>
+						{item.text && <span> {typo(item.text)}</span>}
+					</li>
+				))}
+			</ul>
+		</section>
+	)
+}

@@ -1,0 +1,14 @@
+---
+// Spec 83 §8: the price card of «Ціна й оплата» — the year's price, the quarter after the act, no VAT, free until the
+// end of the trial period. Every number and date from offer.mjs.
+import { offer, formatGrn, formatDateLongYear } from '../../../config/offer.mjs';
+---
+
+<div class="price-box">
+	<p class="price-box__sum"><strong>{formatGrn(offer.priceYearUah)} на рік</strong></p>
+	<ul class="price-box__list">
+		<li>{formatGrn(offer.priceQuarterUah)} щокварталу, після підписання акта</li>
+		<li>ПДВ не нараховується</li>
+		<li>до {formatDateLongYear(offer.pilotUntil)} — безкоштовно</li>
+	</ul>
+</div>

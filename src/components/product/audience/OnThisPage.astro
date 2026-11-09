@@ -1,0 +1,43 @@
+---
+// Spec 83 §4: «На цій сторінці». From about 1100 px a list on the right that stays in view while the page scrolls; on
+// narrower screens a closed <details> right after «Коротко». Two copies, one per width (audience.css shows one with
+// `display`, so the hidden one is out of the accessibility tree too).
+//
+// Starlight has a table of contents, but it reads Starlight's route data and brings its `sl-` chrome, which the product
+// pages may not load (check-built); the items here come from the same place Starlight's do: render()'s headings.
+import { typo } from '../../../lib/typo.mjs';
+
+interface Props {
+	items: { id: string; text: string }[];
+}
+const { items } = Astro.props;
+---
+
+{
+	items.length > 0 && (
+		<>
+			<details class="toc toc--narrow">
+				<summary>На цій сторінці</summary>
+				<ul>
+					{items.map((item) => (
+						<li>
+							<a href={`#${item.id}`}>{typo(item.text)}</a>
+						</li>
+					))}
+				</ul>
+			</details>
+			<nav class="toc toc--wide" aria-labelledby="toc-title">
+				<p id="toc-title" class="toc__title">
+					На цій сторінці
+				</p>
+				<ul>
+					{items.map((item) => (
+						<li>
+							<a href={`#${item.id}`}>{typo(item.text)}</a>
+						</li>
+					))}
+				</ul>
+			</nav>
+		</>
+	)
+}

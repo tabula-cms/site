@@ -1,0 +1,31 @@
+---
+// Spec 83 §7: «Коротко» of «Для бухгалтерії» — a <dl> of question and answer; each answer may end with «докладніше ↓»
+// (hidden in print).
+import { typo } from '../../../lib/typo.mjs';
+
+interface Props {
+	items: { term: string; text: string; more?: string }[];
+}
+const { items } = Astro.props;
+---
+
+<dl class="answers">
+	{
+		items.map((item) => (
+			<div class="answers__row">
+				<dt>{typo(item.term)}</dt>
+				<dd>
+					{typo(item.text)}
+					{item.more && (
+						<>
+							{' '}
+							<a class="more" href={item.more}>
+								докладніше ↓
+							</a>
+						</>
+					)}
+				</dd>
+			</div>
+		))
+	}
+</dl>

@@ -1,0 +1,25 @@
+---
+// One step of Steps.astro / TimelineStage.astro: optional «хто» (`who`), a bold title, optional «скільки часу»
+// (`time`), then the text. A step whose title holds links writes it in its own text instead (no `title`).
+import { typo } from '../../../lib/typo.mjs';
+
+interface Props {
+	title?: string;
+	time?: string;
+	who?: string;
+}
+const { title, time, who } = Astro.props;
+---
+
+<li class="step">
+	{
+		(who || title || time) && (
+			<p class="step__head">
+				{who && <span class="who">{who}</span>}
+				{title && <strong class="step__title">{typo(title)}</strong>}
+				{time && <span class="step__time">{typo(time)}</span>}
+			</p>
+		)
+	}
+	<div class="step__body"><slot /></div>
+</li>

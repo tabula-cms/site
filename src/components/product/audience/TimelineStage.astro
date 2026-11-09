@@ -1,0 +1,16 @@
+---
+// One stage of Timeline.astro: its title and the ordered steps.
+import { typo } from '../../../lib/typo.mjs';
+
+interface Props {
+	title: string;
+}
+const { title } = Astro.props;
+---
+
+<section class="timeline__stage">
+	<h3 class="timeline__title">{typo(title)}</h3>
+	<ol class="steps-list steps-list--timeline">
+		<slot />
+	</ol>
+</section>

@@ -7,11 +7,12 @@ import Product from './Product.astro';
 interface Props {
 	title: string;
 	description: string;
+	cta?: boolean;
 }
-const { title, description } = Astro.props;
+const { title, description, cta = true } = Astro.props;
 ---
 
-<Product title={`${title} — Tabula`} description={description}>
+<Product title={`${title} — Tabula`} description={description} cta={cta}>
 	<slot name="head" slot="head" />
 	<article class="reading">
 		<h1>{title}</h1>
