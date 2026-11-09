@@ -1,9 +1,9 @@
 ---
-// The footer of the product pages (footer-and-audience-pages spec, 2026-11-09): the brand column, then three
-// columns — «Для кого», «Корисно знати», «Допомога» — and a bottom row with the legal links (personal data,
-// accessibility, the privacy address), the footer line (`footerLine`, verbatim; check-built holds it on every
-// page) and «© 2026 Tabula». The «Продукт» column is gone: its anchors are in the header, «Демо-сайт» and
-// «Подати заявку» are on the home's first screen. Links are base-aware (`BASE_URL`); the link to the page
+// The footer of the product pages (spec 83 §9, 2026-11-09): the brand column (the mark, «Сайти для шкіл, садочків і
+// коледжів із готовими розділами за законом», «Про проєкт»), then «Для кого», «Про сервіс» and «Допомога» (with
+// «Посібник редактора», the one footer link into the documentation that check-built allows), and a bottom row with the
+// legal links (personal data, accessibility, the privacy address), the authors line (`footerLine`, verbatim;
+// check-built holds it on every page) and «© 2026 Tabula». Links are base-aware (`BASE_URL`); the link to the page
 // being shown carries aria-current="page". On phones the columns go two by two (section 14 of product.css).
 // The «Довідка» link renders only when `help` is on (the docs story turns it on).
 import { offer, footerLine } from '../../config/offer.mjs';
@@ -22,17 +22,17 @@ const columns = [
 		title: 'Для кого',
 		links: [
 			['Для директора', page('dlia-dyrektora')],
-			['Для відповідального за сайт', page('dlia-vidpovidalnoho')],
+			['Для того, хто веде сайт', page('dlia-vidpovidalnoho')],
 			['Для бухгалтерії', page('dlia-bukhhalterii')],
 		],
 	},
 	{
-		title: 'Корисно знати',
+		title: 'Про сервіс',
 		links: [
 			['Як це працює', page('yak-tse-pratsiuie')],
 			['Ціна й оплата', page('khostynh-i-tsina')],
-			['Закон і сайт школи', page('zakon-i-sait-shkoly')],
 			['Безпека й дані', page('bezpeka-i-dani')],
+			['Закон і сайт школи', page('zakon-i-sait-shkoly')],
 			// Story 82 (S1b): «Спробувати» is linked only once the demo is public.
 			...(offer.demoOpen ? [['Спробувати демо', page('sprobuvaty')]] : []),
 		],
@@ -41,6 +41,7 @@ const columns = [
 		title: 'Допомога',
 		links: [
 			['Часті запитання', anchor('faq')],
+			['Посібник редактора', page('editor')],
 			['Підтримка', page('pidtrymka')],
 			[offer.supportEmail, `mailto:${offer.supportEmail}`],
 			...(help ? [['Довідка', `${root}dokumentatsiia/`]] : []),
@@ -62,7 +63,7 @@ const columns = [
 				>
 				<span>Tabula</span>
 			</a>
-			<p class="site-footer__about">Сайти для шкіл, садочків і коледжів — з готовими розділами за законом.</p>
+			<p class="site-footer__about">Сайти для шкіл, садочків і коледжів із готовими розділами за законом</p>
 			<p class="site-footer__more">
 				<a href={page('pro-proiekt')} aria-current={current(page('pro-proiekt'))}>Про проєкт</a>
 			</p>
