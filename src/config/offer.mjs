@@ -42,6 +42,10 @@ export const offer = Object.freeze({
 	// Decision 5 and 24: the role mailbox for the controller's details and data-subject requests
 	// (set by the owner in PR #21). privacyEmail() falls back to supportEmail if it is ever null.
 	operatorEmail: 'privacy@tabula.org.ua',
+	// Story 82, slice S1a: the address the privacy section «Демо» gives for complaints about the demo (someone typed
+	// another person's address, the demo infringes a person's rights). The owner sets it; while it is null,
+	// complaintEmail() falls back to privacyEmail().
+	complaintEmail: null,
 	// Decision 24: the control plane's address; TABULA_CP_URL overrides it at build time for a
 	// manual check against a local control plane.
 	cpUrl: process.env.TABULA_CP_URL || 'https://cp.tabula.org.ua',
@@ -171,6 +175,12 @@ export function formatNumber(n) {
  * «…на запит на {operatorEmail}» uses `supportEmail`, so it always names an address that works. */
 export function privacyEmail() {
 	return offer.operatorEmail || offer.supportEmail;
+}
+
+/** Story 82, S1a: where the privacy section «Демо» sends complaints — `complaintEmail` when the owner has set it,
+ * else privacyEmail(). `email` is a parameter so both states are testable. */
+export function complaintEmail(email = offer.complaintEmail) {
+	return email || privacyEmail();
 }
 
 // «протягом N робочих днів» with N in words (genitive), for the sentences that give a usual reply
