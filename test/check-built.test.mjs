@@ -5,7 +5,10 @@ import {
 	checkOwnSource,
 	checkAsOfDate,
 	checkBuiltAsOf,
-	checkOperatorLine,
+	checkFooterLine,
+	checkClosedService,
+	FOOTER_EXEMPT,
+	isRedirectPage,
 	checkScripts,
 	extractMain,
 	TURNSTILE_SRC,
@@ -61,14 +64,41 @@ test('checkBuiltAsOf: the law pattern in built text needs «станом на»'
 	assert.equal(checkBuiltAsOf('pro-proiekt', 'Закон').length, 1);
 });
 
-test('checkOperatorLine: the footer carries the operator line verbatim', () => {
-	const line = 'Послуги надає фізична особа — підприємець. Повні реквізити — у договорі.';
+test('checkFooterLine: the footer carries the footer line verbatim', () => {
+	const line = 'Tabula зробили вчителі з досвідом програмування — для інших шкіл.';
 	const page = (text) => `<main>x</main><footer class="site-footer not-content"><p>${text}</p></footer>`;
-	assert.deepEqual(checkOperatorLine(page(line), line), []);
-	assert.equal(checkOperatorLine(page('Послуги надає ФОП.'), line).length, 1);
-	assert.equal(checkOperatorLine('<main>x</main>', line).length, 1);
+	assert.deepEqual(checkFooterLine(page(line), line), []);
+	assert.equal(checkFooterLine(page('Послуги надає ФОП.'), line).length, 1);
+	assert.equal(checkFooterLine('<main>x</main>', line).length, 1);
 	// the line outside the site footer does not count
-	assert.equal(checkOperatorLine(`<p>${line}</p><footer class="site-footer"></footer>`, line).length, 1);
+	assert.equal(checkFooterLine(`<p>${line}</p><footer class="site-footer"></footer>`, line).length, 1);
+});
+
+test('checkClosedService: no open code, licence, GitHub or self-hosting; ordinary words pass', () => {
+	for (const bad of [
+		'Код відкритий під ліцензією AGPL-3.0',
+		'Репозиторій на GitHub',
+		'https://github.com/tabula-cms/tabula',
+		'Система вільна й безкоштовна назавжди',
+		'Установити на власний сервер',
+		'Встановити самостійно',
+		'Відкритий код: сайт можна забрати',
+	]) {
+		assert.ok(checkClosedService(bad).length > 0, bad);
+	}
+	for (const ok of [
+		'Цей сайт розміщено на GitHub Pages.',
+		'Відкрити приклад сайту',
+		'Прозорість та інформаційна відкритість',
+		'Документи, фото й новини віддаємо архівом — вставите в будь-який сайт',
+	]) {
+		assert.deepEqual(checkClosedService(ok), [], ok);
+	}
+});
+
+test('isRedirectPage: an Astro redirect page is recognised', () => {
+	assert.ok(isRedirectPage('<meta http-equiv="refresh" content="0;url=/site/khostynh-i-tsina/">'));
+	assert.ok(!isRedirectPage('<meta charset="utf-8">'));
 });
 
 test('checkScripts: only Turnstile\'s api.js, never inline', () => {
@@ -323,6 +353,9 @@ test('checkFooterLinks: every own page is linked from the footer', () => {
 	assert.equal(checkFooterLinks(footer('a'), ['a', 'b'], '/site').length, 1);
 	assert.equal(checkFooterLinks('<a href="/site/b/">in the body</a>' + footer('a'), ['a', 'b'], '/site').length, 1);
 	assert.deepEqual(checkFooterLinks('<footer class="site-footer"><a href="/a/">x</a></footer>', ['a'], '/'), []);
+	// «Демо-сайт» and «Подати заявку» are not in the footer by design (main() checks they are linked elsewhere)
+	assert.deepEqual(FOOTER_EXEMPT, ['demo', 'zaiavka']);
+	assert.deepEqual(checkFooterLinks(footer('a'), ['a', 'demo', 'zaiavka'], '/site'), []);
 });
 
 test('checkOneH1 and metaDescription', () => {

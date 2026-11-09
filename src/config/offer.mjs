@@ -5,8 +5,10 @@
 // (`plans.year_uah` <-> priceYearUah, `pilot.defaultUntil` <-> pilotUntil, `requests.replyDays`
 // <-> requestReplyDays); the coordinator checks they agree in each PR that touches either side.
 //
-// The operator is never named here or anywhere else on the site (decision 5): pages say
-// «фізична особа — підприємець» and nothing more.
+// The operator is never named here or anywhere else on the site (decision 5): no name, no РНОКПП, no
+// address. Since the footer-and-audience-pages spec (2026-11-09) the footer no longer carries an operator
+// line: «ФОП на єдиному податку, без ПДВ» lives in the section «Про виконавця» of «Для бухгалтерії»
+// (#vykonavets), and the full details are given on request.
 
 export const offer = Object.freeze({
 	// Decision 2: the last day of the free pilot (ISO date). The paid period starts the next day.
@@ -54,15 +56,27 @@ export const offer = Object.freeze({
 	// Decision 24: false until the control plane accepts requests (C1 live); W2 reads it.
 	requestsOpen: false,
 	// Decision 19: where the encrypted copies of the schools' sites are kept today.
-	copiesWhere: 'Backblaze, Амстердам',
+	// Footer-and-audience-pages spec (2026-11-09), answer 7: the copies are on Hetzner, not Backblaze.
+	copiesWhere: 'Hetzner, ЄС',
+	// The same spec, answer 7: how long the encrypted copies of a school's site are kept, in days.
+	backupRetentionDays: 30,
+	// The same spec, «Механізм виходу»: after the paid period the site stays closed this many days, then it
+	// is deleted (its copies disappear within backupRetentionDays more).
+	exitClosedDays: 30,
 });
 
-// Decision 5: the operator line, verbatim, for the footer and the pages that name the supplier.
-export const operatorLine =
-	'Послуги надає фізична особа — підприємець, платник єдиного податку 3-ї групи, без ПДВ. Повні реквізити — у договорі та на запит.';
+// The footer's bottom line (the footer-and-audience-pages spec, answer 2, variant 1), verbatim: who made
+// Tabula and for whom. It replaced the sentence about free software and the operator line; check-built
+// holds it on every page of the site (product pages and the documentation).
+export const footerLine =
+	'Tabula зробили вчителі з досвідом програмування — для інших шкіл. Щоб сайт закладу вів його працівник, а не найнятий програміст.';
+
+// «Механізм виходу» of the same spec: the text for the site (home FAQ, «Ціна й оплата», «Безпека й дані»,
+// «Для директора»), verbatim but for the number, which comes from exitClosedDays.
+export const exitText = `Документи, фото й новини заберете архівом — він відкривається в будь-якому браузері, а вміст можна перенести в будь-який сайт. Сайт працює до кінця оплаченого періоду, потім ми його закриваємо й через ${offer.exitClosedDays} днів видаляємо разом із копіями. Адреса на tabula.org.ua зникає разом із сайтом; власний домен лишається вашим.`;
 
 // Decision 17: what the institution gets, said once and the same everywhere (the home page and
-// «Хостинг і ціна» render this list). The titles repeat the control plane's `plans.includes`
+// «Ціна й оплата» render this list). The titles repeat the control plane's `plans.includes`
 // (C2's migration); the lines are short explanations that add no promise of their own.
 export const includes = Object.freeze([
 	{
@@ -107,8 +121,8 @@ export const includes = Object.freeze([
 	},
 	{
 		icon: 'open-book',
-		title: 'Відкритий код: сайт можна забрати',
-		text: 'Заклад може поставити свій сайт на власний сервер.',
+		title: 'Архів документів, фото й новин, якщо вирішите піти',
+		text: 'Архів відкривається в будь-якому браузері, а вміст можна перенести в будь-який сайт.',
 	},
 ]);
 
@@ -222,7 +236,7 @@ export function formatUah(n) {
 
 // Story 80: the short list on the price card of the home page. Each line says in fewer words what
 // `includes` says in full; `coveredBy` lists the indexes into `includes` it summarises, so a line
-// cannot promise something the full list (rendered on «Хостинг і ціна») does not
+// cannot promise something the full list (rendered on «Ціна й оплата») does not
 // (test/offer.test.mjs checks every index is valid and the list is not empty).
 export const includesShort = Object.freeze([
 	{ text: 'Сайт, панель і всі вісім шаблонів', coveredBy: [1, 2] },

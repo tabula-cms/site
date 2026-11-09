@@ -1976,22 +1976,86 @@
 	border-top: 1px solid var(--line);
 	background: var(--surface);
 }
+/* Footer-and-audience-pages spec: the brand column and three link columns; below 900 px the brand takes the
+ * whole row and the columns go two by two («Для кого» + «Корисно знати», then «Допомога»); the bottom row
+ * (legal links, the footer line, ©) spans the grid and stacks on phones. */
 .site-footer__inner {
 	max-width: 1200px;
 	margin: 0 auto;
 	padding: 48px 24px 40px;
 	display: grid;
-	grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+	grid-template-columns: minmax(0, 1.4fr) repeat(3, minmax(0, 1fr));
 	gap: 32px;
 	font-size: 15px;
 	color: var(--text);
 }
+@media (max-width: 900px) {
+	.site-footer__inner {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+		gap: 28px 20px;
+	}
+	.site-footer__lead,
+	.site-footer__col:nth-of-type(3) {
+		grid-column: 1 / -1;
+	}
+}
 .site-footer__brand {
+	display: inline-flex;
+	align-items: center;
+	gap: 10px;
 	margin: 0;
 	font-family: var(--display);
 	font-weight: 600;
 	color: var(--ink);
 	font-size: 18px;
+	text-decoration: none;
+	min-height: 44px;
+}
+.site-footer__brand svg {
+	flex: none;
+}
+.site-footer a[aria-current='page'] {
+	color: var(--ink);
+	font-weight: 700;
+	text-decoration: underline;
+	text-underline-offset: 0.2em;
+}
+.site-footer__col a {
+	overflow-wrap: anywhere;
+}
+.site-footer__bottom {
+	grid-column: 1 / -1;
+	padding-top: 18px;
+	border-top: 1px solid var(--line);
+	font-size: 14px;
+	line-height: 1.6;
+}
+.site-footer__legal-links {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 0 10px;
+	margin: 0 0 8px;
+}
+.site-footer__legal-links a {
+	display: inline-block;
+	padding: 6px 0;
+	color: var(--text);
+}
+.site-footer__copy {
+	margin: 6px 0 0;
+}
+@media (max-width: 600px) {
+	.site-footer__legal-links {
+		flex-direction: column;
+		align-items: flex-start;
+	}
+	.site-footer__legal-links span {
+		display: none;
+	}
+	.site-footer__legal-links a {
+		padding: 11px 0;
+	}
 }
 .site-footer__about {
 	margin: 10px 0 0;
@@ -2020,12 +2084,7 @@
 	padding: 0;
 }
 .site-footer__legal {
-	grid-column: 1 / -1;
 	margin: 0;
-	padding-top: 18px;
-	border-top: 1px solid var(--line);
-	font-size: 14px;
-	line-height: 1.6;
 }
 
 /* ---------------------------------------------------------------------------------------------
@@ -2517,6 +2576,149 @@
 @media (max-width: 600px) {
 	.reading {
 		padding: 32px 20px 56px;
+	}
+}
+
+/* Footer-and-audience-pages spec: the pages «Для директора», «Для відповідального за сайт» and the additions to
+ * «Для бухгалтерії». */
+.reading .reading__lead {
+	font-size: 20px;
+	line-height: 1.55;
+	color: var(--ink);
+}
+/* A two-column table that fits a phone: no minimum width, so it never scrolls sideways. */
+.reading-table--fit table {
+	min-width: 0;
+}
+.reading-table--fit tbody th {
+	width: 40%;
+}
+.reading .cta-row--pair {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 12px;
+}
+.chip--sm {
+	padding: 2px 8px;
+	font-size: 13px;
+	vertical-align: 0.1em;
+	white-space: nowrap;
+}
+.reading .samples li {
+	padding-left: 0.1em;
+}
+/* «Ви з відділу освіти громади?» (CommunityNote.astro). */
+.reading .note {
+	margin: 2.4em 0 0;
+	padding: 18px 22px;
+	border: 1px solid #dce5e2;
+	border-radius: 16px;
+	background: var(--surface);
+}
+.reading .note h2 {
+	margin-top: 0;
+	font-size: clamp(19px, 5vw, 22px);
+}
+.reading .note p:last-child {
+	margin-bottom: 0;
+}
+/* The document flow of «Для бухгалтерії» (DocFlow.astro): cards on phones, columns from 760 px. */
+.flow {
+	margin: 0 0 1.4em;
+	padding: 18px;
+	border: 1px solid #dce5e2;
+	border-radius: 16px;
+	background: var(--surface);
+	font-size: 16px;
+	line-height: 1.5;
+}
+.flow__title {
+	margin: 0 0 12px;
+	font-weight: 800;
+	color: var(--ink);
+}
+.flow__head {
+	display: none;
+}
+.reading .flow ol {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+}
+.reading .flow li + li {
+	margin-top: 0;
+}
+.flow__band + .flow__band {
+	margin-top: 18px;
+}
+.reading .flow__band-title {
+	margin: 0 0 8px;
+	padding: 4px 10px;
+	display: inline-block;
+	border-radius: 8px;
+	background: var(--mint);
+	font-family: var(--body);
+	font-weight: 800;
+	font-size: 15px;
+	letter-spacing: 0;
+}
+.flow__step {
+	margin: 0 0 10px;
+	display: grid;
+	gap: 6px;
+	padding: 12px;
+	border: 1px solid var(--line);
+	border-radius: 12px;
+}
+.flow__cell dt {
+	font-weight: 800;
+	font-size: 14px;
+	color: var(--ink);
+}
+.flow__cell dd {
+	margin: 0;
+}
+.flow__cell--none {
+	display: none;
+}
+.flow__cell--pay dd strong {
+	display: inline-block;
+	padding: 2px 8px;
+	border-radius: 8px;
+	background: var(--marker);
+}
+.flow__note {
+	margin: 4px 0 0;
+	font-size: 15px;
+}
+@media (min-width: 760px) {
+	.flow__head,
+	.flow__step {
+		display: grid;
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+		gap: 14px;
+	}
+	.flow__head {
+		margin: 0 0 8px;
+		padding: 0 13px;
+		font-weight: 800;
+		font-size: 14px;
+		color: var(--ink);
+	}
+	.flow__head span:first-child {
+		display: none;
+	}
+	.flow__cell--none {
+		display: block;
+		color: #5f6e83;
+	}
+	.flow__cell dt {
+		position: absolute;
+		width: 1px;
+		height: 1px;
+		overflow: hidden;
+		clip: rect(0 0 0 0);
+		white-space: nowrap;
 	}
 }
 

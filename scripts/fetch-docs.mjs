@@ -1,6 +1,6 @@
 #!/usr/bin/env node
-// Imports docs/{editor,install,qa,dev} from tabula-cms/tabula into
-// src/content/docs/{editor,install,qa,dev} as Starlight content: frontmatter (title, sidebar
+// Imports docs/editor (PUBLISHED_FOLDERS; install/, qa/ and dev/ are no longer published) from tabula-cms/tabula into
+// src/content/docs/editor as Starlight content: frontmatter (title, sidebar
 // order, editUrl, lang for dev/), link rewriting, and removal of the back-link line the sidebar
 // replaces. tabula-cms/tabula's docs/ stays the single source of truth; this script never
 // edits the source text, only transforms it at build time. See issue #3 for the full spec.
@@ -21,6 +21,7 @@ import { fileURLToPath } from 'node:url';
 import { spawnSync } from 'node:child_process';
 import {
 	IMPORTED_FOLDERS,
+	PUBLISHED_FOLDERS,
 	buildPageFrontmatter,
 	computeOrder,
 	extractTitle,
@@ -146,7 +147,12 @@ function run(docsDir, ref) {
 	const stats = { githubRewrites: 0, warnings: [] };
 	const pagesPerFolder = {};
 
-	for (const folder of IMPORTED_FOLDERS) {
+	// A known folder that is no longer published (install/, qa/, dev/) must not linger from an earlier import.
+	for (const folder of IMPORTED_FOLDERS.filter((f) => !PUBLISHED_FOLDERS.includes(f))) {
+		rmSync(path.join(contentDocsDir, folder), { recursive: true, force: true });
+	}
+
+	for (const folder of PUBLISHED_FOLDERS) {
 		const sourceFolderDir = path.join(docsDir, folder);
 		const outDir = path.join(contentDocsDir, folder);
 		if (!existsSync(sourceFolderDir)) {
@@ -179,7 +185,7 @@ function run(docsDir, ref) {
 	}
 
 	if (Object.keys(pagesPerFolder).length === 0) {
-		throw new Error(`none of docs/{${IMPORTED_FOLDERS.join(',')}} found in ${docsDir}`);
+		throw new Error(`none of docs/{${PUBLISHED_FOLDERS.join(',')}} found in ${docsDir}`);
 	}
 
 	printSummary(pagesPerFolder, stats);
@@ -209,7 +215,14 @@ function importPage({ sourceFolderDir, outDir, folder, fileName, ref, order, fil
 		bodyAfterBackLink,
 		(target, isImage) => {
 			if (isImage) localImages.push(target);
-			return rewriteLink(target, { fromRepoPath, ref, fileExists, isImage });
+			return rewriteLink(target, {
+				fromRepoPath,
+				ref,
+				fileExists,
+				isImage,
+				folders: PUBLISHED_FOLDERS,
+				unlinkOutside: true,
+			});
 		},
 		stats,
 	);
@@ -259,13 +272,14 @@ function copyLocalImages({ sourceFolderDir, outDir, images, folder, fileName, st
 function printSummary(pagesPerFolder, stats) {
 	console.log('fetch-docs: import summary');
 	let total = 0;
-	for (const folder of IMPORTED_FOLDERS) {
+	for (const folder of PUBLISHED_FOLDERS) {
 		const count = pagesPerFolder[folder] ?? 0;
 		total += count;
 		console.log(`  ${folder}: ${count} page(s)`);
 	}
 	console.log(`  total: ${total} page(s)`);
 	console.log(`  links rewritten to GitHub: ${stats.githubRewrites}`);
+	console.log(`  links outside the published docs, kept as text: ${stats.unlinked ?? 0}`);
 	console.log(`  warnings: ${stats.warnings.length}`);
 	for (const warning of stats.warnings) {
 		console.warn(`fetch-docs: warning: ${warning}`);
