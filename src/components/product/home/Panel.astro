@@ -1,9 +1,9 @@
 ---
 // Section 9: Панель. Six things the panel does, each with its own screen, and five short lines under them.
-// From 900 px with scroll-driven animations (product.css §19) the section is a scroll story like «Харчування»:
-// the heading, the six steps and the laptop stay pinned while the laptop's screen crossfades through the six
-// panel screens and the current step is highlighted; six invisible spacers (`panel__track`) give the scroll its
-// length. Below 900 px, without support, or under reduced motion the six steps are a static list of cards with a
+// From 900 px wide and 780 px high, with motion allowed and src/scripts/stories.js running (product.css §18
+// item 6), the section is a pinned story like «Харчування»: the heading, the six steps and the laptop stay pinned
+// while six invisible spacers (`panel__track`) give the scroll its length; a short scroll switches the step and
+// the laptop's screen changes with a timed transition. Below that, without JavaScript, or under reduced motion the six steps are a static list of cards with a
 // small screenshot each (`panel__card-shot`), and the laptop (`panel__stage`) is `display: none`: only one of the
 // two sets of pictures is ever shown, and both are lazy, so only the shown one is fetched.
 import Shot from '../Shot.astro';
@@ -51,16 +51,16 @@ const steps = [
 ];
 ---
 
-<section id="panel" class="anchor">
+<section id="panel" class="anchor" data-story-section>
 	<div class="wrap panel__inner">
 		<div class="panel__story">
-			<div class="panel__pin">
+			<div class="panel__pin" data-story-pin>
 				<div class="reveal panel__text">
 					<h2 class="h2">Панель, з якою впорається кожен</h2>
 					<ol class="panel__steps">
 						{
-							steps.map((step) => (
-								<li class="panel__step">
+							steps.map((step, i) => (
+								<li class="panel__step" data-at={i}>
 									<h3 class="panel__step-title">{step.title}</h3>
 									<p class="panel__step-text">{step.text}</p>
 									<div class="panel__card-shot">
@@ -81,8 +81,8 @@ const steps = [
 						<div class="laptop__screen">
 							<div class="panel__screens">
 								{
-									steps.map((step) => (
-										<div class="panel__screen">
+									steps.map((step, i) => (
+										<div class="panel__screen" data-at={i}>
 											<Shot
 												src={step.src}
 												alt={step.alt}
@@ -96,10 +96,10 @@ const steps = [
 						</div>
 						<div class="laptop__base" aria-hidden="true"></div>
 					</div>
-					<div class="panel__dots" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></div>
+					<div class="panel__dots" aria-hidden="true">{steps.map((_, i) => <i data-at={i}></i>)}</div>
 				</div>
 			</div>
-			<div class="panel__track" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></div>
+			<div class="panel__track" aria-hidden="true" data-story-track><i></i><i></i><i></i><i></i><i></i><i></i></div>
 		</div>
 		<ul class="panel__notes">
 			<li><b>«Огляд» підкаже,</b> що зробити сьогодні.</li>
