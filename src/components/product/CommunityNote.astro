@@ -1,0 +1,17 @@
+---
+// «Ви з відділу освіти громади?» (footer-and-audience-pages spec, «Відділ освіти громади»): the short block at
+// the bottom of «Для директора» and «Для бухгалтерії»; it also replaced the section «Пакет для громади» of «Ціна
+// й оплата». Text verbatim. The main model is one contract per institution; no numbers for communities are
+// promised, and nothing here suggests splitting a purchase.
+import { offer } from '../../config/offer.mjs';
+---
+
+<section class="note" aria-labelledby="hromada">
+	<h2 id="hromada">Ви з відділу освіти громади?</h2>
+	<p>
+		Зараз ми укладаємо договір з кожним закладом окремо: заклад обирає Tabula сам і платить зі свого
+		кошторису. Якщо договори у вашій громаді укладає відділ освіти, <a href={`mailto:${offer.supportEmail}`}
+			>напишіть нам</a
+		> — обговоримо, як це оформити. Умови для громад готуємо й опублікуємо тут.
+	</p>
+</section>
