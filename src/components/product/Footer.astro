@@ -28,6 +28,7 @@ const anchor = (id: string) => `${home ? '' : root}#${id}`;
 				<li><a href={anchor('assistant')}>ШІ-помічник</a></li>
 				<li><a href={anchor('look')}>Шаблони</a></li>
 				<li><a href={page('demo')}>Демо-сайт</a></li>
+				{offer.demoOpen && <li><a href={page('sprobuvaty')}>Спробувати демо</a></li>}
 				<li><a href={anchor('panel')}>Панель</a></li>
 				<li><a href={anchor('price')}>Ціна</a></li>
 				<li><a href={page('yak-tse-pratsiuie')}>Як це працює</a></li>

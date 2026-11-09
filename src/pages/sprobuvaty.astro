@@ -1,0 +1,156 @@
+---
+// «Спробувати» (story 82, slice S1b): the sign-in to the public demo — the form, the code step on the same page, the
+// closed and full states and the no-JavaScript line. The texts are the spec's «Texts», phase-1 variants (nothing
+// promises saving), with ʼ as the apostrophe. The behaviour is src/scripts/demo-try.js, the only script of the page;
+// the styles are src/styles/try.css.
+//
+// While `offer.demoOpen` is false (phase 1, a closed test by invitation) the page is `noindex`, out of the sitemap
+// (astro.config.mjs) and linked from nowhere; check-built holds both states. The page sets its own referrer policy:
+// the broker accepts the pass only with the site's `Origin` (decision 32), which a `no-referrer` page would not send.
+import ProductPage from '../layouts/ProductPage.astro';
+import { offer, demoHeading, DEMO_KINDS, DEMO_ROLES } from '../config/offer.mjs';
+import '../styles/try.css';
+
+const base = import.meta.env.BASE_URL;
+const root = base.endsWith('/') ? base : `${base}/`;
+const kinds = offer.demoKinds;
+const oneKind = kinds.length === 1;
+const title = demoHeading(kinds);
+const description = 'Годину попрацюйте з власною копією вигаданого шкільного сайту. Потрібна лише пошта.';
+const demoStart = `${offer.demoUrl.replace(/\/+$/, '')}/__demo/start`;
+---
+
+<ProductPage title={title} description={description}>
+	<Fragment slot="head">
+		<meta name="referrer" content="strict-origin-when-cross-origin" />
+		{!offer.demoOpen && <meta name="robots" content="noindex, nofollow" />}
+	</Fragment>
+
+	<p>
+		Годину ви працюєте з власною копією вигаданого шкільного сайту: додаєте новини, змінюєте вигляд, заповнюєте
+		сторінки. Нічого не треба встановлювати, пароль не потрібен — лише ваша пошта.
+	</p>
+
+	<div class="try" data-demo-try data-cp={offer.cpUrl} data-sitekey={offer.demoTurnstileSiteKey}>
+		<p class="try__note" data-try-nojs>Демо працює лише з увімкненим JavaScript.</p>
+
+		<form class="try__form" data-try-form hidden novalidate>
+			<div class="try__field">
+				<label for="try-email">Ваша електронна пошта</label>
+				<input id="try-email" name="email" type="email" required autocomplete="email" maxlength="254" spellcheck="false" />
+			</div>
+
+			{
+				oneKind ? (
+					<input type="hidden" name="kind" value={kinds[0]} />
+				) : (
+					<fieldset class="try__field try__choices">
+						<legend>Тип закладу</legend>
+						{kinds.map((kind, i) => (
+							<label class="try__choice">
+								<input type="radio" name="kind" value={kind} required checked={i === 0} />
+								<span>{DEMO_KINDS[kind]}</span>
+							</label>
+						))}
+					</fieldset>
+				)
+			}
+
+			<div class="try__field">
+				<label for="try-role">Хто ви (необовʼязково)</label>
+				<select id="try-role" name="role">
+					<option value="">—</option>
+					{DEMO_ROLES.map((role) => <option value={role}>{role}</option>)}
+				</select>
+			</div>
+
+			<div class="try__field">
+				<label for="try-institution">Ваш заклад (необовʼязково)</label>
+				<input
+					id="try-institution"
+					name="institution"
+					type="text"
+					maxlength="200"
+					autocomplete="organization"
+					aria-describedby="try-institution-hint"
+				/>
+				<p class="try__hint" id="try-institution-hint">
+					Назва чи громада — щоб ми знали, хто цікавиться. На демо-сайті її не буде.
+				</p>
+			</div>
+
+			<div class="try__consent">
+				<input id="try-consent-save" name="consent_save" type="checkbox" value="1" required />
+				<label for="try-consent-save">
+					Погоджуюся, щоб Tabula надіслала мені код для входу. Докладно — на сторінці <a
+						href={`${root}personalni-dani/#demo`}>«Обробка персональних даних»</a
+					>.
+				</label>
+			</div>
+			<div class="try__consent">
+				<input id="try-consent-contact" name="consent_contact" type="checkbox" value="1" />
+				<label for="try-consent-contact">
+					Можна написати мені на пошту, щоб розповісти, як запустити Tabula в нашому закладі.
+				</label>
+			</div>
+
+			<input type="hidden" name="source" value="" />
+			<div class="try__turnstile" data-try-turnstile></div>
+
+			<p class="try__error" role="alert" data-try-form-error hidden></p>
+			<p><button class="btn btn-main try__button" type="submit" data-try-send>Надіслати код</button></p>
+			<p class="try__hint">На одну адресу надсилаємо не більше пʼяти листів на день.</p>
+		</form>
+
+		<section class="try__code" data-try-code hidden aria-labelledby="try-code-title">
+			<p id="try-code-title" aria-live="polite">
+				Ми надіслали код на <strong data-try-email></strong>. Лист зазвичай приходить за хвилину. Якщо його немає,
+				подивіться в «Спамі» та «Промоакціях».
+			</p>
+			<p><button class="btn btn-line try__button" type="button" data-try-change>Змінити адресу</button></p>
+
+			<form class="try__form" data-try-code-form novalidate>
+				<div class="try__field">
+					<label for="try-code">Код із листа (6 цифр)</label>
+					<input
+						id="try-code"
+						class="try__code-input"
+						name="code"
+						type="text"
+						inputmode="numeric"
+						autocomplete="one-time-code"
+						pattern="[0-9]{6}"
+						maxlength="6"
+						required
+						data-try-code-input
+					/>
+				</div>
+				<p class="try__error" role="alert" data-try-code-error hidden></p>
+				<p><button class="btn btn-main try__button" type="submit" data-try-enter>Увійти</button></p>
+			</form>
+
+			<div class="try__turnstile" data-try-resend-turnstile hidden></div>
+			<p><button class="btn btn-line try__button" type="button" data-try-resend disabled>Надіслати ще раз</button></p>
+		</section>
+
+		<div class="try__state" data-try-closed tabindex="-1" hidden>
+			<p>
+				Демо тимчасово закрите. Спробуйте пізніше. Відеотур і <a href={`${root}editor/`}>посібник</a> доступні завжди.
+			</p>
+		</div>
+		<div class="try__state" data-try-full tabindex="-1" hidden>
+			<p>
+				Зараз демо переповнене: усі місця зайняті, і черга задовга. Спробуйте трохи пізніше, наприклад за годину. А
+				поки — відеотур і <a href={`${root}editor/`}>посібник</a>.
+			</p>
+		</div>
+
+		<form data-try-pass method="post" action={demoStart} hidden>
+			<input type="hidden" name="pass" value="" />
+		</form>
+	</div>
+</ProductPage>
+
+<script>
+	import '../scripts/demo-try.js';
+</script>

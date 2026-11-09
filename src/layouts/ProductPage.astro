@@ -12,6 +12,7 @@ const { title, description } = Astro.props;
 ---
 
 <Product title={`${title} — Tabula`} description={description}>
+	<slot name="head" slot="head" />
 	<article class="reading">
 		<h1>{title}</h1>
 		<div class="reading__body">

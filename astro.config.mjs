@@ -4,6 +4,7 @@ import { fileURLToPath } from 'node:url';
 import { defineConfig } from 'astro/config';
 import starlight from '@astrojs/starlight';
 import sitemap from '@astrojs/sitemap';
+import { offer } from './src/config/offer.mjs';
 
 // Repository variables `SITE_URL` and `SITE_BASE` are set in CI (see CONTRIBUTING.md).
 // The custom domain, once it exists, will set SITE_BASE=/ (and SITE_URL to the domain)
@@ -55,7 +56,8 @@ export default defineConfig({
 		},
 	},
 	integrations: [
-		sitemap({ filter: (page) => page !== slashless }),
+		// Story 82, decision 24: «Спробувати» joins the sitemap only once the demo is public (`offer.demoOpen`).
+		sitemap({ filter: (page) => page !== slashless && (offer.demoOpen || !/\/sprobuvaty\/$/.test(page)) }),
 		starlight({
 			title: 'Tabula',
 			// Single locale: the site is Ukrainian. Developer docs (/dev/) are English; their

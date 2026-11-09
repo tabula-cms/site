@@ -158,3 +158,15 @@ test('demoPageState: the chip while demoSiteUrl is null, the button (and no chip
 	assert.deepEqual(demoPageState(null), { chip: true, buttonHref: null });
 	assert.deepEqual(demoPageState('https://demo.example.org/'), { chip: false, buttonHref: 'https://demo.example.org/' });
 });
+
+test('offer: story 82 demo fields', async () => {
+	const { DEMO_KINDS, DEMO_ROLES, demoHeading } = await import('../src/config/offer.mjs');
+	assert.equal(typeof offer.demoOpen, 'boolean');
+	assert.ok(offer.demoKinds.length >= 1 && offer.demoKinds.every((k) => k in DEMO_KINDS));
+	assert.match(offer.demoUrl, /^https:\/\/[a-z0-9.-]+$/);
+	assert.equal(typeof offer.demoTurnstileSiteKey, 'string');
+	assert.match(offer.cpUrl, /^https?:\/\/[^/]+$/);
+	assert.deepEqual(DEMO_ROLES, ['Учитель', 'Директор', 'Заступник директора', 'Інше']);
+	assert.equal(demoHeading(['school']), 'Спробуйте Tabula на прикладі ліцею');
+	assert.equal(demoHeading(['school', 'zdo']), 'Спробуйте Tabula');
+});
