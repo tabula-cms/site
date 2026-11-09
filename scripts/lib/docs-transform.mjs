@@ -4,8 +4,14 @@
 //
 // See issue #3 ("spec: import Tabula docs into the site") for the rules this implements.
 
-/** The four folders imported from tabula-cms/tabula's docs/, in the fixed sidebar order. */
+/** The four folders of tabula-cms/tabula's docs/ the import knows, in the fixed sidebar order. */
 export const IMPORTED_FOLDERS = ['editor', 'install', 'qa', 'dev'];
+
+/** The folders actually published on the site. Tabula is a closed service now (no self-hosting, no public
+ * repository): install/ (own server), qa/ (internal) and dev/ (developers) are not published, and a link
+ * from a published page into them, or anywhere else outside the published set, keeps its text and loses
+ * the link (`unlinkOutside` in rewriteLink()). */
+export const PUBLISHED_FOLDERS = ['editor'];
 
 // Anything else under docs/ — INDEX.md itself, issues/, audits/, design/ — is internal-only and
 // never copied; classifyRepoPath() below falls through to "not published" for all of it, which
@@ -147,9 +153,9 @@ function isExternalScheme(pathPart) {
  * (no nested subfolders exist in the real docs, and none are expected). Any other file in one
  * of the four folders — none exist today, but a future non-Markdown file would — is not a page
  * and becomes a GitHub link like anything else outside the published set. */
-export function classifyRepoPath(repoPath) {
+export function classifyRepoPath(repoPath, folders = IMPORTED_FOLDERS) {
 	const match = /^docs\/([^/]+)\/([^/]+)$/.exec(repoPath);
-	if (match && IMPORTED_FOLDERS.includes(match[1]) && /\.md$/i.test(match[2])) {
+	if (match && folders.includes(match[1]) && /\.md$/i.test(match[2])) {
 		return { published: true, folder: match[1], fileName: match[2] };
 	}
 	return { published: false };
@@ -177,9 +183,15 @@ const NOT_PUBLIC_DOCS_SUBFOLDER_RE = /^docs\/(audits|design)\//;
  *   links; the spec puts real enforcement at build time via the link checker).
  * @param {boolean} [ctx.isImage] - `![alt](target)` links are never rewritten (see class doc),
  *   only reported so the caller can decide whether to copy a local image file.
- * @returns {{ href: string, kind: 'unchanged' | 'relative' | 'github', warning?: string }}
+ * @param {string[]} [ctx.folders] - the published folders (default IMPORTED_FOLDERS).
+ * @param {boolean} [ctx.unlinkOutside] - a link outside the published set becomes plain text
+ *   (kind 'unlinked': transformLinks() keeps the label only) instead of a GitHub link.
+ * @returns {{ href: string, kind: 'unchanged' | 'relative' | 'github' | 'unlinked', warning?: string }}
  */
-export function rewriteLink(target, { fromRepoPath, ref, fileExists, isImage = false }) {
+export function rewriteLink(
+	target,
+	{ fromRepoPath, ref, fileExists, isImage = false, folders = IMPORTED_FOLDERS, unlinkOutside = false },
+) {
 	const { url, title } = parseLinkTarget(target);
 	const { pathPart: pathWithQuery, anchor } = splitTargetAndAnchor(url);
 	const { pathOnly: pathPart, query } = splitQuery(pathWithQuery);
@@ -197,7 +209,7 @@ export function rewriteLink(target, { fromRepoPath, ref, fileExists, isImage = f
 	}
 
 	const repoPath = resolveRepoPath(fromRepoPath, pathPart);
-	const classified = classifyRepoPath(repoPath);
+	const classified = classifyRepoPath(repoPath, folders);
 
 	if (classified.published) {
 		const { folder, fileName } = classified;
@@ -217,6 +229,8 @@ export function rewriteLink(target, { fromRepoPath, ref, fileExists, isImage = f
 		}
 		return { href, kind: 'relative' };
 	}
+
+	if (unlinkOutside) return { href: '', kind: 'unlinked' };
 
 	// Anything else — leaves docs/ entirely, or lands in docs/INDEX.md or docs/{issues,audits,design}/
 	// (internal-only, not published) — becomes an absolute link into tabula-cms/tabula on GitHub.
@@ -305,10 +319,11 @@ function transformLinksOutsideFence(text, rewrite, stats) {
 		const rewritten = rewrite(target, bang === '!');
 		if (stats) {
 			if (rewritten.kind === 'github') stats.githubRewrites += 1;
+			if (rewritten.kind === 'unlinked') stats.unlinked = (stats.unlinked ?? 0) + 1;
 			if (rewritten.warning) stats.warnings.push(rewritten.warning);
 		}
 		result += text.slice(lastIndex, linkMatch.index);
-		result += `${bang}[${label}](${rewritten.href})`;
+		result += rewritten.kind === 'unlinked' ? label : `${bang}[${label}](${rewritten.href})`;
 		lastIndex = linkMatch.index + full.length;
 	}
 	result += text.slice(lastIndex);

@@ -14,6 +14,8 @@ import {
 	outputFileName,
 	resolveRepoPath,
 	classifyRepoPath,
+	IMPORTED_FOLDERS,
+	PUBLISHED_FOLDERS,
 } from '../scripts/lib/docs-transform.mjs';
 
 const REF = 'main';
@@ -422,4 +424,29 @@ test('buildFrontmatter preserves field order as given', () => {
 	assert.equal(lines[3], 'sidebar:');
 	assert.equal(lines[4], '  order: 0');
 	assert.equal(lines[5], 'editUrl: "https://example.test"');
+});
+
+test('unlinkOutside: a link into an unpublished folder or out of docs/ keeps its text and loses the link', () => {
+	const ctx = {
+		fromRepoPath: 'docs/editor/korystuvachi.md',
+		ref: REF,
+		fileExists: alwaysExists,
+		folders: PUBLISHED_FOLDERS,
+		unlinkOutside: true,
+	};
+	assert.deepEqual(rewriteLink('../install/shcho-robyty-yakshcho.md', ctx), { href: '', kind: 'unlinked' });
+	assert.equal(rewriteLink('../../SECURITY.md', ctx).kind, 'unlinked');
+	assert.equal(rewriteLink('novyny.md', ctx).href, '../novyny/');
+	assert.equal(rewriteLink('https://example.org/', ctx).kind, 'unchanged');
+	const stats = { githubRewrites: 0, warnings: [] };
+	const body = 'Див. [Встановлення › Що робити](../install/shcho-robyty-yakshcho.md) і [Новини](novyny.md).';
+	const result = transformLinks(body, (target) => rewriteLink(target, ctx), stats);
+	assert.equal(result, 'Див. Встановлення › Що робити і [Новини](../novyny/).');
+	assert.equal(stats.unlinked, 1);
+	assert.equal(stats.githubRewrites, 0);
+});
+
+test('PUBLISHED_FOLDERS: only the editor guide is published', () => {
+	assert.deepEqual(PUBLISHED_FOLDERS, ['editor']);
+	assert.ok(PUBLISHED_FOLDERS.every((folder) => IMPORTED_FOLDERS.includes(folder)));
 });
