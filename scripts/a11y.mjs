@@ -6,7 +6,7 @@
 //
 // Pages: every product page — the home and the twelve reading pages of src/content/pages/ (slice S2) —
 // each at 1280 and 320 px, in a context with `reducedMotion: 'reduce'` (so revealed content is measured,
-// not its first frame). On the home every tab of both tablists is also clicked in turn and axe runs after
+// not its first frame). On the home every tab of every tablist is also clicked in turn and axe runs after
 // each. The documentation (Starlight) is not scanned. Prints the violation count and the time per page
 // and width; exits 1 on any violation.
 
@@ -130,7 +130,7 @@ async function main() {
 					violations += await scan(tab, `/${page} @ ${width}px, every state shown`, started);
 				}
 
-				// The home: every tab of both tablists, opened in turn, then scanned.
+				// The home: every tab of every tablist, opened in turn, then scanned.
 				if (page === '') {
 					const tablists = await tab.locator('[role="tablist"]').count();
 					for (let list = 0; list < tablists; list += 1) {

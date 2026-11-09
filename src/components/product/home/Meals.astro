@@ -1,72 +1,104 @@
 ---
-// Section 4: Харчування. Two phones (the panel's «Харчування», the public day page) and a neutral
-// chat card (no Viber or Telegram branding beyond the words). The allergens claim links to
-// «Закон і сайт школи» (spec decision 14).
+// Section 4: Харчування. Four steps as tabs (src/scripts/tabs.js, the same idea as the templates): choosing a step
+// shows its picture — the panel's «Харчування», the public day page with the parents' chat card (a neutral card,
+// no Viber or Telegram branding beyond the words), the day page with allergens, and the menu sheet the assistant
+// reads. Without JavaScript the tablist is hidden and the four panels are shown one under another, each with its
+// heading and text. The allergens claim links to «Закон і сайт школи» in its own <li> (spec decision 14).
 import Shot from '../Shot.astro';
-import Tick from '../Tick.astro';
 import { shots } from '../shots';
 
 const base = import.meta.env.BASE_URL;
 const root = base.endsWith('/') ? base : `${base}/`;
-//
-// From 900 px with motion allowed and src/scripts/stories.js running (product.css §18 item 5) the section is a
-// pinned story: the heading, the four points and one phone stage stay pinned (`meals__pin`, `display: contents`
-// otherwise) while four invisible spacers (`meals__track`) give the scroll its length; the script marks the
-// current step's `[data-at]` parts `is-on`, and the screens switch with a short timed transition. The two
-// extra screens below (`meals__alle`, `meals__sheet`) exist only for that story: they are `display: none`
-// everywhere else, and `meals__sheet` is a decorative repeat of the assistant's sheet (`aria-hidden`).
+
+const steps = [
+	{ id: 'photo', title: 'Чотири дотики', text: 'Сфотографували порцію в їдальні — день уже на сайті.' },
+	{ id: 'share', title: '«Поділитися» у Viber і Telegram', text: 'У кожного дня своя адреса, у чаті батьків видно фото й страви.' },
+	{ id: 'allergens', title: 'Алергени й калорійність', text: 'Біля кожної страви, а під меню — розшифровка кодів.' },
+	{ id: 'assistant', title: 'ШІ-помічник', text: 'Читає меню з фото аркуша й перевіряє, чи не потрапили в кадр діти.' },
+];
 ---
 
-<section id="meals" class="anchor band" data-story-section>
-	<div class="wrap split">
-		<div class="meals__pin" data-story-pin>
-		<div class="reveal split__text">
-			<h2 class="h2">Харчування — за хвилину з&#160;телефона</h2>
-			<ul class="ticks">
-				<li data-at="0"><Tick /><span><b>Чотири дотики:</b> сфотографували порцію в їдальні — день уже на сайті.</span></li>
-				<li data-at="1"><Tick /><span><b>«Поділитися» у Viber і Telegram:</b> у кожного дня своя адреса, у чаті батьків видно фото й страви.</span></li>
-				<li data-at="2"><Tick /><span><b>Алергени й калорійність</b> біля кожної страви: 15 алергенів за <a href={`${root}zakon-i-sait-shkoly/`}>постановою №&#160;305</a>.</span></li>
-				<li data-at="3"><Tick /><span><b>ШІ-помічник</b> читає меню з фото аркуша й перевіряє, чи не потрапили в кадр діти.</span></li>
-			</ul>
+<section id="meals" class="anchor band">
+	<div class="wrap showcase tabs tabs--showcase" data-tabs>
+		<h2 class="h2 reveal showcase__head">Харчування — за хвилину з&#160;телефона</h2>
+		<div role="tablist" aria-label="Харчування" aria-orientation="vertical" class="showcase__tabs reveal" hidden>
+			{
+				steps.map((step, i) => (
+					<button
+						class="showcase__tab"
+						type="button"
+						role="tab"
+						id={`tab-meals-${step.id}`}
+						aria-controls={`panel-meals-${step.id}`}
+						aria-selected={i === 0 ? 'true' : 'false'}
+						tabindex={i === 0 ? 0 : -1}
+					>
+						<span class="showcase__tab-title">{step.title}</span>
+						<span class="showcase__tab-text">{step.text}</span>
+					</button>
+				))
+			}
 		</div>
-		<div class="reveal meals__visual">
-			<div class="phone-frame meals__admin" data-at="0">
-				<Shot src={shots.adminMeals} alt="Панель на телефоні: екран «Харчування» з кнопкою «Сфотографувати порцію»" widths={[230, 460, 580]} sizes="(min-width: 900px) 270px, 230px" />
-			</div>
-			<div class="meals__col">
-				<div class="phone-frame meals__day" data-at="1">
-					<Shot src={shots.phoneMealDay} alt="Сторінка дня на сайті з кнопками «Поділитися», Telegram і Viber" widths={[260, 520, 600]} sizes="(min-width: 900px) 292px, 260px" />
+		<div class="showcase__stage reveal">
+			<div id="panel-meals-photo" class="tabpanel showcase__panel">
+				<h3 class="tab-heading" data-tab-heading>{steps[0].title}</h3>
+				<p class="showcase__note">{steps[0].text}</p>
+				<div class="showcase__visual">
+					<div class="phone-frame phone-frame--tall">
+						<Shot src={shots.adminMeals} alt="Панель на телефоні: екран «Харчування» з кнопкою «Сфотографувати порцію»" widths={[240, 480, 580]} sizes="240px" />
+					</div>
 				</div>
-				<div class="chat" data-at="1">
-					<p class="chat__name">Чат «Батьки 5-А»</p>
-					<div class="chat__bubble">
-						<div class="chat__row">
-							<Shot src={shots.food2} alt="" widths={[54, 108]} sizes="54px" />
-							<div>
-								<p>Харчування — пʼятниця, 6&#160;листопада</p>
-								<p>Каша вівсяна, борщ, котлета з пюре…</p>
-								<p>licey0.tabula.org.ua</p>
+			</div>
+			<div id="panel-meals-share" class="tabpanel showcase__panel">
+				<h3 class="tab-heading" data-tab-heading>{steps[1].title}</h3>
+				<p class="showcase__note">{steps[1].text}</p>
+				<div class="showcase__visual showcase__visual--share">
+					<div class="phone-frame">
+						<Shot src={shots.phoneMealDay} alt="Сторінка дня на сайті з кнопками «Поділитися», Telegram і Viber" widths={[240, 480, 600]} sizes="240px" />
+					</div>
+					<div class="chat">
+						<p class="chat__name">Чат «Батьки 5-А»</p>
+						<div class="chat__bubble">
+							<div class="chat__row">
+								<Shot src={shots.food2} alt="" widths={[54, 108]} sizes="54px" />
+								<div>
+									<p>Харчування — пʼятниця, 6&#160;листопада</p>
+									<p>Каша вівсяна, борщ, котлета з пюре…</p>
+									<p>licey0.tabula.org.ua</p>
+								</div>
 							</div>
 						</div>
 					</div>
 				</div>
 			</div>
-			<div class="phone-frame meals__alle" data-at="2">
-				<Shot src={shots.phoneMealAllergens} alt="Сторінка дня на сайті: біля кожної страви рядок «алергени: …» і калорійність, під меню — розшифровка кодів" widths={[260, 520, 600]} sizes="292px" />
-			</div>
-			<div class="meals__sheet" data-at="3" aria-hidden="true">
-				<div class="meals__sheet-paper">
-					<p class="meals__sheet-hand">Вівторок<br />Сніданок — каша вівсяна з ягодами, чай<br />Обід — борщ, котлета з пюре, компот</p>
-					<div class="meals__sheet-scan"></div>
+			<div id="panel-meals-allergens" class="tabpanel showcase__panel">
+				<h3 class="tab-heading" data-tab-heading>{steps[2].title}</h3>
+				<p class="showcase__note">{steps[2].text}</p>
+				<div class="showcase__visual">
+					<div class="phone-frame">
+						<Shot src={shots.phoneMealAllergens} alt="Сторінка дня на сайті: біля кожної страви рядок «алергени: …» і калорійність, під меню — розшифровка кодів" widths={[240, 480, 600]} sizes="240px" />
+					</div>
 				</div>
-				<div class="meals__sheet-out">
-					<p><b>Сніданок</b> Каша вівсяна з ягодами · Чай</p>
-					<p><b>Обід</b> Борщ · Котлета з пюре</p>
+				<ul class="showcase__caption">
+					<li>15 алергенів за <a href={`${root}zakon-i-sait-shkoly/`}>постановою №&#160;305</a>.</li>
+				</ul>
+			</div>
+			<div id="panel-meals-assistant" class="tabpanel showcase__panel">
+				<h3 class="tab-heading" data-tab-heading>{steps[3].title}</h3>
+				<p class="showcase__note">{steps[3].text}</p>
+				<div class="showcase__visual">
+					<div class="meals__sheet">
+						<div class="meals__sheet-paper">
+							<p class="meals__sheet-hand">Вівторок<br />Сніданок — каша вівсяна з ягодами, чай<br />Обід — борщ, котлета з пюре, компот</p>
+							<div class="meals__sheet-scan" aria-hidden="true"></div>
+						</div>
+						<div class="meals__sheet-out">
+							<p><b>Сніданок</b> Каша вівсяна з ягодами · Чай</p>
+							<p><b>Обід</b> Борщ · Котлета з пюре</p>
+						</div>
+					</div>
 				</div>
 			</div>
-			<div class="meals__dots" aria-hidden="true"><i data-at="0"></i><i data-at="1"></i><i data-at="2"></i><i data-at="3"></i></div>
 		</div>
-		</div>
-		<div class="meals__track" aria-hidden="true" data-story-track><i></i><i></i><i></i><i></i></div>
 	</div>
 </section>

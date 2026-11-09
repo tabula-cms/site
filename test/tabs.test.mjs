@@ -9,13 +9,19 @@ test('nextIndex: Right and Left wrap around', () => {
 	assert.equal(nextIndex('ArrowLeft', 0, 6), 5);
 });
 
+test('nextIndex: Down and Up move like Right and Left (the vertical step tabs)', () => {
+	assert.equal(nextIndex('ArrowDown', 2, 4), 3);
+	assert.equal(nextIndex('ArrowDown', 3, 4), 0);
+	assert.equal(nextIndex('ArrowUp', 0, 4), 3);
+});
+
 test('nextIndex: Home and End', () => {
 	assert.equal(nextIndex('Home', 4, 6), 0);
 	assert.equal(nextIndex('End', 1, 6), 5);
 });
 
 test('nextIndex: any other key is not ours', () => {
-	for (const key of ['Enter', ' ', 'Tab', 'ArrowDown', 'a']) assert.equal(nextIndex(key, 2, 6), null);
+	for (const key of ['Enter', ' ', 'Tab', 'a']) assert.equal(nextIndex(key, 2, 6), null);
 	assert.equal(nextIndex('ArrowRight', 0, 0), null);
 });
 

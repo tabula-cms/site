@@ -1,4 +1,4 @@
-// WAI-ARIA tabs (story 80, decision 9) for both tablists of the home: `tablist` / `tab` /
+// WAI-ARIA tabs (story 80, decision 9) for every tablist of the home (the assistant, «Харчування», the templates, «Панель»): `tablist` / `tab` /
 // `tabpanel`, `aria-controls` / `aria-labelledby`, roving `tabindex`, Left/Right (wrapping),
 // Home/End, automatic activation, focus moves to the tab.
 //
@@ -25,8 +25,10 @@ export function nextIndex(key, current, count) {
 	if (count < 1) return null;
 	switch (key) {
 		case 'ArrowRight':
+		case 'ArrowDown': // the step tabs of «Харчування» and «Панель» are a vertical list
 			return (current + 1) % count;
 		case 'ArrowLeft':
+		case 'ArrowUp':
 			return (current - 1 + count) % count;
 		case 'Home':
 			return 0;
@@ -259,6 +261,14 @@ export function initTabs(root, { onActivate } = {}) {
 		if (focus) tabs[index].focus();
 		onActivate?.(index, panels[index], { initial });
 	}
+
+	// The other panels' pictures are lazy and hidden, so they would only start loading on the click. As soon as a
+	// pointer or the keyboard reaches the tablist, they are fetched, so a switch shows its picture at once.
+	const preload = () => {
+		for (const img of root.querySelectorAll('img[loading="lazy"]')) img.loading = 'eager';
+	};
+	tablist.addEventListener('pointerover', preload, { once: true });
+	tablist.addEventListener('focusin', preload, { once: true });
 
 	tabs.forEach((tab, i) => {
 		tab.addEventListener('click', () => activate(i));
