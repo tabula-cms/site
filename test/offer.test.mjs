@@ -16,6 +16,8 @@ import {
 	formatNumber,
 	nextDay,
 	privacyEmail,
+	demoHref,
+	demoPageState,
 } from '../src/config/offer.mjs';
 
 test('offer: the fields exist with the right types', () => {
@@ -132,4 +134,19 @@ test('includesShort: no apostrophe but ʼ between Cyrillic letters', () => {
 test('formatGrn: no-break spaces inside the sum and before «грн»', () => {
 	assert.equal(formatGrn(4800), '4\u00a0800\u00a0грн');
 	assert.equal(formatGrn(400), '400\u00a0грн');
+});
+
+test('demoHref: the page «Демо-сайт» while demoSiteUrl is null, the demo site itself once it is set', () => {
+	assert.equal(offer.demoSiteUrl, null);
+	assert.equal(demoHref('/site/'), '/site/demo/');
+	assert.equal(demoHref('/'), '/demo/');
+	assert.equal(demoHref('/site/', null), '/site/demo/');
+	assert.equal(demoHref('/site/', 'https://demo.example.org/'), 'https://demo.example.org/');
+	assert.equal(demoHref('/', 'https://demo.example.org/'), 'https://demo.example.org/');
+});
+
+test('demoPageState: the chip while demoSiteUrl is null, the button (and no chip) once it is set', () => {
+	assert.deepEqual(demoPageState(), { chip: true, buttonHref: null });
+	assert.deepEqual(demoPageState(null), { chip: true, buttonHref: null });
+	assert.deepEqual(demoPageState('https://demo.example.org/'), { chip: false, buttonHref: 'https://demo.example.org/' });
 });

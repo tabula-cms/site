@@ -1,0 +1,28 @@
+---
+title: Демо-сайт
+description: "Демонстраційний сайт Tabula: який вигляд матиме сайт вашого закладу."
+---
+
+import { demoPageState } from '../../config/offer.mjs';
+
+export const demo = demoPageState();
+
+{demo.buttonHref ? (
+  <>
+    <p>
+      <a class="btn btn-main btn-lg" href={demo.buttonHref}>Відкрити демо-сайт</a>
+    </p>
+  </>
+) : (
+  <>
+    <p class="demo-status">
+      <span class="chip">У розробці</span>
+    </p>
+
+    <p>Готуємо демонстраційний сайт «Вигаданого ліцею № 0»: на ньому можна буде погортати всі сторінки й перемкнути шаблони.</p>
+
+    <p>
+      Поки що подивіться, <a href="../#look">який вигляд матиме ваш сайт</a>, або <a href="../#request">подайте заявку на пілот</a>.
+    </p>
+  </>
+)}

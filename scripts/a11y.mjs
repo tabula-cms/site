@@ -4,7 +4,7 @@
 // scripts/lib/serve-dist.mjs that maps the base path (SITE_BASE, default /site as in
 // astro.config.mjs), so it needs no dependency beyond playwright and @axe-core/playwright.
 //
-// Pages: every product page — the home and the eleven reading pages of src/content/pages/ (slice S2) —
+// Pages: every product page — the home and the twelve reading pages of src/content/pages/ (slice S2) —
 // each at 1280 and 320 px, in a context with `reducedMotion: 'reduce'` (so revealed content is measured,
 // not its first frame). On the home every tab of both tablists is also clicked in turn and axe runs after
 // each. The documentation (Starlight) is not scanned. Prints the violation count and the time per page

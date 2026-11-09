@@ -8,9 +8,15 @@
 import '../styles/product.css';
 import Header from '../components/product/Header.astro';
 import Footer from '../components/product/Footer.astro';
-// The two font files the first screen needs (the hero's heading and text): preloaded, so the swap happens early.
-import unboundedCyrillic from '@fontsource/unbounded/files/unbounded-cyrillic-600-normal.woff2?url';
-import manropeCyrillic from '@fontsource/manrope/files/manrope-cyrillic-400-normal.woff2?url';
+// The five font files the first screen needs most (the heading, the wordmark, the text, the nav links, the buttons): preloaded, and
+// `font-display: optional` in product.css §1, so they are either there for the first paint or never swap in (no
+// layout shift from a late font).
+import unboundedCyrillic600 from '@fontsource/unbounded/files/unbounded-cyrillic-600-normal.woff2?url';
+import unboundedLatin600 from '@fontsource/unbounded/files/unbounded-latin-600-normal.woff2?url';
+import manropeCyrillic400 from '@fontsource/manrope/files/manrope-cyrillic-400-normal.woff2?url';
+import manropeCyrillic600 from '@fontsource/manrope/files/manrope-cyrillic-600-normal.woff2?url';
+import manropeCyrillic700 from '@fontsource/manrope/files/manrope-cyrillic-700-normal.woff2?url';
+const preloadFonts = [unboundedCyrillic600, unboundedLatin600, manropeCyrillic400, manropeCyrillic600, manropeCyrillic700];
 
 interface Props {
 	title: string;
@@ -31,8 +37,7 @@ const root = base.endsWith('/') ? base : `${base}/`;
 		<title>{title}</title>
 		{description && <meta name="description" content={description} />}
 		<link rel="icon" type="image/svg+xml" href={`${root}favicon.svg`} />
-		<link rel="preload" as="font" type="font/woff2" href={unboundedCyrillic} crossorigin />
-		<link rel="preload" as="font" type="font/woff2" href={manropeCyrillic} crossorigin />
+		{preloadFonts.map((href) => <link rel="preload" as="font" type="font/woff2" href={href} crossorigin />)}
 		<slot name="head" />
 	</head>
 	<body>

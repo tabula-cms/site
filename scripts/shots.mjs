@@ -52,6 +52,10 @@ export const PUBLIC_HOST = 'licey0.tabula.org.ua';
 // The eight templates of the home's «Такий вигляд матиме ваш сайт», in the order of its tabs.
 export const TEMPLATES = Object.freeze(['panorama', 'vitryna', 'stend', 'shkilna', 'hazeta', 'afisha', 'portal', 'zoshyt']);
 
+// The panel's content area on a 1440x900 desktop screen (the sidebar and the top bar are cut off), 16:9 like the
+// laptop screen of the home's «Панель»: the whole width of the content, so no button is cut off at the right edge.
+const PANEL_CLIP = Object.freeze({ x: 281, y: 70, width: 1110, height: 624 });
+
 export const SHOTS = Object.freeze([
 	...TEMPLATES.map((template) => ({
 		file: `tpl-${template}`,
@@ -109,15 +113,24 @@ export const SHOTS = Object.freeze([
 		panel: true,
 		facts: 'law',
 	},
-	{
-		file: 'crop-overview',
+	// The home's «Панель» story, steps 1–6: the panel's content area of a screen, the
+	// same clip, so the six screens line up inside the laptop. Template-free, read-only pages of the seeded demo.
+	...[
+		['admin-overview', '/admin'],
+		['admin-news-editor', '/admin/news/1/edit'],
+		['admin-pages', '/admin/pages'],
+		['admin-documents', '/admin/documents'],
+		['admin-albums', '/admin/photos'],
+		['admin-events', '/admin/events'],
+	].map(([file, pagePath]) => ({
+		file,
 		kind: 'page',
 		template: null,
-		path: '/admin',
+		path: pagePath,
 		viewport: 'desktop',
 		panel: true,
-		clip: { x: 281, y: 70, width: 994, height: 710 },
-	},
+		clip: PANEL_CLIP,
+	})),
 	{
 		file: 'kep-line',
 		kind: 'page',

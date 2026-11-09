@@ -3,9 +3,12 @@
 // preloaded in the <head> by src/pages/index.astro with the same widths/sizes.
 import Shot from '../Shot.astro';
 import { shots, HERO } from '../shots';
-import { offer, formatDateLongYear } from '../../../config/offer.mjs';
+import { offer, formatDateLongYear, demoHref } from '../../../config/offer.mjs';
 
-const exampleHref = offer.demoSiteUrl ?? '#look';
+const base = import.meta.env.BASE_URL;
+const root = base.endsWith('/') ? base : `${base}/`;
+// The demo site when it exists, else its «У розробці» page.
+const exampleHref = demoHref(root);
 ---
 
 <section id="top" class="hero">
@@ -13,8 +16,11 @@ const exampleHref = offer.demoSiteUrl ?? '#look';
 	<div class="wrap hero__inner">
 		<div class="hero__text">
 			<p class="chip">Безкоштовно до {formatDateLongYear(offer.pilotUntil)}</p>
-			<h1 class="hero__title">Сайт школи <span class="marker marker--load">без рутини</span></h1>
+			<h1 class="hero__title">Сайт <span class="nw">закладу освіти</span> <span class="marker marker--load">без рутини</span></h1>
 			<p class="hero__sub">ШІ-помічник готує новини, меню й документи. Ви лише перевіряєте й публікуєте.</p>
+			<p class="hero__kinds">
+				<a href="#kinds">Для шкіл, садочків, коледжів і закладів професійної <span class="nw">освіти&#160;<span aria-hidden="true">→</span></span></a>
+			</p>
 			<div class="hero__buttons">
 				<a class="btn btn-main btn-lg" href="#request">Подати заявку</a>
 				<a class="btn btn-line btn-lg" href={exampleHref}>Подивитися приклад сайту</a>

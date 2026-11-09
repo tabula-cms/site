@@ -3,7 +3,7 @@
 // `postbuild` hook, after check-links) and on its own as `npm run check:built`.
 //
 // What it holds:
-//   1. The site's own pages (src/content/pages/*.md(x), the eleven reading pages of story 80, slice S2):
+//   1. The site's own pages (src/content/pages/*.md(x), the twelve reading pages of story 80, slice S2):
 //      none of decision 8's forbidden phrases («uCoz» is allowed only on the law page), «станом на»
 //      on every page that names a law or a procurement rule, and the apostrophe ʼ (U+02BC) — never
 //      ' or ’ between Cyrillic letters.
@@ -15,7 +15,7 @@
 //   4. The footer's operator line (decision 5, verbatim) on EVERY html page of dist/, imported docs
 //      included. Forbidden phrases stay on the own pages: the imported docs are tabula's text.
 //   5. Story 80 — PRODUCT pages, the built pages whose <html> has `data-product-page` (the home and
-//      the eleven own pages; every own page must be one): the header's seven links in order and the
+//      the twelve own pages; every own page must be one): the header's seven links in order and the
 //      button «Подати заявку» -> #request (inline and in the «Меню» panel, which adds «Звʼязатися»);
 //      no Starlight chrome; no link from the header or the footer into the documentation (editor/,
 //      install/, qa/, dev/; own-origin absolute links and links without the trailing slash included);
