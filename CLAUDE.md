@@ -235,7 +235,7 @@ happens in each workflow, not in the composite action. Both checkouts pass
   `src/assets/shots/*.webp` through `astro:assets` (`components/product/Shot.astro`); the hero laptop is the LCP image (eager,
   `fetchpriority=high`, preloaded in `<head>` with the same widths/sizes from `shots.ts`). Every number, date, sum and address on the
   home comes from `offer.mjs` (`formatDateLongYear`, `formatUah`, `withinWorkingDays`, `includesShort`, `supportEmail`, `assistantStatus`,
-  `demoSiteUrl`, `demoHref(root)`); reply times always say «зазвичай» (story 78 decision 24). The «23 з 24» figure is `src/assets/shots/facts.json`.
+  `demoSiteUrl`, `demoHref(root)`); reply times on the home always say «зазвичай» (story 78 decision 24; the spec-83 pages quote spec 83, which promises «протягом N робочих днів»). The «23 з 24» figure is `src/assets/shots/facts.json`.
   The request section renders no form while `requestsOpen` is false (the form is slice S3: see `TODO(S3)` in `Request.astro`).
 - Richer motion on the home (owner's request, 2026-11-09; **the owner widened spec decision 10 the same day: light parallax, number
   counters and a scroll-linked story are allowed on the home**). Still without exception: everything is off under

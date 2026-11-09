@@ -17,13 +17,13 @@ export const offer = Object.freeze({
 	// Decision 3: the quarterly instalment; must equal priceYearUah / 4 (test/offer.test.mjs).
 	priceQuarterUah: 1200,
 	// Decision 24: the value of the pilot's free services for the institution's books, per MONTH
-	// of the pilot: priceYearUah / 12 = 4 800 / 12 = 400 (test/offer.test.mjs holds this). Pages
-	// say «— {pilotValueUah} грн за кожен місяць пілоту», never a lump sum.
+	// of the pilot: priceYearUah / 12 = 4 800 / 12 = 400 (test/offer.test.mjs holds this). Spec 83 uses it only
+	// in the unconfirmed decision `pilotActValue` («400 грн за повний місяць, за неповний — пропорційно дням»).
 	pilotValueUah: 400,
 	// Decision 8: the date the law and procurement texts were last checked against their sources.
 	asOf: '2026-11-08',
-	// Decision 24: the usual reply time to a request, in working days. Pages always write
-	// «зазвичай протягом N робочих днів», never a promise.
+	// Decision 24: the usual reply time to a request, in working days. The home writes «зазвичай протягом N…»;
+	// the spec-83 pages use the spec's own wording («Ми відповімо протягом N робочих днів»).
 	requestReplyDays: 2,
 	// Decision 24: the usual reply time to a support e-mail, in working days.
 	supportReplyDays: 2,

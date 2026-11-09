@@ -250,7 +250,8 @@
 .timeline {
 	counter-reset: step;
 }
-.steps-list--timeline {
+/* More specific than `.reading .steps-list`, so the numbers run on across the stages (1–11). */
+.reading .steps-list--timeline {
 	counter-reset: none;
 }
 .reading .step {
