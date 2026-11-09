@@ -12,14 +12,17 @@
 //      text of <main> as built, so text that comes from offer.mjs or a component is covered.
 //   3. `zaiavka`'s <main> has no inline <script> and no script `src` other than Cloudflare
 //      Turnstile's api.js.
-//   4. The footer's operator line (decision 5, verbatim) on EVERY html page of dist/, imported docs
-//      included. Forbidden phrases stay on the own pages: the imported docs are tabula's text.
+//   4. The footer line (`footerLine` of offer.mjs, verbatim; it replaced story 78's operator line) on EVERY
+//      html page of dist/, imported docs included. Forbidden phrases stay on the own pages: the imported docs
+//      are tabula's text.
 //   5. Story 80 — PRODUCT pages, the built pages whose <html> has `data-product-page` (the home and
 //      the twelve own pages; every own page must be one): the header's seven links in order and the
 //      button «Подати заявку» -> #request (inline and in the «Меню» panel, which adds «Звʼязатися»);
 //      no Starlight chrome; no link from the header or the footer into the documentation (editor/,
 //      install/, qa/, dev/; own-origin absolute links and links without the trailing slash included);
-//      every product page linked from the product footer (so none is orphaned); one <h1>; «Залишити
+//      every product page linked from the product footer except FOOTER_EXEMPT, which must be linked from
+//      another product page (so none is orphaned); one <h1>; nothing about open code, a licence, GitHub,
+//      self-installation or «назавжди» (CLOSED_SERVICE_PATTERNS; «GitHub Pages» as this site's host is allowed); «Залишити
 //      заявку» nowhere (one CTA name); decision 8's forbidden phrases; ʼ only; a no-break space between
 //      a number and ₴ / «року» / «грн» and inside a date, day-month and month-year (checked on the raw
 //      text, because htmlText() folds &nbsp;, and on the meta description); «ШІ-помічник» spelled so. On the home only: the chip when `assistantStatus` is
@@ -38,7 +41,7 @@
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
-import { offer, operatorLine, formatDate } from '../src/config/offer.mjs';
+import { offer, footerLine, formatDate } from '../src/config/offer.mjs';
 
 export const LAW_PAGE_SLUG = 'zakon-i-sait-shkoly';
 
@@ -109,11 +112,33 @@ export function checkBuiltAsOf(_name, bodyText) {
 	return [];
 }
 
-/** Problems with the footer's operator line (decision 5, verbatim) on one built page. */
-export function checkOperatorLine(html, line) {
+/** Problems with the footer line (`footerLine`, verbatim) on one built page. */
+export function checkFooterLine(html, line) {
 	const footer = html.match(/<footer\b[^>]*site-footer[^>]*>([\s\S]*?)<\/footer>/i);
 	if (!footer) return ['no <footer class="site-footer">'];
-	return htmlText(footer[1]).includes(line) ? [] : ['the footer lacks the operator line (decision 5)'];
+	return htmlText(footer[1]).includes(line) ? [] : ['the footer lacks the footer line (footerLine of offer.mjs)'];
+}
+
+/**
+ * Footer-and-audience-pages spec (2026-11-09): Tabula is a closed service. A product page says nothing about open
+ * code, a licence, GitHub, installing it yourself or «вільна … назавжди». «GitHub Pages», the host of this very
+ * site named on the privacy pages, is allowed. «відкрит» alone is not a rule: «Відкрити» (a button) and
+ * «інформаційна відкритість» (the law's term) are ordinary words.
+ */
+export const CLOSED_SERVICE_PATTERNS = [
+	/AGPL/i,
+	/GitHub(?!\s+Pages)/,
+	/github\.com\/tabula-cms/i,
+	/відкрит(?:ий|ого|им|ому) код|код[^.]{0,20}відкрит/i,
+	/вільн(?:а|ий|е|у) (?:й|і|та) безкоштовн/i,
+	/власн(?:ий|ому|ого) сервер/i,
+	/самостійн/i,
+	/назавжди/i,
+	/ліцензі[яї] (?:AGPL|GPL)|відкрит(?:ий|ого) проєкт/i,
+];
+
+export function checkClosedService(text) {
+	return CLOSED_SERVICE_PATTERNS.filter((re) => re.test(text)).map((re) => `mentions open code, a licence, GitHub or self-hosting (${re})`);
 }
 
 /** The inner HTML of the first <main> element, or the whole page when there is none. */
@@ -253,13 +278,20 @@ export function checkNoDocsLinks(html, origin = SITE_ORIGIN) {
 }
 
 /**
- * Every product page is linked from the product footer, so none can be orphaned: `slugs` are the own pages'
- * slugs, `base` is `'/'` or `'/site'`.
+ * Own pages the footer does not link (footer-and-audience-pages spec): «Демо-сайт» and «Подати заявку» are on the
+ * home's first screen and in the header. Each must still be linked from some product page (checked in main()).
  */
-export function checkFooterLinks(html, slugs, base) {
+export const FOOTER_EXEMPT = ['demo', 'zaiavka'];
+
+/**
+ * Every product page is linked from the product footer, so none can be orphaned: `slugs` are the own pages'
+ * slugs, `base` is `'/'` or `'/site'`; the `exempt` slugs are checked elsewhere.
+ */
+export function checkFooterLinks(html, slugs, base, exempt = FOOTER_EXEMPT) {
 	const root = base === '/' ? '/' : `${base.replace(/\/$/, '')}/`;
 	const hrefs = hrefsIn(html, 'footer', 'site-footer');
 	return [...slugs]
+		.filter((slug) => !exempt.includes(slug))
 		.filter((slug) => !hrefs.includes(`${root}${slug}/`))
 		.map((slug) => `the footer has no link to ${root}${slug}/ (the page would be orphaned)`);
 }
@@ -465,6 +497,8 @@ export function checkProductPage(
 	problems.push(...checkNoBreakSpaces(metaDescription(html) ?? '').map((p) => `meta description: ${p}`));
 	problems.push(...checkOneH1(html));
 	problems.push(...checkAssistantSpelling(text));
+	problems.push(...checkClosedService(text));
+	problems.push(...checkClosedService(metaDescription(html) ?? '').map((p) => `meta description: ${p}`));
 	if (isHome) problems.push(...checkAssistantChip(html, assistantStatus));
 	// Spec decision 14 exempts the home only (two cited claims); the other pages name their sources and say «станом на».
 	if (isHome) problems.push(...checkLawClaims(html, { requireClaims: true }));
@@ -540,6 +574,21 @@ export function checkDemoAddress(html) {
 // The checks over the files.
 
 const IMPORTED_DIRS = new Set(['editor', 'install', 'qa', 'dev']);
+
+/** An Astro redirect page: `<meta http-equiv="refresh">`. */
+export function isRedirectPage(html) {
+	return /<meta\b[^>]*http-equiv="refresh"/i.test(html);
+}
+
+/** The first path segment (an own page's slug) a product page's href leads to, relative to `rel` in dist/; '' otherwise. */
+function resolveHref(href, rel) {
+	if (/^[a-z][a-z0-9+.-]*:/i.test(href) || href.startsWith('//') || href.startsWith('#')) return '';
+	const base = (process.env.SITE_BASE ?? '/site').replace(/\/$/, '');
+	const from = `/${rel.split(path.sep).join('/')}`;
+	const url = new URL(href, `https://x${base}${from}`);
+	const p = url.pathname.startsWith(`${base}/`) ? url.pathname.slice(base.length + 1) : url.pathname.slice(1);
+	return p.split('/')[0];
+}
 
 function walkSources(dir) {
 	return readdirSync(dir, { withFileTypes: true })
@@ -623,15 +672,19 @@ function main() {
 		}
 	}
 
-	// The operator line is the site's chrome: held on every page, imported or not. Product pages have
+	// The footer line is the site's chrome: held on every page, imported or not. Product pages have
 	// their own rules; every other page is the documentation (Starlight) and has its own.
 	const htmlFiles = walkHtml(distDir);
 	let productPages = 0;
+	const linkedFromProduct = new Set();
 	for (const file of htmlFiles) {
 		const html = readFileSync(file, 'utf8');
 		const rel = path.relative(distDir, file);
 		const first = rel.split(path.sep)[0];
+		// An Astro redirect page (astro.config.mjs `redirects`): a meta refresh and a link, no chrome.
+		if (isRedirectPage(html)) continue;
 		if (isProductPage(html)) {
+			for (const a of anchorsOf(html)) linkedFromProduct.add(resolveHref(a.href, rel));
 			productPages += 1;
 			for (const problem of checkProductPage(html, {
 					isHome: rel === 'index.html',
@@ -649,7 +702,7 @@ function main() {
 		} else {
 			for (const problem of checkTryLinks(html, { base, product: isProductPage(html) })) fail(`dist/${rel}`, problem);
 		}
-		for (const problem of checkOperatorLine(html, operatorLine)) fail(`dist/${rel}`, problem);
+		for (const problem of checkFooterLine(html, footerLine)) fail(`dist/${rel}`, problem);
 		for (const problem of checkEveryPage(html)) fail(`dist/${rel}`, problem);
 		if (!IMPORTED_DIRS.has(first)) {
 			for (const problem of checkDemoAddress(html)) fail(`dist/${rel}`, problem);
@@ -658,6 +711,13 @@ function main() {
 	for (const css of walkFiles(distDir, '.css')) {
 		if (/fonts\.googleapis\.com|fonts\.gstatic\.com/i.test(readFileSync(css, 'utf8'))) {
 			fail(`dist/${path.relative(distDir, css)}`, 'the built CSS refers to Google Fonts');
+		}
+	}
+
+	// The own pages the footer does not link must still be linked from some product page.
+	for (const slug of FOOTER_EXEMPT) {
+		if (ownSlugs.has(slug) && !linkedFromProduct.has(slug)) {
+			fail(`dist/${slug}/index.html`, 'not linked from the footer nor from any product page (orphaned)');
 		}
 	}
 

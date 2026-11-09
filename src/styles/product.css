@@ -1976,22 +1976,86 @@
 	border-top: 1px solid var(--line);
 	background: var(--surface);
 }
+/* Footer-and-audience-pages spec: the brand column and three link columns; below 900 px the brand takes the
+ * whole row and the columns go two by two («Для кого» + «Корисно знати», then «Допомога»); the bottom row
+ * (legal links, the footer line, ©) spans the grid and stacks on phones. */
 .site-footer__inner {
 	max-width: 1200px;
 	margin: 0 auto;
 	padding: 48px 24px 40px;
 	display: grid;
-	grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+	grid-template-columns: minmax(0, 1.4fr) repeat(3, minmax(0, 1fr));
 	gap: 32px;
 	font-size: 15px;
 	color: var(--text);
 }
+@media (max-width: 900px) {
+	.site-footer__inner {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+		gap: 28px 20px;
+	}
+	.site-footer__lead,
+	.site-footer__col:nth-of-type(3) {
+		grid-column: 1 / -1;
+	}
+}
 .site-footer__brand {
+	display: inline-flex;
+	align-items: center;
+	gap: 10px;
 	margin: 0;
 	font-family: var(--display);
 	font-weight: 600;
 	color: var(--ink);
 	font-size: 18px;
+	text-decoration: none;
+	min-height: 44px;
+}
+.site-footer__brand svg {
+	flex: none;
+}
+.site-footer a[aria-current='page'] {
+	color: var(--ink);
+	font-weight: 700;
+	text-decoration: underline;
+	text-underline-offset: 0.2em;
+}
+.site-footer__col a {
+	overflow-wrap: anywhere;
+}
+.site-footer__bottom {
+	grid-column: 1 / -1;
+	padding-top: 18px;
+	border-top: 1px solid var(--line);
+	font-size: 14px;
+	line-height: 1.6;
+}
+.site-footer__legal-links {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 0 10px;
+	margin: 0 0 8px;
+}
+.site-footer__legal-links a {
+	display: inline-block;
+	padding: 6px 0;
+	color: var(--text);
+}
+.site-footer__copy {
+	margin: 6px 0 0;
+}
+@media (max-width: 600px) {
+	.site-footer__legal-links {
+		flex-direction: column;
+		align-items: flex-start;
+	}
+	.site-footer__legal-links span {
+		display: none;
+	}
+	.site-footer__legal-links a {
+		padding: 11px 0;
+	}
 }
 .site-footer__about {
 	margin: 10px 0 0;
@@ -2020,12 +2084,7 @@
 	padding: 0;
 }
 .site-footer__legal {
-	grid-column: 1 / -1;
 	margin: 0;
-	padding-top: 18px;
-	border-top: 1px solid var(--line);
-	font-size: 14px;
-	line-height: 1.6;
 }
 
 /* ---------------------------------------------------------------------------------------------
@@ -2520,6 +2579,149 @@
 	}
 }
 
+/* Footer-and-audience-pages spec: the pages «Для директора», «Для відповідального за сайт» and the additions to
+ * «Для бухгалтерії». */
+.reading .reading__lead {
+	font-size: 20px;
+	line-height: 1.55;
+	color: var(--ink);
+}
+/* A two-column table that fits a phone: no minimum width, so it never scrolls sideways. */
+.reading-table--fit table {
+	min-width: 0;
+}
+.reading-table--fit tbody th {
+	width: 40%;
+}
+.reading .cta-row--pair {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 12px;
+}
+.chip--sm {
+	padding: 2px 8px;
+	font-size: 13px;
+	vertical-align: 0.1em;
+	white-space: nowrap;
+}
+.reading .samples li {
+	padding-left: 0.1em;
+}
+/* «Ви з відділу освіти громади?» (CommunityNote.astro). */
+.reading .note {
+	margin: 2.4em 0 0;
+	padding: 18px 22px;
+	border: 1px solid #dce5e2;
+	border-radius: 16px;
+	background: var(--surface);
+}
+.reading .note h2 {
+	margin-top: 0;
+	font-size: clamp(19px, 5vw, 22px);
+}
+.reading .note p:last-child {
+	margin-bottom: 0;
+}
+/* The document flow of «Для бухгалтерії» (DocFlow.astro): cards on phones, columns from 760 px. */
+.flow {
+	margin: 0 0 1.4em;
+	padding: 18px;
+	border: 1px solid #dce5e2;
+	border-radius: 16px;
+	background: var(--surface);
+	font-size: 16px;
+	line-height: 1.5;
+}
+.flow__title {
+	margin: 0 0 12px;
+	font-weight: 800;
+	color: var(--ink);
+}
+.flow__head {
+	display: none;
+}
+.reading .flow ol {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+}
+.reading .flow li + li {
+	margin-top: 0;
+}
+.flow__band + .flow__band {
+	margin-top: 18px;
+}
+.reading .flow__band-title {
+	margin: 0 0 8px;
+	padding: 4px 10px;
+	display: inline-block;
+	border-radius: 8px;
+	background: var(--mint);
+	font-family: var(--body);
+	font-weight: 800;
+	font-size: 15px;
+	letter-spacing: 0;
+}
+.flow__step {
+	margin: 0 0 10px;
+	display: grid;
+	gap: 6px;
+	padding: 12px;
+	border: 1px solid var(--line);
+	border-radius: 12px;
+}
+.flow__cell dt {
+	font-weight: 800;
+	font-size: 14px;
+	color: var(--ink);
+}
+.flow__cell dd {
+	margin: 0;
+}
+.flow__cell--none {
+	display: none;
+}
+.flow__cell--pay dd strong {
+	display: inline-block;
+	padding: 2px 8px;
+	border-radius: 8px;
+	background: var(--marker);
+}
+.flow__note {
+	margin: 4px 0 0;
+	font-size: 15px;
+}
+@media (min-width: 760px) {
+	.flow__head,
+	.flow__step {
+		display: grid;
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+		gap: 14px;
+	}
+	.flow__head {
+		margin: 0 0 8px;
+		padding: 0 13px;
+		font-weight: 800;
+		font-size: 14px;
+		color: var(--ink);
+	}
+	.flow__head span:first-child {
+		display: none;
+	}
+	.flow__cell--none {
+		display: block;
+		color: #5f6e83;
+	}
+	.flow__cell dt {
+		position: absolute;
+		width: 1px;
+		height: 1px;
+		overflow: hidden;
+		clip: rect(0 0 0 0);
+		white-space: nowrap;
+	}
+}
+
 /* The footer's link under the tagline («Про проєкт»): the same box as the list links, 44 px on phones via section 15. */
 .site-footer__more {
 	margin: 6px 0 0;
@@ -2760,121 +2962,12 @@
 		transform: none;
 	}
 }
-/* The «Харчування» story. Four invisible spacers (75 vh each) have a view timeline each (--s1…--s4); a step is the
- * centre of the viewport at 50 % and the boundary to the next one at 71.4 %. Screens and the highlighted point
- * change in a narrow range around the boundary (the next step's 25–32 %, this step's 68–75 %), so two screens are never
- * half-visible for long. */
-@keyframes lay-first {
-	0%,
-	68% {
-		opacity: 1;
-	}
-	75%,
-	100% {
-		opacity: 0;
-	}
-}
-@keyframes lay-mid {
-	0%,
-	25% {
-		opacity: 0;
-	}
-	32%,
-	68% {
-		opacity: 1;
-	}
-	75%,
-	100% {
-		opacity: 0;
-	}
-}
-@keyframes lay-last {
-	0%,
-	25% {
-		opacity: 0;
-	}
-	32%,
-	100% {
-		opacity: 1;
-	}
-}
-@keyframes chat-step {
-	0%,
-	36% {
-		opacity: 0;
-		translate: 5cqw 0;
-	}
-	44%,
-	68% {
-		opacity: 1;
-		translate: 0 0;
-	}
-	75%,
-	100% {
-		opacity: 0;
-		translate: 0 0;
-	}
-}
-@keyframes step-first {
-	0%,
-	68% {
-		color: var(--ink);
-		border-left-color: var(--accent);
-	}
-	75%,
-	100% {
-		color: #5f6e83;
-		border-left-color: transparent;
-	}
-}
-@keyframes step-mid {
-	0%,
-	25% {
-		color: #5f6e83;
-		border-left-color: transparent;
-	}
-	32%,
-	68% {
-		color: var(--ink);
-		border-left-color: var(--accent);
-	}
-	75%,
-	100% {
-		color: #5f6e83;
-		border-left-color: transparent;
-	}
-}
-@keyframes step-last {
-	0%,
-	25% {
-		color: #5f6e83;
-		border-left-color: transparent;
-	}
-	32%,
-	100% {
-		color: var(--ink);
-		border-left-color: var(--accent);
-	}
-}
-@keyframes scan-run {
-	0%,
-	28% {
+/* The pinned stories (§18 items 5 and 6): the step is chosen by src/scripts/stories.js, the change is timed. */
+@keyframes scan-sweep {
+	from {
 		translate: 0 -100%;
 	}
-	38%,
-	100% {
-		translate: 0 0;
-	}
-}
-@keyframes sheet-out {
-	0%,
-	38% {
-		opacity: 0;
-		translate: 0 8px;
-	}
-	46%,
-	100% {
-		opacity: 1;
+	to {
 		translate: 0 0;
 	}
 }
@@ -3130,503 +3223,439 @@
 		}
 	}
 
-	/* 5. «Харчування» as a scroll story, from 900 px and with scroll-driven animations only. The heading, the four
-	 * points and one phone stage are pinned together (`.meals__pin`, sticky); four invisible spacers
-	 * (`.meals__track`, 75 vh each) give the scroll its length and the four view timelines (--s1…--s4). The page
-	 * scrolls normally; nothing snaps. The current point is dark with an accent bar, the others are
-	 * #5f6e83 (colours, not opacity, so every point keeps ≥ 4.5:1); the dots beside the phone follow. Below 900 px,
-	 * or without support, the section is today's two columns / stack. */
+	/* 5. «Харчування» as a pinned story, from 900 px with src/scripts/stories.js running (it sets `data-story`; without
+	 * it the section is the static layout). The heading, the four points and one phone stage are pinned together
+	 * (`.meals__pin`, sticky); four invisible spacers (`.meals__track`, `--story-step` each) give the scroll its
+	 * length. The scroll only chooses the step: a short scroll past a threshold switches it, and the change itself
+	 * is a timed transition (the outgoing screen fades, the new one rises in), so the stage never stops half-way
+	 * between two screens. The page scrolls normally; nothing snaps. The current point is dark with an accent bar,
+	 * the others #5f6e83 (colours, not opacity, so every point keeps ≥ 4.5:1); the dots beside the phone follow. */
+	#meals[data-story],
+	#panel[data-story] {
+		--story-step: 26vh;
+		--story-ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+	}
 	@media (min-width: 900px) {
-		@supports (animation-timeline: view()) {
-			#meals {
-				timeline-scope: --s1, --s2, --s3, --s4;
-			}
-			#meals .split {
-				display: grid;
-				grid-template-columns: minmax(0, 1fr);
-				padding-bottom: 0;
-			}
-			#meals .reveal {
-				animation: none;
-			}
-			#meals .meals__pin,
-			#meals .meals__track {
-				grid-area: 1 / 1;
-			}
-			#meals .meals__pin {
-				position: sticky;
-				top: max(84px, calc(50vh - 300px));
-				display: grid;
-				grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-				gap: 0 64px;
-				align-items: center;
-				align-self: start;
-				height: 600px;
-			}
-			#meals .meals__track {
-				display: block;
-				/* four 75 vh steps and a 50 vh tail: the finished sheet stays pinned for a moment before the stage leaves */
-				height: 350vh;
-				pointer-events: none;
-			}
-			#meals .meals__track i {
-				display: block;
-				height: 75vh;
-			}
-			#meals .meals__track i:nth-child(1) {
-				view-timeline-name: --s1;
-			}
-			#meals .meals__track i:nth-child(2) {
-				view-timeline-name: --s2;
-			}
-			#meals .meals__track i:nth-child(3) {
-				view-timeline-name: --s3;
-			}
-			#meals .meals__track i:nth-child(4) {
-				view-timeline-name: --s4;
-			}
-			#meals .ticks {
-				gap: 12px;
-				margin-top: 24px;
-				font-size: 19px;
-				line-height: 1.45;
-			}
-			#meals .ticks > li {
-				padding: 8px 0 8px 16px;
-				border-left: 3px solid transparent;
-				align-items: flex-start;
-				animation-duration: auto;
-				animation-timing-function: linear;
-				animation-fill-mode: both;
-				animation-range-start: normal;
-				animation-range-end: normal;
-			}
-			#meals .ticks > li:nth-child(1) {
-				animation-name: step-first;
-				animation-timeline: --s1;
-			}
-			#meals .ticks > li:nth-child(2) {
-				animation-name: step-mid;
-				animation-timeline: --s2;
-			}
-			#meals .ticks > li:nth-child(3) {
-				animation-name: step-mid;
-				animation-timeline: --s3;
-			}
-			#meals .ticks > li:nth-child(4) {
-				animation-name: step-last;
-				animation-timeline: --s4;
-			}
-			#meals .meals__visual {
-				position: relative;
-				display: block;
-				container-type: inline-size;
-				width: 100%;
-				max-width: 560px;
-				height: 600px;
-				margin: 0 auto;
-			}
-			#meals .meals__col {
-				display: contents;
-			}
-			#meals .meals__admin,
-			#meals .meals__day,
-			#meals .meals__alle {
-				position: absolute;
-				top: 8px;
-				flex: none;
-			}
-			#meals .meals__admin {
-				width: 48cqw;
-				left: calc(50% - 36cqw);
-			}
-			#meals .meals__day,
-			#meals .meals__alle {
-				width: 52cqw;
-				left: calc(50% - 38cqw);
-			}
-			#meals .meals__alle {
-				display: block;
-				border-radius: 30px;
-				box-shadow: 0 24px 48px rgba(23, 40, 58, 0.2);
-			}
-			#meals .meals__alle img {
-				aspect-ratio: 9 / 16;
-				border-radius: 24px;
-			}
-			#meals .chat {
-				position: absolute;
-				width: 34cqw;
-				left: calc(50% + 16cqw);
-				bottom: 70px;
-				z-index: 2;
-			}
-			#meals .meals__sheet {
-				display: block;
-				position: absolute;
-				top: 120px;
-				left: calc(50% - 43cqw);
-				width: 62cqw;
-			}
-			#meals .meals__sheet-paper {
-				position: relative;
-				overflow: hidden;
-				background: #fffcf0;
-				border: 1px solid #efe6c8;
-				border-radius: 8px;
-				padding: 18px 20px;
-				box-shadow: 0 18px 36px rgba(23, 40, 58, 0.14);
-				transform: rotate(-1.5deg);
-			}
-			#meals .meals__sheet-hand {
-				margin: 0;
-				font-family: 'Caveat', cursive;
-				font-weight: 600;
-				font-size: 26px;
-				line-height: 1.25;
-				color: var(--hand);
-			}
-			#meals .meals__sheet-scan {
-				position: absolute;
-				inset: 0;
-				background: linear-gradient(180deg, rgba(31, 111, 102, 0) 70%, rgba(31, 111, 102, 0.22) 100%);
-				border-bottom: 2px solid var(--accent);
-			}
-			#meals .meals__sheet-out {
-				margin-top: 16px;
-				background: var(--surface);
-				border: 1px solid #dce5e2;
-				border-radius: 14px;
-				padding: 12px 16px;
-				font-size: 15px;
-				line-height: 1.5;
-				box-shadow: 0 10px 24px rgba(23, 40, 58, 0.08);
-			}
-			#meals .meals__sheet-out p {
-				margin: 0;
-			}
-			#meals .meals__sheet-out b {
-				display: inline-block;
-				min-width: 64px;
-				color: var(--ink);
-			}
-			/* the four dots at the stage's left edge: the current one is filled */
-			#meals .meals__dots {
-				display: flex;
-				flex-direction: column;
-				gap: 10px;
-				position: absolute;
-				left: 0;
-				top: 50%;
-				translate: 0 -50%;
-			}
-			#meals .meals__dots i {
-				position: relative;
-				display: block;
-				width: 10px;
-				height: 10px;
-				border-radius: 50%;
-				background: #d3dcd9;
-			}
-			#meals .meals__dots i::after {
-				content: '';
-				position: absolute;
-				inset: 0;
-				border-radius: 50%;
-				background: var(--accent);
-				opacity: 0;
-				animation-duration: auto;
-				animation-timing-function: linear;
-				animation-fill-mode: both;
-			}
-			#meals .meals__dots i:nth-child(1)::after {
-				animation-name: lay-first;
-				animation-timeline: --s1;
-			}
-			#meals .meals__dots i:nth-child(2)::after {
-				animation-name: lay-mid;
-				animation-timeline: --s2;
-			}
-			#meals .meals__dots i:nth-child(3)::after {
-				animation-name: lay-mid;
-				animation-timeline: --s3;
-			}
-			#meals .meals__dots i:nth-child(4)::after {
-				animation-name: lay-last;
-				animation-timeline: --s4;
-			}
-			/* the screens and what happens on them, each on its own step's timeline */
-			#meals .meals__admin,
-			#meals .meals__day,
-			#meals .meals__alle,
-			#meals .meals__sheet,
-			#meals .chat,
-			#meals .meals__sheet-scan,
-			#meals .meals__sheet-out {
-				animation-duration: auto;
-				animation-timing-function: linear;
-				animation-fill-mode: both;
-				animation-range-start: normal;
-				animation-range-end: normal;
-			}
-			#meals .meals__admin {
-				animation-name: lay-first;
-				animation-timeline: --s1;
-			}
-			#meals .meals__day {
-				animation-name: lay-mid;
-				animation-timeline: --s2;
-			}
-			#meals .chat {
-				animation-name: chat-step;
-				animation-timeline: --s2;
-			}
-			#meals .meals__alle {
-				animation-name: lay-mid;
-				animation-timeline: --s3;
-			}
-			#meals .meals__sheet {
-				animation-name: lay-last;
-				animation-timeline: --s4;
-			}
-			#meals .meals__sheet-scan {
-				animation-name: scan-run;
-				animation-timeline: --s4;
-			}
-			#meals .meals__sheet-out {
-				animation-name: sheet-out;
-				animation-timeline: --s4;
-			}
+		#meals[data-story] .split {
+			display: grid;
+			grid-template-columns: minmax(0, 1fr);
+			padding-bottom: 0;
+		}
+		#meals[data-story] .reveal,
+		#meals[data-story] .ticks > li,
+		#meals[data-story] .meals__admin,
+		#meals[data-story] .meals__day,
+		#meals[data-story] .chat {
+			animation: none;
+		}
+		#meals[data-story] .meals__pin,
+		#meals[data-story] .meals__track {
+			grid-area: 1 / 1;
+		}
+		#meals[data-story] .meals__pin {
+			position: sticky;
+			top: max(84px, calc(50vh - 300px));
+			display: grid;
+			grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+			gap: 0 64px;
+			align-items: center;
+			align-self: start;
+			height: 600px;
+		}
+		#meals[data-story] .meals__track {
+			display: block;
+			/* the pin, three switches, and a short tail: the finished sheet stays pinned a moment before the stage leaves */
+			height: calc(600px + 3 * var(--story-step) + 24vh);
+			pointer-events: none;
+		}
+		#meals[data-story] .meals__track i {
+			display: block;
+			height: var(--story-step);
+		}
+		#meals[data-story] .ticks {
+			gap: 12px;
+			margin-top: 24px;
+			font-size: 19px;
+			line-height: 1.45;
+		}
+		#meals[data-story] .ticks > li {
+			padding: 8px 0 8px 16px;
+			border-left: 3px solid transparent;
+			align-items: flex-start;
+			color: #5f6e83;
+			transition:
+				color 0.3s ease,
+				border-left-color 0.3s ease,
+				opacity 0.3s ease,
+				translate 0.3s ease;
+		}
+		#meals[data-story] .ticks > li.is-on {
+			color: var(--ink);
+			border-left-color: var(--accent);
+		}
+		/* the points after the first are not there until their step comes (#28): the list grows with the story */
+		#meals[data-story] .ticks > li:not(.is-on, .is-past),
+		#panel[data-story] .panel__step:not(.is-on, .is-past) {
+			opacity: 0;
+			translate: 0 14px;
+		}
+		#meals[data-story] .ticks > li.is-on,
+		#panel[data-story] .panel__step.is-on {
+			transition:
+				color 0.3s ease,
+				border-left-color 0.3s ease,
+				opacity 0.4s ease,
+				translate 0.5s var(--story-ease);
+		}
+		#meals[data-story] .meals__visual {
+			position: relative;
+			display: block;
+			container-type: inline-size;
+			width: 100%;
+			max-width: 560px;
+			height: 600px;
+			margin: 0 auto;
+		}
+		#meals[data-story] .meals__col {
+			display: contents;
+		}
+		#meals[data-story] .meals__admin,
+		#meals[data-story] .meals__day,
+		#meals[data-story] .meals__alle {
+			position: absolute;
+			top: 8px;
+			flex: none;
+		}
+		#meals[data-story] .meals__admin {
+			width: 48cqw;
+			left: calc(50% - 36cqw);
+		}
+		#meals[data-story] .meals__day,
+		#meals[data-story] .meals__alle {
+			width: 52cqw;
+			left: calc(50% - 38cqw);
+		}
+		#meals[data-story] .meals__alle {
+			display: block;
+			border-radius: 30px;
+			box-shadow: 0 24px 48px rgba(23, 40, 58, 0.2);
+		}
+		#meals[data-story] .meals__alle img {
+			aspect-ratio: 9 / 16;
+			border-radius: 24px;
+		}
+		#meals[data-story] .chat {
+			position: absolute;
+			width: 34cqw;
+			left: calc(50% + 16cqw);
+			bottom: 70px;
+			z-index: 2;
+		}
+		#meals[data-story] .meals__sheet {
+			display: block;
+			position: absolute;
+			top: 120px;
+			left: calc(50% - 43cqw);
+			width: 62cqw;
+		}
+		#meals[data-story] .meals__sheet-paper {
+			position: relative;
+			overflow: hidden;
+			background: #fffcf0;
+			border: 1px solid #efe6c8;
+			border-radius: 8px;
+			padding: 18px 20px;
+			box-shadow: 0 18px 36px rgba(23, 40, 58, 0.14);
+			transform: rotate(-1.5deg);
+		}
+		#meals[data-story] .meals__sheet-hand {
+			margin: 0;
+			font-family: 'Caveat', cursive;
+			font-weight: 600;
+			font-size: 26px;
+			line-height: 1.25;
+			color: var(--hand);
+		}
+		#meals[data-story] .meals__sheet-scan {
+			position: absolute;
+			inset: 0;
+			background: linear-gradient(180deg, rgba(31, 111, 102, 0) 70%, rgba(31, 111, 102, 0.22) 100%);
+			border-bottom: 2px solid var(--accent);
+			translate: 0 -100%;
+		}
+		#meals[data-story] .meals__sheet-out {
+			margin-top: 16px;
+			background: var(--surface);
+			border: 1px solid #dce5e2;
+			border-radius: 14px;
+			padding: 12px 16px;
+			font-size: 15px;
+			line-height: 1.5;
+			box-shadow: 0 10px 24px rgba(23, 40, 58, 0.08);
+		}
+		#meals[data-story] .meals__sheet-out p {
+			margin: 0;
+		}
+		#meals[data-story] .meals__sheet-out b {
+			display: inline-block;
+			min-width: 64px;
+			color: var(--ink);
+		}
+		/* the four dots at the stage's left edge: the current one is filled */
+		#meals[data-story] .meals__dots {
+			display: flex;
+			flex-direction: column;
+			gap: 10px;
+			position: absolute;
+			left: 0;
+			top: 50%;
+			translate: 0 -50%;
+		}
+		#meals[data-story] .meals__dots i,
+		#panel[data-story] .panel__dots i {
+			position: relative;
+			display: block;
+			width: 10px;
+			height: 10px;
+			border-radius: 50%;
+			background: #d3dcd9;
+		}
+		#meals[data-story] .meals__dots i::after,
+		#panel[data-story] .panel__dots i::after {
+			content: '';
+			position: absolute;
+			inset: 0;
+			border-radius: 50%;
+			background: var(--accent);
+			opacity: 0;
+			scale: 0.4;
+			transition:
+				opacity 0.3s ease,
+				scale 0.4s var(--story-ease);
+		}
+		#meals[data-story] .meals__dots i.is-on::after,
+		#panel[data-story] .panel__dots i.is-on::after {
+			opacity: 1;
+			scale: 1;
+		}
+		/* the switch (#28's stack, now timed): a new phone rises ~72 px with a 5° turn and lands on top (0.6 s); the one
+		 * under it slides left, shrinks to .9 and darkens, so the stack fans out. Scrolling back lifts the top one off.
+		 * `visibility` keeps a phone that is not there yet from catching clicks. */
+		#meals[data-story] :is(.meals__admin, .meals__day, .meals__alle, .meals__sheet) {
+			opacity: 0;
+			visibility: hidden;
+			translate: 0 72px;
+			rotate: 5deg;
+			transition:
+				opacity 0.25s ease,
+				translate 0.35s ease,
+				rotate 0.35s ease,
+				scale 0.35s ease,
+				filter 0.35s ease,
+				visibility 0s linear 0.35s;
+		}
+		#meals[data-story] :is(.meals__admin, .meals__day, .meals__alle, .meals__sheet):is(.is-on, .is-past) {
+			opacity: 1;
+			visibility: visible;
+			translate: 0 0;
+			rotate: 0deg;
+			transition:
+				opacity 0.3s ease,
+				translate 0.6s var(--story-ease),
+				rotate 0.6s var(--story-ease),
+				scale 0.6s var(--story-ease),
+				filter 0.6s ease,
+				visibility 0s linear 0s;
+		}
+		#meals[data-story] :is(.meals__admin, .meals__day, .meals__alle).is-past {
+			translate: -13cqw 10px;
+			scale: 0.9;
+			filter: brightness(0.9);
+		}
+		/* the chat card follows its phone in from the right and leaves when the next phone comes */
+		#meals[data-story] .chat {
+			opacity: 0;
+			visibility: hidden;
+			translate: 5cqw 0;
+			transition:
+				opacity 0.25s ease,
+				translate 0.3s ease,
+				visibility 0s linear 0.3s;
+		}
+		#meals[data-story] .chat.is-on {
+			opacity: 1;
+			visibility: visible;
+			translate: 0 0;
+			transition:
+				opacity 0.4s ease 0.4s,
+				translate 0.6s var(--story-ease) 0.4s,
+				visibility 0s linear 0s;
+		}
+		/* the sheet: the scan line runs down once, then the recognised lines appear */
+		#meals[data-story] .meals__sheet.is-on .meals__sheet-scan {
+			animation: scan-sweep 0.9s var(--story-ease) 0.45s both;
+		}
+		#meals[data-story] .meals__sheet-out {
+			opacity: 0;
+			translate: 0 8px;
+			transition:
+				opacity 0.2s ease,
+				translate 0.2s ease;
+		}
+		#meals[data-story] .meals__sheet.is-on .meals__sheet-out {
+			opacity: 1;
+			translate: 0 0;
+			transition:
+				opacity 0.4s ease 1.25s,
+				translate 0.5s var(--story-ease) 1.25s;
 		}
 	}
 
-	/* 6. «Панель» as a scroll story, from 900 px (and 780 px of height, so the whole pinned scene fits) with
-	 * scroll-driven animations only; the model is §5 («Харчування»). The heading, the six steps and the laptop are
-	 * pinned together (`.panel__pin`, sticky, sized to its content: at most 628 px from 900 px wide up (measured 614–628), plus 84 px of header room and some air, so the story needs 780 px of height); six invisible spacers (`.panel__track`, 75 vh each, then a 50 vh
-	 * tail) give the scroll its length and the six view timelines (--p1…--p6). The laptop's screen crossfades through
-	 * the six panel screens, the current step is dark with an accent bar and the others #5f6e83 (colours, not opacity,
-	 * so every step keeps ≥ 4.5:1), the six dots follow. Below 900 px, without support, or under reduced motion the
-	 * section is the static list of cards (the small screenshots) and the laptop is not shown. */
+	/* 6. «Панель» as a pinned story, the same model as item 5, from 900 px wide and 780 px high (the pin is sized to
+	 * its content: at most 628 px from 900 px wide up, measured 614–628, plus 84 px of header room and some air). The
+	 * heading, the six steps and the laptop are pinned together (`.panel__pin`); six invisible spacers
+	 * (`.panel__track`) give the scroll its length; a short scroll switches the step, and the laptop's screen changes
+	 * by a timed transition. The current step is dark with an accent bar and the others #5f6e83; the six dots
+	 * follow. Below that size, without JavaScript, or under reduced motion the section is the static list of cards
+	 * (the small screenshots) and the laptop is not shown. */
 	@media (min-width: 900px) and (min-height: 780px) {
-		@supports (animation-timeline: view()) {
-			#panel {
-				timeline-scope: --p1, --p2, --p3, --p4, --p5, --p6;
-			}
-			#panel .panel__story {
-				display: grid;
-				grid-template-columns: minmax(0, 1fr);
-			}
-			#panel .reveal {
-				animation: none;
-			}
-			#panel .panel__pin,
-			#panel .panel__track {
-				grid-area: 1 / 1;
-			}
-			#panel .panel__pin {
-				position: sticky;
-				top: 84px;
-				display: grid;
-				grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
-				gap: 0 56px;
-				align-items: center;
-				align-self: start;
-			}
-			#panel .panel__track {
-				display: block;
-				height: 500vh;
-				pointer-events: none;
-			}
-			#panel .panel__track i {
-				display: block;
-				height: 75vh;
-			}
-			#panel .panel__track i:nth-child(1) {
-				view-timeline-name: --p1;
-			}
-			#panel .panel__track i:nth-child(2) {
-				view-timeline-name: --p2;
-			}
-			#panel .panel__track i:nth-child(3) {
-				view-timeline-name: --p3;
-			}
-			#panel .panel__track i:nth-child(4) {
-				view-timeline-name: --p4;
-			}
-			#panel .panel__track i:nth-child(5) {
-				view-timeline-name: --p5;
-			}
-			#panel .panel__track i:nth-child(6) {
-				view-timeline-name: --p6;
-			}
-			#panel .panel__text .h2 {
-				font-size: clamp(28px, 3.4vw, 40px);
-			}
-			#panel .panel__steps {
-				display: flex;
-				flex-direction: column;
-				gap: 4px;
-				margin-top: 22px;
-			}
-			#panel .panel__step {
-				background: none;
-				border: 0;
-				border-left: 3px solid transparent;
-				border-radius: 0;
-				padding: 7px 0 7px 16px;
-				animation-duration: auto;
-				animation-timing-function: linear;
-				animation-fill-mode: both;
-				animation-range-start: normal;
-				animation-range-end: normal;
-			}
-			#panel .panel__step-title {
-				font-size: 16px;
-				color: inherit;
-			}
-			#panel .panel__step-text {
-				margin-top: 4px;
-				font-size: 15px;
-				line-height: 1.45;
-				color: inherit;
-			}
-			#panel .panel__card-shot {
-				display: none;
-			}
-			#panel .panel__step:nth-child(1) {
-				animation-name: step-first;
-				animation-timeline: --p1;
-			}
-			#panel .panel__step:nth-child(2) {
-				animation-name: step-mid;
-				animation-timeline: --p2;
-			}
-			#panel .panel__step:nth-child(3) {
-				animation-name: step-mid;
-				animation-timeline: --p3;
-			}
-			#panel .panel__step:nth-child(4) {
-				animation-name: step-mid;
-				animation-timeline: --p4;
-			}
-			#panel .panel__step:nth-child(5) {
-				animation-name: step-mid;
-				animation-timeline: --p5;
-			}
-			#panel .panel__step:nth-child(6) {
-				animation-name: step-last;
-				animation-timeline: --p6;
-			}
-			#panel .panel__stage {
-				display: block;
-				position: relative;
-				padding-left: 28px;
-			}
-			#panel .panel__screens {
-				position: relative;
-				aspect-ratio: 16 / 9;
-				overflow: hidden;
-				background: #ffffff;
-				border-radius: 6px 6px 0 0;
-			}
-			#panel .panel__screen {
-				position: absolute;
-				inset: 0;
-				animation-duration: auto;
-				animation-timing-function: linear;
-				animation-fill-mode: both;
-				animation-range-start: normal;
-				animation-range-end: normal;
-			}
-			#panel .panel__screen img {
-				width: 100%;
-				height: 100%;
-				border-radius: 0;
-				object-position: left top;
-			}
-			#panel .laptop__base {
-				margin: 0 -2%;
-			}
-			#panel .panel__screen:nth-child(1) {
-				animation-name: lay-first;
-				animation-timeline: --p1;
-			}
-			#panel .panel__screen:nth-child(2) {
-				animation-name: lay-mid;
-				animation-timeline: --p2;
-			}
-			#panel .panel__screen:nth-child(3) {
-				animation-name: lay-mid;
-				animation-timeline: --p3;
-			}
-			#panel .panel__screen:nth-child(4) {
-				animation-name: lay-mid;
-				animation-timeline: --p4;
-			}
-			#panel .panel__screen:nth-child(5) {
-				animation-name: lay-mid;
-				animation-timeline: --p5;
-			}
-			#panel .panel__screen:nth-child(6) {
-				animation-name: lay-last;
-				animation-timeline: --p6;
-			}
-			/* the six dots at the stage's left edge: the current one is filled */
-			#panel .panel__dots {
-				display: flex;
-				flex-direction: column;
-				gap: 10px;
-				position: absolute;
-				left: 0;
-				top: 50%;
-				translate: 0 -50%;
-			}
-			#panel .panel__dots i {
-				position: relative;
-				display: block;
-				width: 10px;
-				height: 10px;
-				border-radius: 50%;
-				background: #d3dcd9;
-			}
-			#panel .panel__dots i::after {
-				content: '';
-				position: absolute;
-				inset: 0;
-				border-radius: 50%;
-				background: var(--accent);
-				opacity: 0;
-				animation-duration: auto;
-				animation-timing-function: linear;
-				animation-fill-mode: both;
-			}
-			#panel .panel__dots i:nth-child(1)::after {
-				animation-name: lay-first;
-				animation-timeline: --p1;
-			}
-			#panel .panel__dots i:nth-child(2)::after {
-				animation-name: lay-mid;
-				animation-timeline: --p2;
-			}
-			#panel .panel__dots i:nth-child(3)::after {
-				animation-name: lay-mid;
-				animation-timeline: --p3;
-			}
-			#panel .panel__dots i:nth-child(4)::after {
-				animation-name: lay-mid;
-				animation-timeline: --p4;
-			}
-			#panel .panel__dots i:nth-child(5)::after {
-				animation-name: lay-mid;
-				animation-timeline: --p5;
-			}
-			#panel .panel__dots i:nth-child(6)::after {
-				animation-name: lay-last;
-				animation-timeline: --p6;
-			}
-			#panel .panel__notes {
-				margin-top: 24px;
-			}
+		#panel[data-story] .panel__story {
+			display: grid;
+			grid-template-columns: minmax(0, 1fr);
+		}
+		#panel[data-story] .reveal,
+		#panel[data-story] .panel__step {
+			animation: none;
+		}
+		#panel[data-story] .panel__pin,
+		#panel[data-story] .panel__track {
+			grid-area: 1 / 1;
+		}
+		#panel[data-story] .panel__pin {
+			position: sticky;
+			top: 84px;
+			display: grid;
+			grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+			gap: 0 56px;
+			align-items: center;
+			align-self: start;
+		}
+		#panel[data-story] .panel__track {
+			display: block;
+			/* the pin (≤ 628 px), five switches and a short tail */
+			height: calc(640px + 5 * var(--story-step) + 24vh);
+			pointer-events: none;
+		}
+		#panel[data-story] .panel__track i {
+			display: block;
+			height: var(--story-step);
+		}
+		#panel[data-story] .panel__text .h2 {
+			font-size: clamp(28px, 3.4vw, 40px);
+		}
+		#panel[data-story] .panel__steps {
+			display: flex;
+			flex-direction: column;
+			gap: 4px;
+			margin-top: 22px;
+		}
+		#panel[data-story] .panel__step {
+			background: none;
+			border: 0;
+			border-left: 3px solid transparent;
+			border-radius: 0;
+			padding: 7px 0 7px 16px;
+			color: #5f6e83;
+			transition:
+				color 0.3s ease,
+				border-left-color 0.3s ease,
+				opacity 0.3s ease,
+				translate 0.3s ease;
+		}
+		#panel[data-story] .panel__step.is-on {
+			color: var(--ink);
+			border-left-color: var(--accent);
+		}
+		#panel[data-story] .panel__step-title {
+			font-size: 16px;
+			color: inherit;
+		}
+		#panel[data-story] .panel__step-text {
+			margin-top: 4px;
+			font-size: 15px;
+			line-height: 1.45;
+			color: inherit;
+		}
+		#panel[data-story] .panel__card-shot {
+			display: none;
+		}
+		#panel[data-story] .panel__stage {
+			display: block;
+			position: relative;
+			padding-left: 28px;
+		}
+		#panel[data-story] .panel__screens {
+			position: relative;
+			aspect-ratio: 16 / 9;
+			overflow: hidden;
+			background: #ffffff;
+			border-radius: 6px 6px 0 0;
+		}
+		/* a new screen is laid on the laptop over the previous one (#28's stack, now timed): it rises from 42 % below
+		 * with a top shadow, the one beneath shrinks to .93 and darkens; scrolling back lifts it off */
+		#panel[data-story] .panel__screen {
+			position: absolute;
+			inset: 0;
+			opacity: 0;
+			visibility: hidden;
+			translate: 0 42%;
+			transition:
+				opacity 0.25s ease,
+				translate 0.35s ease,
+				scale 0.35s ease,
+				filter 0.35s ease,
+				visibility 0s linear 0.35s;
+		}
+		#panel[data-story] .panel__screen:is(.is-on, .is-past) {
+			opacity: 1;
+			visibility: visible;
+			translate: 0 0;
+			transition:
+				opacity 0.25s ease,
+				translate 0.6s var(--story-ease),
+				scale 0.6s var(--story-ease),
+				filter 0.6s ease,
+				visibility 0s linear 0s;
+		}
+		#panel[data-story] .panel__screen.is-past {
+			scale: 0.93;
+			filter: brightness(0.82);
+		}
+		/* the shadow of a screen being laid on: the screens' own overflow clips it once the screen is in place */
+		#panel[data-story] .panel__screen + .panel__screen {
+			box-shadow: 0 -14px 32px rgba(23, 40, 58, 0.28);
+		}
+		#panel[data-story] .panel__screen img {
+			width: 100%;
+			height: 100%;
+			border-radius: 0;
+			object-position: left top;
+		}
+		#panel[data-story] .laptop__base {
+			margin: 0 -2%;
+		}
+		/* the six dots at the stage's left edge (their look is shared with item 5) */
+		#panel[data-story] .panel__dots {
+			display: flex;
+			flex-direction: column;
+			gap: 10px;
+			position: absolute;
+			left: 0;
+			top: 50%;
+			translate: 0 -50%;
+		}
+		#panel[data-story] .panel__notes {
+			margin-top: 24px;
 		}
 	}
 }

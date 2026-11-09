@@ -1,9 +1,12 @@
 ---
-// The footer of the product pages (story 80): four columns, then the two sentences about the
-// product and the operator line of story 78's decision 5, verbatim (check-built holds it on every
-// page). Links to the site's own pages are base-aware (`BASE_URL`); the «Продукт» column goes to the
-// home's anchors (`#…` on the home). Every product page is linked from here, so none is orphaned (check-built). The «Довідка» slot renders only when `help` is on (the docs story turns it on).
-import { offer, operatorLine } from '../../config/offer.mjs';
+// The footer of the product pages (footer-and-audience-pages spec, 2026-11-09): the brand column, then three
+// columns — «Для кого», «Корисно знати», «Допомога» — and a bottom row with the legal links (personal data,
+// accessibility, the privacy address), the footer line (`footerLine`, verbatim; check-built holds it on every
+// page) and «© 2026 Tabula». The «Продукт» column is gone: its anchors are in the header, «Демо-сайт» and
+// «Подати заявку» are on the home's first screen. Links are base-aware (`BASE_URL`); the link to the page
+// being shown carries aria-current="page". On phones the columns go two by two (section 14 of product.css).
+// The «Довідка» link renders only when `help` is on (the docs story turns it on).
+import { offer, footerLine } from '../../config/offer.mjs';
 
 const { help = false, home = false } = Astro.props;
 const base = import.meta.env.BASE_URL;
@@ -11,63 +14,85 @@ const root = base.endsWith('/') ? base : `${base}/`;
 const page = (slug: string) => `${root}${slug}/`;
 // The home's anchors: `#…` on the home, `{BASE_URL}#…` on every other product page.
 const anchor = (id: string) => `${home ? '' : root}#${id}`;
+const here = Astro.url.pathname.endsWith('/') ? Astro.url.pathname : `${Astro.url.pathname}/`;
+const current = (href: string) => (href === here ? 'page' : undefined);
+
+const columns = [
+	{
+		title: 'Для кого',
+		links: [
+			['Для директора', page('dlia-dyrektora')],
+			['Для відповідального за сайт', page('dlia-vidpovidalnoho')],
+			['Для бухгалтерії', page('dlia-bukhhalterii')],
+		],
+	},
+	{
+		title: 'Корисно знати',
+		links: [
+			['Як це працює', page('yak-tse-pratsiuie')],
+			['Ціна й оплата', page('khostynh-i-tsina')],
+			['Закон і сайт школи', page('zakon-i-sait-shkoly')],
+			['Безпека й дані', page('bezpeka-i-dani')],
+			// Story 82 (S1b): «Спробувати» is linked only once the demo is public.
+			...(offer.demoOpen ? [['Спробувати демо', page('sprobuvaty')]] : []),
+		],
+	},
+	{
+		title: 'Допомога',
+		links: [
+			['Часті запитання', anchor('faq')],
+			['Підтримка', page('pidtrymka')],
+			[offer.supportEmail, `mailto:${offer.supportEmail}`],
+			...(help ? [['Довідка', `${root}dokumentatsiia/`]] : []),
+		],
+	},
+];
 ---
 
 <footer class="site-footer" id="footer-nav">
 	<div class="site-footer__inner">
-		<div>
-			<p class="site-footer__brand">Tabula</p>
-			<p class="site-footer__about">
-				Сайти для закладів освіти: готові розділи, зручна панель і ШІ-помічник.
+		<div class="site-footer__lead">
+			<a class="site-footer__brand" href={root} aria-current={current(root)}>
+				<svg width="26" height="26" viewBox="0 0 34 34" aria-hidden="true"
+					><rect x="1" y="1" width="32" height="32" rx="9" fill="#1F6F66"></rect><path
+						d="M10 11h14M17 11v13"
+						stroke="#FFFFFF"
+						stroke-width="3.2"
+						stroke-linecap="round"></path></svg
+				>
+				<span>Tabula</span>
+			</a>
+			<p class="site-footer__about">Сайти для шкіл, садочків і коледжів — з готовими розділами за законом.</p>
+			<p class="site-footer__more">
+				<a href={page('pro-proiekt')} aria-current={current(page('pro-proiekt'))}>Про проєкт</a>
 			</p>
-			<p class="site-footer__more"><a href={page('pro-proiekt')}>Про проєкт</a></p>
 		</div>
-		<nav aria-label="Продукт">
-			<p class="site-footer__title">Продукт</p>
-			<ul>
-				<li><a href={anchor('assistant')}>ШІ-помічник</a></li>
-				<li><a href={anchor('look')}>Шаблони</a></li>
-				<li><a href={page('demo')}>Демо-сайт</a></li>
-				{offer.demoOpen && <li><a href={page('sprobuvaty')}>Спробувати демо</a></li>}
-				<li><a href={anchor('panel')}>Панель</a></li>
-				<li><a href={anchor('price')}>Ціна</a></li>
-				<li><a href={page('yak-tse-pratsiuie')}>Як це працює</a></li>
-				<li><a href={page('khostynh-i-tsina')}>Хостинг і ціна</a></li>
-			</ul>
-		</nav>
-		<nav aria-label="Для закладу">
-			<p class="site-footer__title">Для закладу</p>
-			<ul>
-				<li><a href={page('dlia-bukhhalterii')}>Для бухгалтерії</a></li>
-				<li><a href={page('zakon-i-sait-shkoly')}>Закон і сайт школи</a></li>
-				<li><a href={page('bezpeka-i-dani')}>Безпека й дані</a></li>
-				<li><a href={page('personalni-dani')}>Обробка персональних даних</a></li>
-				<li><a href={page('dostupnist')}>Доступність</a></li>
-			</ul>
-		</nav>
-		<div>
-			<p class="site-footer__title">Допомога</p>
-			<ul>
-				<li><a href={anchor('faq')}>Часті запитання</a></li>
-				<li><a href={page('pidtrymka')}>Підтримка</a></li>
-				<li><a href={page('zaiavka')}>Подати заявку</a></li>
-				<li><a href={`mailto:${offer.supportEmail}`}>{offer.supportEmail}</a></li>
-				<li>
-					<span>Персональні дані: <a href={`mailto:${offer.operatorEmail}`}>{offer.operatorEmail}</a></span>
-				</li>
-				<li><a href={page('vstanovyty-samostiino')}>Установити на власний сервер</a></li>
-				{
-					help && (
-						<li>
-							<a href={`${root}dokumentatsiia/`}>Довідка</a>
-						</li>
-					)
-				}
-			</ul>
+		{
+			columns.map((column) => (
+				<nav class="site-footer__col" aria-label={column.title}>
+					<p class="site-footer__title">{column.title}</p>
+					<ul>
+						{column.links.map(([text, href]) => (
+							<li>
+								<a href={href} aria-current={current(href)}>
+									{text}
+								</a>
+							</li>
+						))}
+					</ul>
+				</nav>
+			))
+		}
+		<div class="site-footer__bottom">
+			<p class="site-footer__legal-links">
+				<a href={page('personalni-dani')} aria-current={current(page('personalni-dani'))}>Обробка персональних даних</a>
+				<span aria-hidden="true">·</span>
+				<a href={page('dostupnist')} aria-current={current(page('dostupnist'))}>Доступність</a>
+				<span aria-hidden="true">·</span>
+				<a href={`mailto:${offer.operatorEmail}`}>{offer.operatorEmail}</a>
+			</p>
+			<p class="site-footer__legal">{footerLine}</p>
+			<p class="site-footer__copy">© 2026 Tabula</p>
 		</div>
-		<p class="site-footer__legal">
-			Програма Tabula вільна й безкоштовна: її код відкритий. Розміщення сайтів — платна послуга, з неї ми
-			фінансуємо розвиток Tabula. {operatorLine}
-		</p>
 	</div>
 </footer>

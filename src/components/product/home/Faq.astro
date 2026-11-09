@@ -1,7 +1,7 @@
 ---
 // Section 11: Часті запитання. Five, as in the mockup; «Коли запрацює ШІ-помічник?» is dropped
 // when `offer.assistantStatus` is 'on'.
-import { offer, formatDateLongYear, formatUah, nextDay } from '../../../config/offer.mjs';
+import { offer, exitText, formatDateLongYear, formatUah, nextDay } from '../../../config/offer.mjs';
 
 const base = import.meta.env.BASE_URL;
 const root = base.endsWith('/') ? base : `${base}/`;
@@ -17,7 +17,7 @@ const paidFrom = nextDay(offer.pilotUntil);
 		</details>
 		<details class="faq-item">
 			<summary>А якщо ми захочемо піти?<span class="plus" aria-hidden="true">+</span></summary>
-			<p>Ми передамо вам архів сайту. Код Tabula відкритий, тож той самий сайт можна встановити на власний сервер.</p>
+			<p>{exitText}</p>
 		</details>
 		{
 			offer.assistantStatus !== 'on' && (
