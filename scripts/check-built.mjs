@@ -461,9 +461,11 @@ export function checkLawClaims(html, { requireClaims = false } = {}) {
 /**
  * Decision 9 (no framework JS): a product page loads only its own two bundles, tabs and header. Each
  * <script> must be an inline module, or a `src` whose file (read through `readSrc`), that contains
- * `data-tabs` or `data-site-header`. `readSrc(src)` returns the file's text or null.
+ * `data-tabs` or `data-site-header`. `readSrc(src)` returns the file's text or null. The page «Спробувати»
+ * (story 82, S1b; `allowTry`) also loads its own script, the one that contains `data-demo-try`.
  */
-export function checkProductScripts(html, readSrc = () => null) {
+export function checkProductScripts(html, readSrc = () => null, { allowTry = false } = {}) {
+	const ours = allowTry ? /data-tabs|data-site-header|data-demo-try/ : /data-tabs|data-site-header/;
 	const problems = [];
 	const re = /<script\b([^>]*)>([\s\S]*?)<\/script>/gi;
 	let m;
@@ -471,7 +473,7 @@ export function checkProductScripts(html, readSrc = () => null) {
 		const src = m[1].match(/\bsrc="([^"]*)"/i);
 		const code = src ? readSrc(src[1]) : m[2];
 		if (code === null || code === undefined) problems.push(`a script (${src[1]}) that cannot be identified`);
-		else if (!/data-tabs|data-site-header/.test(code)) {
+		else if (!ours.test(code)) {
 			problems.push(`a script that is neither the tabs nor the header bundle: ${src ? src[1] : code.slice(0, 40)}`);
 		}
 	}
@@ -481,7 +483,7 @@ export function checkProductScripts(html, readSrc = () => null) {
 /** Every product-page rule on one built page's HTML; `isHome` adds the chip and the claims, `allowUcoz` is the law page's. */
 export function checkProductPage(
 	html,
-	{ isHome = false, allowUcoz = false, assistantStatus = offer.assistantStatus, readSrc = () => null, slugs = null, base = '/site' } = {},
+	{ isHome = false, isTry = false, allowUcoz = false, assistantStatus = offer.assistantStatus, readSrc = () => null, slugs = null, base = '/site' } = {},
 ) {
 	const problems = [];
 	problems.push(...checkProductHeader(html));
@@ -500,9 +502,57 @@ export function checkProductPage(
 	if (isHome) problems.push(...checkAssistantChip(html, assistantStatus));
 	// Spec decision 14 exempts the home only (two cited claims); the other pages name their sources and say «станом на».
 	if (isHome) problems.push(...checkLawClaims(html, { requireClaims: true }));
-	problems.push(...checkProductScripts(html, readSrc));
+	problems.push(...checkProductScripts(html, readSrc, { allowTry: isTry }));
 	if (slugs) problems.push(...checkFooterLinks(html, slugs, base));
 	return problems;
+}
+
+// ---------------------------------------------------------------------------------------------
+// Story 82, slice S1b: the page «Спробувати».
+
+export const TRY_SLUG = 'sprobuvaty';
+
+/**
+ * The page «Спробувати»: it never asks for `no-referrer` (the broker needs the site's Origin, decision 32) and sets
+ * `strict-origin-when-cross-origin` itself; the pass goes in a hidden POST form to `{demoUrl}/__demo/start`; the
+ * code field is numeric with `one-time-code`; the no-JavaScript line is there; phase 1 promises no saving; it is
+ * `noindex` exactly while the demo is not public.
+ */
+export function checkTryPage(html, { demoOpen = offer.demoOpen, demoUrl = offer.demoUrl } = {}) {
+	const problems = [];
+	if (/no-referrer(?!-)/i.test(html)) problems.push('asks for no-referrer: the broker would get no Origin (decision 32)');
+	if (!/<meta name="referrer" content="strict-origin-when-cross-origin"/.test(html)) {
+		problems.push('no <meta name="referrer" content="strict-origin-when-cross-origin">');
+	}
+	const action = `${demoUrl.replace(/\/+$/, '')}/__demo/start`;
+	const pass = html.match(/<form\b[^>]*\bdata-try-pass\b[^>]*>([\s\S]*?)<\/form>/i);
+	if (!pass) problems.push('no pass form (data-try-pass)');
+	else {
+		if (!pass[0].includes(`action="${action}"`)) problems.push(`the pass form does not post to ${action}`);
+		if (!/method="post"/i.test(pass[0])) problems.push('the pass form is not method="post"');
+		if (!/<input\b[^>]*name="pass"/.test(pass[1])) problems.push('the pass form has no field "pass"');
+	}
+	const code = html.match(/<input\b[^>]*\bdata-try-code-input\b[^>]*>/i);
+	if (!code || !/inputmode="numeric"/.test(code[0]) || !/autocomplete="one-time-code"/.test(code[0])) {
+		problems.push('the code field is not inputmode="numeric" autocomplete="one-time-code"');
+	}
+	const text = htmlText(html);
+	if (!text.includes('Демо працює лише з увімкненим JavaScript.')) problems.push('no no-JavaScript line');
+	if (/збереж|зберіга/i.test(htmlText(extractMain(html)))) problems.push('phase 1 promises nothing about saving');
+	const noindex = /<meta name="robots" content="noindex/.test(html);
+	if (!demoOpen && !noindex) problems.push('not noindex while offer.demoOpen is false');
+	if (demoOpen && noindex) problems.push('noindex although offer.demoOpen is true');
+	return problems;
+}
+
+/** Story 82, decision 24: while the demo is not public no page links to «Спробувати»; once it is, the footer does. */
+export function checkTryLinks(html, { demoOpen = offer.demoOpen, base = '/site', product = true } = {}) {
+	const root = base === '/' ? '/' : `${base.replace(/\/$/, '')}/`;
+	const target = `${root}${TRY_SLUG}/`;
+	const linked = new RegExp(`href="(?:[^"]*/)?${TRY_SLUG}/(?:#[^"]*)?"`).test(html);
+	if (!demoOpen) return linked ? [`links to ${target} while offer.demoOpen is false`] : [];
+	if (product && !hrefsIn(html, 'footer', 'site-footer').includes(target)) return [`the footer has no link to ${target}`];
+	return [];
 }
 
 /** Problems every built page can have: an <img> without `alt`, a request to Google Fonts. */
@@ -638,6 +688,7 @@ function main() {
 			productPages += 1;
 			for (const problem of checkProductPage(html, {
 					isHome: rel === 'index.html',
+					isTry: rel === path.join(TRY_SLUG, 'index.html'),
 					allowUcoz: rel === path.join(UCOZ_PAGE, 'index.html'),
 					readSrc: (src) => readBuilt(distDir, base, src),
 					slugs: ownSlugs,
@@ -645,6 +696,11 @@ function main() {
 				})) fail(`dist/${rel}`, problem);
 		} else {
 			for (const problem of checkDocChrome(html, base)) fail(`dist/${rel} header/footer`, problem);
+		}
+		if (rel === path.join(TRY_SLUG, 'index.html')) {
+			for (const problem of checkTryPage(html)) fail(`dist/${rel}`, problem);
+		} else {
+			for (const problem of checkTryLinks(html, { base, product: isProductPage(html) })) fail(`dist/${rel}`, problem);
 		}
 		for (const problem of checkFooterLine(html, footerLine)) fail(`dist/${rel}`, problem);
 		for (const problem of checkEveryPage(html)) fail(`dist/${rel}`, problem);

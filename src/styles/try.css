@@ -1,0 +1,118 @@
+/* «Спробувати» (story 82, slice S1b): the demo's sign-in form inside a reading page (product.css §17). Only this page
+ * imports this file. Targets are at least 44 px, text at least 16 px, focus as everywhere (3 px #2F7FD6). */
+
+.try {
+	margin: 1.6em 0 0;
+}
+.try__form {
+	margin: 0;
+}
+.try__field {
+	margin: 0 0 20px;
+	padding: 0;
+	border: 0;
+}
+.try__field > label,
+.try__field > legend {
+	display: block;
+	margin: 0 0 6px;
+	padding: 0;
+	font-weight: 700;
+	color: var(--ink);
+}
+.try__field input[type='email'],
+.try__field input[type='text'],
+.try__field select {
+	box-sizing: border-box;
+	width: 100%;
+	min-height: 48px;
+	padding: 10px 14px;
+	border: 1.5px solid #8c9b97;
+	border-radius: 12px;
+	background: var(--surface);
+	color: var(--ink);
+	font: inherit;
+	font-size: 17px;
+}
+/* A field focused by the script (the code, the e-mail) is never left under the sticky header. */
+.try input,
+.try select,
+.try__state {
+	scroll-margin-top: 120px;
+}
+.try__code-input {
+	max-width: 12ch;
+	letter-spacing: 0.2em;
+	font-variant-numeric: tabular-nums;
+}
+[data-product-page] .try select:focus-visible,
+[data-product-page] .try input:focus-visible {
+	outline: 3px solid var(--focus);
+	outline-offset: 2px;
+}
+.try__choice {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	min-height: 44px;
+}
+.try__choice input,
+.try__consent input {
+	flex: none;
+	width: 22px;
+	height: 22px;
+	margin: 0;
+	accent-color: var(--accent);
+}
+.try__consent {
+	display: flex;
+	align-items: flex-start;
+	gap: 12px;
+	margin: 0 0 16px;
+	font-size: 16px;
+	line-height: 1.5;
+}
+.try__consent input {
+	margin-top: 1px;
+}
+.try__hint {
+	margin: 6px 0 0;
+	font-size: 16px;
+	color: var(--text);
+}
+.try__turnstile {
+	margin: 4px 0 16px;
+	min-height: 0;
+}
+.try__button {
+	min-height: 48px;
+	padding: 12px 24px;
+	font-size: 17px;
+}
+.try__button[disabled] {
+	cursor: default;
+	opacity: 0.75;
+	transform: none;
+}
+.try__error {
+	margin: 0 0 12px;
+	padding: 12px 16px;
+	border-left: 4px solid #a33a23;
+	border-radius: 0 12px 12px 0;
+	background: #fdf0ec;
+	color: #7a2a18;
+	font-size: 16px;
+}
+.try__note,
+.try__state {
+	padding: 14px 18px;
+	border-left: 4px solid var(--accent);
+	border-radius: 0 12px 12px 0;
+	background: var(--surface);
+}
+.try__state p:last-child {
+	margin-bottom: 0;
+}
+.try__code > p:first-child {
+	margin-bottom: 12px;
+}

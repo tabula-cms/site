@@ -373,3 +373,43 @@ test('checkNoBreakSpaces: month and year', () => {
 	assert.deepEqual(checkNoBreakSpaces('1\u00a0січня\u00a02027'), []);
 	assert.deepEqual(checkNoBreakSpaces('1&#160;січня&nbsp;2027'), []);
 });
+
+// ---- story 82, slice S1b: «Спробувати» ----
+
+import { checkTryPage, checkTryLinks } from '../scripts/check-built.mjs';
+
+const tryPage = ({ referrer = 'strict-origin-when-cross-origin', robots = true, action = 'https://demo.example.org/__demo/start', extra = '' } = {}) =>
+	`<html><head><meta name="referrer" content="${referrer}">${robots ? '<meta name="robots" content="noindex, nofollow">' : ''}</head><body><main>
+<p data-try-nojs>Демо працює лише з увімкненим JavaScript.</p>
+<input id="try-code" inputmode="numeric" autocomplete="one-time-code" data-try-code-input>
+<form data-try-pass method="post" action="${action}" hidden><input type="hidden" name="pass" value=""></form>${extra}
+</main></body></html>`;
+
+test('checkTryPage: the referrer policy, the pass form, the code field, noindex while closed', () => {
+	const opts = { demoOpen: false, demoUrl: 'https://demo.example.org' };
+	assert.deepEqual(checkTryPage(tryPage(), opts), []);
+	assert.ok(checkTryPage(tryPage({ referrer: 'no-referrer' }), opts).some((p) => p.includes('no-referrer')));
+	assert.ok(checkTryPage(tryPage({ action: 'https://evil.example/__demo/start' }), opts).some((p) => p.includes('does not post')));
+	assert.ok(checkTryPage(tryPage({ robots: false }), opts).some((p) => p.includes('noindex')));
+	assert.ok(checkTryPage(tryPage(), { ...opts, demoOpen: true }).some((p) => p.includes('noindex although')));
+	assert.deepEqual(checkTryPage(tryPage({ robots: false }), { ...opts, demoOpen: true }), []);
+	assert.ok(checkTryPage(tryPage({ extra: '<p>Робота збережеться сама.</p>' }), opts).some((p) => p.includes('saving')));
+	assert.ok(checkTryPage(tryPage().replace('one-time-code', 'off'), opts).some((p) => p.includes('one-time-code')));
+});
+
+test('checkTryLinks: no link while the demo is not public, the footer link once it is', () => {
+	const footer = (links) => `<footer class="site-footer">${links}</footer>`;
+	assert.deepEqual(checkTryLinks(footer(''), { demoOpen: false }), []);
+	assert.equal(checkTryLinks(footer('<a href="/site/sprobuvaty/">x</a>'), { demoOpen: false }).length, 1);
+	assert.equal(checkTryLinks('<p><a href="../sprobuvaty/">x</a></p>', { demoOpen: false, product: false }).length, 1);
+	assert.deepEqual(checkTryLinks(footer('<a href="/site/sprobuvaty/">x</a>'), { demoOpen: true }), []);
+	assert.equal(checkTryLinks(footer(''), { demoOpen: true }).length, 1);
+	assert.deepEqual(checkTryLinks('<p>docs</p>', { demoOpen: true, product: false }), []);
+});
+
+test('checkProductScripts: the try page\'s own bundle only where allowed', () => {
+	const own = '<script type="module" src="/site/_astro/t.js"></script>';
+	const read = () => 'document.querySelector("[data-demo-try]")';
+	assert.equal(checkProductScripts(own, read).length, 1);
+	assert.deepEqual(checkProductScripts(own, read, { allowTry: true }), []);
+});

@@ -33,6 +33,8 @@ const columns = [
 			['Ціна й оплата', page('khostynh-i-tsina')],
 			['Закон і сайт школи', page('zakon-i-sait-shkoly')],
 			['Безпека й дані', page('bezpeka-i-dani')],
+			// Story 82 (S1b): «Спробувати» is linked only once the demo is public.
+			...(offer.demoOpen ? [['Спробувати демо', page('sprobuvaty')]] : []),
 		],
 	},
 	{

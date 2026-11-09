@@ -23,6 +23,7 @@ const PAGES = [
 		.filter((name) => /\.mdx?$/.test(name))
 		.map((name) => `${name.replace(/\.mdx?$/, '')}/`)
 		.sort(),
+	'sprobuvaty/',
 ];
 const WIDTHS = [1280, 320];
 const TAGS = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'];
@@ -118,6 +119,16 @@ async function main() {
 					violations += 1;
 				}
 				violations += await scan(tab, `/${page} @ ${width}px`, started);
+
+				// «Спробувати» (story 82, S1b): every state of the page at once — the form, the code step, the closed
+				// and full states — so the markup the script shows later is scanned too.
+				if (page === 'sprobuvaty/') {
+					const started = Date.now();
+					await tab.evaluate(() => {
+						for (const el of document.querySelectorAll('[data-demo-try] [hidden]:not([data-try-pass])')) el.hidden = false;
+					});
+					violations += await scan(tab, `/${page} @ ${width}px, every state shown`, started);
+				}
 
 				// The home: every tab of both tablists, opened in turn, then scanned.
 				if (page === '') {

@@ -55,6 +55,20 @@ export const offer = Object.freeze({
 	turnstileSiteKey: process.env.TABULA_TURNSTILE_SITEKEY || '',
 	// Decision 24: false until the control plane accepts requests (C1 live); W2 reads it.
 	requestsOpen: false,
+	// Story 82, decision 24: the public demo's button. While false (phase 1, a closed test by invitation) the page
+	// «Спробувати» (/sprobuvaty/) exists but nothing links to it, it is `noindex` and out of the sitemap; the owner hands
+	// out its address. True (after phase 2) adds it to the footer, the sitemap and the search engines.
+	demoOpen: false,
+	// Story 82, decision 30: the kinds whose golden copy exists, as tabula's `--seed` names (DEMO_KINDS below). With one
+	// kind the form's field is hidden and the page says «на прикладі ліцею». Must match the CP's `demo.kinds`.
+	demoKinds: Object.freeze(['school']),
+	// Story 82, decision 1: the demo's origin (https, no path). The page posts the pass to `{demoUrl}/__demo/start`.
+	// TABULA_DEMO_URL overrides it at build time.
+	demoUrl: process.env.TABULA_DEMO_URL || 'https://demo.tabula.org.ua',
+	// Story 82: the site key of the demo's own Turnstile widget (action `demo-signin`; the CP holds its secret,
+	// CP_DEMO_TURNSTILE_SECRET). The owner fills it in; TABULA_DEMO_TURNSTILE_SITEKEY overrides it. While it is empty
+	// the page «Спробувати» shows «Демо тимчасово закрите».
+	demoTurnstileSiteKey: process.env.TABULA_DEMO_TURNSTILE_SITEKEY || '',
 	// Decision 19: where the encrypted copies of the schools' sites are kept today.
 	// Footer-and-audience-pages spec (2026-11-09), answer 7: the copies are on Hetzner, not Backblaze.
 	copiesWhere: 'Hetzner, ЄС',
@@ -249,6 +263,22 @@ export const includesShort = Object.freeze([
 /** `4800` -> `'4 800 грн'`: the sum for running text, no-break spaces (U+00A0) inside and before «грн». */
 export function formatGrn(n) {
 	return `${formatNumber(n).replaceAll(' ', ' ')} грн`;
+}
+
+// Story 82, decision 30: the kinds of institution the demo knows (tabula's `--seed` names) and the form's labels.
+export const DEMO_KINDS = Object.freeze({
+	school: 'Школа, ліцей, гімназія',
+	zdo: 'Садочок',
+	'fakhovyi-koledzh': 'Фаховий коледж',
+	'profesiinyi-koledzh': 'Професійний коледж',
+});
+
+// Story 82, «Texts»: the form's «Хто ви» choices. The CP stores the chosen text as the lead's role.
+export const DEMO_ROLES = Object.freeze(['Учитель', 'Директор', 'Заступник директора', 'Інше']);
+
+/** Story 82, decision 30: the heading of «Спробувати» — «на прикладі ліцею» while the school is the one kind. */
+export function demoHeading(kinds = offer.demoKinds) {
+	return kinds.length === 1 && kinds[0] === 'school' ? 'Спробуйте Tabula на прикладі ліцею' : 'Спробуйте Tabula';
 }
 
 // Story 80, round 3: where the home's «Подивитися приклад сайту» / «Відкрити приклад сайту» lead. `root` is the
