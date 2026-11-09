@@ -845,7 +845,7 @@
 }
 
 /* ---------------------------------------------------------------------------------------------
- * 8. Tabs (both tablists). Without JavaScript the tablist is not shown and every panel is
+ * 8. Tabs (every tablist of the home). Without JavaScript the tablist is not shown and every panel is
  * visible, one under another, each with its heading; src/scripts/tabs.js hides the headings,
  * shows the tablist and the active panel.
  * --------------------------------------------------------------------------------------------- */
@@ -1366,37 +1366,6 @@
 	flex: none;
 	margin-top: 2px;
 }
-.meals__visual {
-	flex: 1 1 520px;
-	min-width: 0;
-	display: flex;
-	gap: 20px;
-	align-items: flex-end;
-	justify-content: center;
-}
-.meals__admin {
-	flex: 0 1 230px;
-	border-radius: 30px;
-	box-shadow: 0 24px 48px rgba(23, 40, 58, 0.2);
-}
-.meals__admin img {
-	aspect-ratio: 9 / 19;
-	border-radius: 24px;
-}
-.meals__col {
-	flex: 0 1 260px;
-	display: flex;
-	flex-direction: column;
-	gap: 14px;
-}
-.meals__day {
-	border-radius: 30px;
-	box-shadow: 0 24px 48px rgba(23, 40, 58, 0.2);
-}
-.meals__day img {
-	aspect-ratio: 9 / 16;
-	border-radius: 24px;
-}
 .chat {
 	background: #f1f5f4;
 	border-radius: 18px;
@@ -1662,64 +1631,216 @@
 	font-size: 15px;
 	color: var(--text);
 }
-.panel__inner {
-	padding-top: 32px;
+/* «Харчування» and «Панель» as step tabs (owner, 2026-11-09: the same idea as the templates, click a step and the
+ * picture changes). WAI-ARIA tabs by src/scripts/tabs.js (vertical: Up/Down as well as Left/Right): each step is a
+ * tab with its title and text, each panel holds that step's picture. Without JavaScript the tablist is hidden and
+ * every panel shows under its own heading with the step's text (`.showcase__note`), one under another. From 900 px
+ * the steps sit beside the picture; below it the picture comes first, right under the heading, so a tap on a step
+ * below changes what is just above it. */
+.showcase {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr);
+	grid-template-areas: 'head' 'stage' 'tabs';
+	gap: 28px;
+	padding-top: 88px;
 	padding-bottom: 88px;
 }
-.panel__text .h2 {
-	max-width: 760px;
+.showcase__head {
+	grid-area: head;
 }
-/* The six steps: cards with a small screenshot each. Under the scroll story (§19) they are a plain list beside
- * the pinned laptop, and the laptop (`panel__stage`) exists only there. */
-.panel__steps {
-	list-style: none;
-	margin: 32px 0 0;
-	padding: 0;
-	display: grid;
-	grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-	gap: 20px;
-}
-.panel__step {
+.showcase__tabs {
+	grid-area: tabs;
 	display: flex;
 	flex-direction: column;
-	background: var(--surface);
-	border: 1px solid #dce5e2;
-	border-radius: 16px;
-	padding: 22px;
+	gap: 4px;
 }
-.panel__step-title {
-	margin: 0;
+.showcase__tabs[hidden] {
+	display: none;
+}
+.showcase__stage {
+	grid-area: stage;
+	min-width: 0;
+}
+.showcase__tab {
+	display: block;
+	width: 100%;
+	text-align: left;
+	font: inherit;
+	background: none;
+	border: 0;
+	border-left: 3px solid #d3dcd9;
+	border-radius: 0 12px 12px 0;
+	padding: 12px 16px;
+	color: #5f6e83;
+	cursor: pointer;
+	transition:
+		color 0.2s ease-out,
+		background-color 0.2s ease-out,
+		border-color 0.2s ease-out;
+}
+.showcase__tab:hover {
+	color: var(--ink);
+	border-left-color: #9fb0ab;
+}
+.showcase__tab[aria-selected='true'] {
+	color: var(--ink);
+	background: rgba(31, 111, 102, 0.07);
+	border-left-color: var(--accent);
+}
+.showcase__tab-title {
+	display: block;
 	font-family: var(--display);
 	font-weight: 600;
 	font-size: 17px;
 	line-height: 1.3;
-	color: var(--ink);
 }
-.panel__step-text {
-	margin: 10px 0 0;
+.showcase__tab-text {
+	display: block;
+	margin-top: 4px;
 	font-size: 15px;
-	line-height: 1.55;
+	line-height: 1.5;
+}
+.showcase__panel + .showcase__panel {
+	margin-top: 48px;
+}
+.tabs--js .showcase__panel + .showcase__panel {
+	margin-top: 0;
+}
+.showcase__note {
+	margin: 0 0 20px;
+	font-size: 17px;
+	line-height: 1.5;
 	color: var(--text);
 }
-.panel__card-shot {
-	margin-top: auto;
-	padding-top: 16px;
+.tabs--js .showcase__note {
+	display: none;
 }
-.panel__card-shot img {
-	display: block;
-	width: 100%;
-	height: auto;
+.showcase__visual {
+	position: relative;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+}
+.showcase__caption {
+	list-style: none;
+	margin: 16px 0 0;
+	padding: 0;
+	text-align: center;
+	font-size: 15px;
+	line-height: 1.5;
+	color: var(--text);
+}
+@media (min-width: 900px) {
+	.showcase {
+		grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+		grid-template-areas: 'head stage' 'tabs stage';
+		grid-template-rows: auto 1fr;
+		gap: 24px 64px;
+		align-items: start;
+	}
+	.showcase--wide {
+		grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+		gap: 24px 56px;
+	}
+	.showcase__stage {
+		align-self: center;
+	}
+}
+
+/* «Харчування»: one phone (or the sheet) per step; the stage keeps one height so the steps do not jump. */
+.tabs--js #meals .showcase__stage {
+	min-height: 540px;
+	display: grid;
+	align-items: center;
+}
+#meals .phone-frame {
+	width: min(240px, 62vw);
+	border-radius: 30px;
+}
+#meals .phone-frame img {
+	aspect-ratio: 9 / 16;
+	object-fit: cover;
+	object-position: top;
+	border-radius: 24px;
+}
+#meals .phone-frame--tall img {
+	aspect-ratio: 9 / 19;
+}
+#meals .chat {
+	position: absolute;
+	z-index: 1;
+	width: min(230px, 48vw);
+	right: max(0px, calc(50% - 250px));
+	bottom: 24px;
+}
+#meals .showcase__visual--share {
+	justify-content: flex-start;
+	padding-left: max(0px, calc(50% - 170px));
+}
+.meals__sheet {
+	width: min(380px, 100%);
+}
+.meals__sheet-paper {
+	position: relative;
+	overflow: hidden;
+	background: #fffcf0;
+	border: 1px solid #efe6c8;
+	border-radius: 8px;
+	padding: 18px 20px;
+	box-shadow: 0 18px 36px rgba(23, 40, 58, 0.14);
+	transform: rotate(-1.5deg);
+}
+.meals__sheet-hand {
+	margin: 0;
+	font-family: 'Caveat', cursive;
+	font-weight: 600;
+	font-size: 26px;
+	line-height: 1.25;
+	color: var(--hand);
+}
+.meals__sheet-scan {
+	display: none;
+}
+.meals__sheet-out {
+	margin-top: 16px;
+	background: var(--surface);
+	border: 1px solid #dce5e2;
+	border-radius: 14px;
+	padding: 12px 16px;
+	font-size: 15px;
+	line-height: 1.5;
+	box-shadow: 0 10px 24px rgba(23, 40, 58, 0.08);
+}
+.meals__sheet-out p {
+	margin: 0;
+}
+.meals__sheet-out b {
+	display: inline-block;
+	min-width: 64px;
+	color: var(--ink);
+}
+
+/* «Панель»: the laptop's screen is the panel; the frame is drawn the same in every panel, so only the screen changes. */
+#panel .laptop__screen {
+	overflow: hidden;
+}
+#panel .laptop__screen img {
 	aspect-ratio: 16 / 9;
 	object-fit: cover;
 	object-position: left top;
 	background: #ffffff;
-	border: 1px solid #dce5e2;
-	border-radius: 10px;
 }
-.panel__stage,
-.panel__track {
-	display: none;
+#panel .laptop__base {
+	margin: 0 -2%;
 }
+#panel .showcase {
+	padding-top: 32px;
+	padding-bottom: 0;
+}
+.panel__foot {
+	padding-bottom: 88px;
+}
+
 /* The five short lines under the scene (they are not steps). */
 .panel__notes {
 	list-style: none;
@@ -2182,14 +2303,6 @@
 		transform: none;
 	}
 }
-@keyframes from-left {
-	from {
-		transform: translateX(-40px);
-	}
-	to {
-		transform: none;
-	}
-}
 @keyframes hero-settle {
 	from {
 		transform: translateY(14px) scale(0.985);
@@ -2282,17 +2395,7 @@
 			animation-range-start: entry 0%;
 			animation-range-end: entry 40%;
 		}
-		.meals__admin,
 		.look__phone {
-			animation-name: from-right;
-			animation-timing-function: linear;
-			animation-fill-mode: both;
-		}
-		.meals__admin {
-			animation-name: from-left;
-		}
-		.meals__day,
-		.chat {
 			animation-name: from-right;
 			animation-timing-function: linear;
 			animation-fill-mode: both;
@@ -2302,17 +2405,11 @@
 			animation-timing-function: linear;
 			animation-fill-mode: both;
 		}
-		.meals__admin,
 		.look__phone,
-		.meals__day,
-		.chat,
 		.docs-card {
 			animation-timeline: view();
 		}
-		.meals__admin,
 		.look__phone,
-		.meals__day,
-		.chat,
 		.docs-card {
 			animation-range-start: entry 0%;
 			animation-range-end: entry 40%;
@@ -2962,26 +3059,6 @@
 		transform: none;
 	}
 }
-/* The pinned stories (§18 items 5 and 6): the step is chosen by src/scripts/stories.js, the change is timed. */
-@keyframes scan-sweep {
-	from {
-		translate: 0 -100%;
-	}
-	to {
-		translate: 0 0;
-	}
-}
-
-/* The story's extra screens are display:none everywhere except in the story itself. */
-.meals__alle,
-.meals__sheet,
-.meals__track,
-.meals__dots {
-	display: none;
-}
-.meals__pin {
-	display: contents;
-}
 .count,
 .count__real,
 .count__anim {
@@ -3223,439 +3300,75 @@
 		}
 	}
 
-	/* 5. «Харчування» as a pinned story, from 900 px with src/scripts/stories.js running (it sets `data-story`; without
-	 * it the section is the static layout). The heading, the four points and one phone stage are pinned together
-	 * (`.meals__pin`, sticky); four invisible spacers (`.meals__track`, `--story-step` each) give the scroll its
-	 * length. The scroll only chooses the step: a short scroll past a threshold switches it, and the change itself
-	 * is a timed transition (the outgoing screen fades, the new one rises in), so the stage never stops half-way
-	 * between two screens. The page scrolls normally; nothing snaps. The current point is dark with an accent bar,
-	 * the others #5f6e83 (colours, not opacity, so every point keeps ≥ 4.5:1); the dots beside the phone follow. */
-	#meals[data-story],
-	#panel[data-story] {
-		--story-step: 26vh;
-		--story-ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+	/* 5. The step tabs of «Харчування» and «Панель» (owner, 2026-11-09, replacing the pinned scroll stories): the new
+	 * step's picture rises in by itself when its tab is chosen, nothing is tied to the scroll. «Панель» moves only the
+	 * screen inside the laptop; «Харчування» brings the phone in, then the chat card from the right, and on the sheet
+	 * the scan line runs once before the recognised lines appear. */
+	.tabs--js #meals .showcase__panel:not([hidden]) :is(.phone-frame, .meals__sheet-paper) {
+		animation: showcase-in 0.55s cubic-bezier(0.2, 0.7, 0.2, 1) both;
 	}
-	@media (min-width: 900px) {
-		#meals[data-story] .split {
-			display: grid;
-			grid-template-columns: minmax(0, 1fr);
-			padding-bottom: 0;
-		}
-		#meals[data-story] .reveal,
-		#meals[data-story] .ticks > li,
-		#meals[data-story] .meals__admin,
-		#meals[data-story] .meals__day,
-		#meals[data-story] .chat {
-			animation: none;
-		}
-		#meals[data-story] .meals__pin,
-		#meals[data-story] .meals__track {
-			grid-area: 1 / 1;
-		}
-		#meals[data-story] .meals__pin {
-			position: sticky;
-			top: max(84px, calc(50vh - 300px));
-			display: grid;
-			grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-			gap: 0 64px;
-			align-items: center;
-			align-self: start;
-			height: 600px;
-		}
-		#meals[data-story] .meals__track {
-			display: block;
-			/* the pin, three switches, and a short tail: the finished sheet stays pinned a moment before the stage leaves */
-			height: calc(600px + 3 * var(--story-step) + 24vh);
-			pointer-events: none;
-		}
-		#meals[data-story] .meals__track i {
-			display: block;
-			height: var(--story-step);
-		}
-		#meals[data-story] .ticks {
-			gap: 12px;
-			margin-top: 24px;
-			font-size: 19px;
-			line-height: 1.45;
-		}
-		#meals[data-story] .ticks > li {
-			padding: 8px 0 8px 16px;
-			border-left: 3px solid transparent;
-			align-items: flex-start;
-			color: #5f6e83;
-			transition:
-				color 0.3s ease,
-				border-left-color 0.3s ease,
-				opacity 0.3s ease,
-				translate 0.3s ease;
-		}
-		#meals[data-story] .ticks > li.is-on {
-			color: var(--ink);
-			border-left-color: var(--accent);
-		}
-		/* the points after the first are not there until their step comes (#28): the list grows with the story */
-		#meals[data-story] .ticks > li:not(.is-on, .is-past),
-		#panel[data-story] .panel__step:not(.is-on, .is-past) {
-			opacity: 0;
-			translate: 0 14px;
-		}
-		#meals[data-story] .ticks > li.is-on,
-		#panel[data-story] .panel__step.is-on {
-			transition:
-				color 0.3s ease,
-				border-left-color 0.3s ease,
-				opacity 0.4s ease,
-				translate 0.5s var(--story-ease);
-		}
-		#meals[data-story] .meals__visual {
-			position: relative;
-			display: block;
-			container-type: inline-size;
-			width: 100%;
-			max-width: 560px;
-			height: 600px;
-			margin: 0 auto;
-		}
-		#meals[data-story] .meals__col {
-			display: contents;
-		}
-		#meals[data-story] .meals__admin,
-		#meals[data-story] .meals__day,
-		#meals[data-story] .meals__alle {
-			position: absolute;
-			top: 8px;
-			flex: none;
-		}
-		#meals[data-story] .meals__admin {
-			width: 48cqw;
-			left: calc(50% - 36cqw);
-		}
-		#meals[data-story] .meals__day,
-		#meals[data-story] .meals__alle {
-			width: 52cqw;
-			left: calc(50% - 38cqw);
-		}
-		#meals[data-story] .meals__alle {
-			display: block;
-			border-radius: 30px;
-			box-shadow: 0 24px 48px rgba(23, 40, 58, 0.2);
-		}
-		#meals[data-story] .meals__alle img {
-			aspect-ratio: 9 / 16;
-			border-radius: 24px;
-		}
-		#meals[data-story] .chat {
-			position: absolute;
-			width: 34cqw;
-			left: calc(50% + 16cqw);
-			bottom: 70px;
-			z-index: 2;
-		}
-		#meals[data-story] .meals__sheet {
-			display: block;
-			position: absolute;
-			top: 120px;
-			left: calc(50% - 43cqw);
-			width: 62cqw;
-		}
-		#meals[data-story] .meals__sheet-paper {
-			position: relative;
-			overflow: hidden;
-			background: #fffcf0;
-			border: 1px solid #efe6c8;
-			border-radius: 8px;
-			padding: 18px 20px;
-			box-shadow: 0 18px 36px rgba(23, 40, 58, 0.14);
-			transform: rotate(-1.5deg);
-		}
-		#meals[data-story] .meals__sheet-hand {
-			margin: 0;
-			font-family: 'Caveat', cursive;
-			font-weight: 600;
-			font-size: 26px;
-			line-height: 1.25;
-			color: var(--hand);
-		}
-		#meals[data-story] .meals__sheet-scan {
-			position: absolute;
-			inset: 0;
-			background: linear-gradient(180deg, rgba(31, 111, 102, 0) 70%, rgba(31, 111, 102, 0.22) 100%);
-			border-bottom: 2px solid var(--accent);
-			translate: 0 -100%;
-		}
-		#meals[data-story] .meals__sheet-out {
-			margin-top: 16px;
-			background: var(--surface);
-			border: 1px solid #dce5e2;
-			border-radius: 14px;
-			padding: 12px 16px;
-			font-size: 15px;
-			line-height: 1.5;
-			box-shadow: 0 10px 24px rgba(23, 40, 58, 0.08);
-		}
-		#meals[data-story] .meals__sheet-out p {
-			margin: 0;
-		}
-		#meals[data-story] .meals__sheet-out b {
-			display: inline-block;
-			min-width: 64px;
-			color: var(--ink);
-		}
-		/* the four dots at the stage's left edge: the current one is filled */
-		#meals[data-story] .meals__dots {
-			display: flex;
-			flex-direction: column;
-			gap: 10px;
-			position: absolute;
-			left: 0;
-			top: 50%;
-			translate: 0 -50%;
-		}
-		#meals[data-story] .meals__dots i,
-		#panel[data-story] .panel__dots i {
-			position: relative;
-			display: block;
-			width: 10px;
-			height: 10px;
-			border-radius: 50%;
-			background: #d3dcd9;
-		}
-		#meals[data-story] .meals__dots i::after,
-		#panel[data-story] .panel__dots i::after {
-			content: '';
-			position: absolute;
-			inset: 0;
-			border-radius: 50%;
-			background: var(--accent);
-			opacity: 0;
-			scale: 0.4;
-			transition:
-				opacity 0.3s ease,
-				scale 0.4s var(--story-ease);
-		}
-		#meals[data-story] .meals__dots i.is-on::after,
-		#panel[data-story] .panel__dots i.is-on::after {
-			opacity: 1;
-			scale: 1;
-		}
-		/* the switch (#28's stack, now timed): a new phone rises ~72 px with a 5° turn and lands on top (0.6 s); the one
-		 * under it slides left, shrinks to .9 and darkens, so the stack fans out. Scrolling back lifts the top one off.
-		 * `visibility` keeps a phone that is not there yet from catching clicks. */
-		#meals[data-story] :is(.meals__admin, .meals__day, .meals__alle, .meals__sheet) {
-			opacity: 0;
-			visibility: hidden;
-			translate: 0 72px;
-			rotate: 5deg;
-			transition:
-				opacity 0.25s ease,
-				translate 0.35s ease,
-				rotate 0.35s ease,
-				scale 0.35s ease,
-				filter 0.35s ease,
-				visibility 0s linear 0.35s;
-		}
-		#meals[data-story] :is(.meals__admin, .meals__day, .meals__alle, .meals__sheet):is(.is-on, .is-past) {
-			opacity: 1;
-			visibility: visible;
-			translate: 0 0;
-			rotate: 0deg;
-			transition:
-				opacity 0.3s ease,
-				translate 0.6s var(--story-ease),
-				rotate 0.6s var(--story-ease),
-				scale 0.6s var(--story-ease),
-				filter 0.6s ease,
-				visibility 0s linear 0s;
-		}
-		#meals[data-story] :is(.meals__admin, .meals__day, .meals__alle).is-past {
-			translate: -13cqw 10px;
-			scale: 0.9;
-			filter: brightness(0.9);
-		}
-		/* the chat card follows its phone in from the right and leaves when the next phone comes */
-		#meals[data-story] .chat {
-			opacity: 0;
-			visibility: hidden;
-			translate: 5cqw 0;
-			transition:
-				opacity 0.25s ease,
-				translate 0.3s ease,
-				visibility 0s linear 0.3s;
-		}
-		#meals[data-story] .chat.is-on {
-			opacity: 1;
-			visibility: visible;
-			translate: 0 0;
-			transition:
-				opacity 0.4s ease 0.4s,
-				translate 0.6s var(--story-ease) 0.4s,
-				visibility 0s linear 0s;
-		}
-		/* the sheet: the scan line runs down once, then the recognised lines appear */
-		#meals[data-story] .meals__sheet.is-on .meals__sheet-scan {
-			animation: scan-sweep 0.9s var(--story-ease) 0.45s both;
-		}
-		#meals[data-story] .meals__sheet-out {
-			opacity: 0;
-			translate: 0 8px;
-			transition:
-				opacity 0.2s ease,
-				translate 0.2s ease;
-		}
-		#meals[data-story] .meals__sheet.is-on .meals__sheet-out {
-			opacity: 1;
-			translate: 0 0;
-			transition:
-				opacity 0.4s ease 1.25s,
-				translate 0.5s var(--story-ease) 1.25s;
-		}
+	.tabs--js #meals .showcase__panel:not([hidden]) .chat {
+		animation: showcase-side 0.5s cubic-bezier(0.2, 0.7, 0.2, 1) 0.3s both;
 	}
-
-	/* 6. «Панель» as a pinned story, the same model as item 5, from 900 px wide and 780 px high (the pin is sized to
-	 * its content: at most 628 px from 900 px wide up, measured 614–628, plus 84 px of header room and some air). The
-	 * heading, the six steps and the laptop are pinned together (`.panel__pin`); six invisible spacers
-	 * (`.panel__track`) give the scroll its length; a short scroll switches the step, and the laptop's screen changes
-	 * by a timed transition. The current step is dark with an accent bar and the others #5f6e83; the six dots
-	 * follow. Below that size, without JavaScript, or under reduced motion the section is the static list of cards
-	 * (the small screenshots) and the laptop is not shown. */
-	@media (min-width: 900px) and (min-height: 780px) {
-		#panel[data-story] .panel__story {
-			display: grid;
-			grid-template-columns: minmax(0, 1fr);
-		}
-		#panel[data-story] .reveal,
-		#panel[data-story] .panel__step {
-			animation: none;
-		}
-		#panel[data-story] .panel__pin,
-		#panel[data-story] .panel__track {
-			grid-area: 1 / 1;
-		}
-		#panel[data-story] .panel__pin {
-			position: sticky;
-			top: 84px;
-			display: grid;
-			grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
-			gap: 0 56px;
-			align-items: center;
-			align-self: start;
-		}
-		#panel[data-story] .panel__track {
-			display: block;
-			/* the pin (≤ 628 px), five switches and a short tail */
-			height: calc(640px + 5 * var(--story-step) + 24vh);
-			pointer-events: none;
-		}
-		#panel[data-story] .panel__track i {
-			display: block;
-			height: var(--story-step);
-		}
-		#panel[data-story] .panel__text .h2 {
-			font-size: clamp(28px, 3.4vw, 40px);
-		}
-		#panel[data-story] .panel__steps {
-			display: flex;
-			flex-direction: column;
-			gap: 4px;
-			margin-top: 22px;
-		}
-		#panel[data-story] .panel__step {
-			background: none;
-			border: 0;
-			border-left: 3px solid transparent;
-			border-radius: 0;
-			padding: 7px 0 7px 16px;
-			color: #5f6e83;
-			transition:
-				color 0.3s ease,
-				border-left-color 0.3s ease,
-				opacity 0.3s ease,
-				translate 0.3s ease;
-		}
-		#panel[data-story] .panel__step.is-on {
-			color: var(--ink);
-			border-left-color: var(--accent);
-		}
-		#panel[data-story] .panel__step-title {
-			font-size: 16px;
-			color: inherit;
-		}
-		#panel[data-story] .panel__step-text {
-			margin-top: 4px;
-			font-size: 15px;
-			line-height: 1.45;
-			color: inherit;
-		}
-		#panel[data-story] .panel__card-shot {
-			display: none;
-		}
-		#panel[data-story] .panel__stage {
-			display: block;
-			position: relative;
-			padding-left: 28px;
-		}
-		#panel[data-story] .panel__screens {
-			position: relative;
-			aspect-ratio: 16 / 9;
-			overflow: hidden;
-			background: #ffffff;
-			border-radius: 6px 6px 0 0;
-		}
-		/* a new screen is laid on the laptop over the previous one (#28's stack, now timed): it rises from 42 % below
-		 * with a top shadow, the one beneath shrinks to .93 and darkens; scrolling back lifts it off */
-		#panel[data-story] .panel__screen {
-			position: absolute;
-			inset: 0;
-			opacity: 0;
-			visibility: hidden;
-			translate: 0 42%;
-			transition:
-				opacity 0.25s ease,
-				translate 0.35s ease,
-				scale 0.35s ease,
-				filter 0.35s ease,
-				visibility 0s linear 0.35s;
-		}
-		#panel[data-story] .panel__screen:is(.is-on, .is-past) {
-			opacity: 1;
-			visibility: visible;
-			translate: 0 0;
-			transition:
-				opacity 0.25s ease,
-				translate 0.6s var(--story-ease),
-				scale 0.6s var(--story-ease),
-				filter 0.6s ease,
-				visibility 0s linear 0s;
-		}
-		#panel[data-story] .panel__screen.is-past {
-			scale: 0.93;
-			filter: brightness(0.82);
-		}
-		/* the shadow of a screen being laid on: the screens' own overflow clips it once the screen is in place */
-		#panel[data-story] .panel__screen + .panel__screen {
-			box-shadow: 0 -14px 32px rgba(23, 40, 58, 0.28);
-		}
-		#panel[data-story] .panel__screen img {
-			width: 100%;
-			height: 100%;
-			border-radius: 0;
-			object-position: left top;
-		}
-		#panel[data-story] .laptop__base {
-			margin: 0 -2%;
-		}
-		/* the six dots at the stage's left edge (their look is shared with item 5) */
-		#panel[data-story] .panel__dots {
-			display: flex;
-			flex-direction: column;
-			gap: 10px;
-			position: absolute;
-			left: 0;
-			top: 50%;
-			translate: 0 -50%;
-		}
-		#panel[data-story] .panel__notes {
-			margin-top: 24px;
-		}
+	.tabs--js #meals .showcase__panel:not([hidden]) .meals__sheet-scan {
+		display: block;
+		position: absolute;
+		inset: 0;
+		background: linear-gradient(180deg, rgba(31, 111, 102, 0) 70%, rgba(31, 111, 102, 0.22) 100%);
+		border-bottom: 2px solid var(--accent);
+		pointer-events: none;
+		animation: showcase-scan 1s ease-in-out 0.35s both;
+	}
+	.tabs--js #meals .showcase__panel:not([hidden]) .meals__sheet-out {
+		animation: showcase-in 0.45s cubic-bezier(0.2, 0.7, 0.2, 1) 1.2s both;
+	}
+	.tabs--js #panel .showcase__panel:not([hidden]) .laptop__screen img {
+		animation: showcase-screen 0.5s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+	}
+}
+@keyframes showcase-in {
+	from {
+		opacity: 0;
+		translate: 0 24px;
+		scale: 0.98;
+	}
+	to {
+		opacity: 1;
+		translate: 0 0;
+		scale: 1;
+	}
+}
+@keyframes showcase-side {
+	from {
+		opacity: 0;
+		translate: 32px 0;
+	}
+	to {
+		opacity: 1;
+		translate: 0 0;
+	}
+}
+@keyframes showcase-scan {
+	from {
+		translate: 0 -100%;
+		opacity: 1;
+	}
+	85% {
+		translate: 0 0;
+		opacity: 1;
+	}
+	to {
+		translate: 0 0;
+		opacity: 0;
+	}
+}
+@keyframes showcase-screen {
+	from {
+		opacity: 0;
+		translate: 0 8%;
+	}
+	to {
+		opacity: 1;
+		translate: 0 0;
 	}
 }
