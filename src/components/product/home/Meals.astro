@@ -9,34 +9,35 @@ import { shots } from '../shots';
 const base = import.meta.env.BASE_URL;
 const root = base.endsWith('/') ? base : `${base}/`;
 //
-// From 900 px with scroll-driven animations (CSS only, product.css §18) the section is a scroll story: the
-// heading, the four points and one phone stage stay pinned (`meals__pin`, `display: contents` otherwise) while four
-// invisible spacers (`meals__track`) give the scroll its length and its four timelines; the screens crossfade. The two
+// From 900 px with motion allowed and src/scripts/stories.js running (product.css §18 item 5) the section is a
+// pinned story: the heading, the four points and one phone stage stay pinned (`meals__pin`, `display: contents`
+// otherwise) while four invisible spacers (`meals__track`) give the scroll its length; the script marks the
+// current step's `[data-at]` parts `is-on`, and the screens switch with a short timed transition. The two
 // extra screens below (`meals__alle`, `meals__sheet`) exist only for that story: they are `display: none`
 // everywhere else, and `meals__sheet` is a decorative repeat of the assistant's sheet (`aria-hidden`).
 ---
 
-<section id="meals" class="anchor band">
+<section id="meals" class="anchor band" data-story-section>
 	<div class="wrap split">
-		<div class="meals__pin">
+		<div class="meals__pin" data-story-pin>
 		<div class="reveal split__text">
 			<h2 class="h2">Харчування — за хвилину з&#160;телефона</h2>
 			<ul class="ticks">
-				<li><Tick /><span><b>Чотири дотики:</b> сфотографували порцію в їдальні — день уже на сайті.</span></li>
-				<li><Tick /><span><b>«Поділитися» у Viber і Telegram:</b> у кожного дня своя адреса, у чаті батьків видно фото й страви.</span></li>
-				<li><Tick /><span><b>Алергени й калорійність</b> біля кожної страви: 15 алергенів за <a href={`${root}zakon-i-sait-shkoly/`}>постановою №&#160;305</a>.</span></li>
-				<li><Tick /><span><b>ШІ-помічник</b> читає меню з фото аркуша й перевіряє, чи не потрапили в кадр діти.</span></li>
+				<li data-at="0"><Tick /><span><b>Чотири дотики:</b> сфотографували порцію в їдальні — день уже на сайті.</span></li>
+				<li data-at="1"><Tick /><span><b>«Поділитися» у Viber і Telegram:</b> у кожного дня своя адреса, у чаті батьків видно фото й страви.</span></li>
+				<li data-at="2"><Tick /><span><b>Алергени й калорійність</b> біля кожної страви: 15 алергенів за <a href={`${root}zakon-i-sait-shkoly/`}>постановою №&#160;305</a>.</span></li>
+				<li data-at="3"><Tick /><span><b>ШІ-помічник</b> читає меню з фото аркуша й перевіряє, чи не потрапили в кадр діти.</span></li>
 			</ul>
 		</div>
 		<div class="reveal meals__visual">
-			<div class="phone-frame meals__admin">
+			<div class="phone-frame meals__admin" data-at="0">
 				<Shot src={shots.adminMeals} alt="Панель на телефоні: екран «Харчування» з кнопкою «Сфотографувати порцію»" widths={[230, 460, 580]} sizes="(min-width: 900px) 270px, 230px" />
 			</div>
 			<div class="meals__col">
-				<div class="phone-frame meals__day">
+				<div class="phone-frame meals__day" data-at="1">
 					<Shot src={shots.phoneMealDay} alt="Сторінка дня на сайті з кнопками «Поділитися», Telegram і Viber" widths={[260, 520, 600]} sizes="(min-width: 900px) 292px, 260px" />
 				</div>
-				<div class="chat">
+				<div class="chat" data-at="1">
 					<p class="chat__name">Чат «Батьки 5-А»</p>
 					<div class="chat__bubble">
 						<div class="chat__row">
@@ -50,10 +51,10 @@ const root = base.endsWith('/') ? base : `${base}/`;
 					</div>
 				</div>
 			</div>
-			<div class="phone-frame meals__alle">
+			<div class="phone-frame meals__alle" data-at="2">
 				<Shot src={shots.phoneMealAllergens} alt="Сторінка дня на сайті: біля кожної страви рядок «алергени: …» і калорійність, під меню — розшифровка кодів" widths={[260, 520, 600]} sizes="292px" />
 			</div>
-			<div class="meals__sheet" aria-hidden="true">
+			<div class="meals__sheet" data-at="3" aria-hidden="true">
 				<div class="meals__sheet-paper">
 					<p class="meals__sheet-hand">Вівторок<br />Сніданок — каша вівсяна з ягодами, чай<br />Обід — борщ, котлета з пюре, компот</p>
 					<div class="meals__sheet-scan"></div>
@@ -63,9 +64,9 @@ const root = base.endsWith('/') ? base : `${base}/`;
 					<p><b>Обід</b> Борщ · Котлета з пюре</p>
 				</div>
 			</div>
-			<div class="meals__dots" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+			<div class="meals__dots" aria-hidden="true"><i data-at="0"></i><i data-at="1"></i><i data-at="2"></i><i data-at="3"></i></div>
 		</div>
 		</div>
-		<div class="meals__track" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+		<div class="meals__track" aria-hidden="true" data-story-track><i></i><i></i><i></i><i></i></div>
 	</div>
 </section>
