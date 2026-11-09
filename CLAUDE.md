@@ -2,7 +2,7 @@
 
 > Internal reference for Claude Code sessions working in this repository.
 >
-> **Last verified: 2026-11-09 (story 80, round 3).**
+> **Last verified: 2026-11-09 (footer and audience pages).**
 >
 > **How to keep this file honest:** every pull request that changes a convention, a command,
 > or the file layout updates the matching section of this file in the same PR.
@@ -39,19 +39,20 @@ Exists now:
 | `src/routeData.ts` | Route data middleware that applies a page's `lang` frontmatter to its `<html lang>` — see Conventions |
 | `src/pages/index.astro` | Story 80 (S1): the home, sections 1–13 (plus «Для шкіл, садочків і коледжів», id `kinds`, after the four things: four tiles for the kinds of institution, `Kinds.astro`, no header link) in the product layout (`src/components/product/home/*`); replaced `src/content/docs/index.mdx`, which was deleted |
 | `src/layouts/Product.astro`, `src/styles/product.css` | Story 80: the product layout (`<html data-product-page>`, skip link, one `<h1>`, own CSS, self-hosted fonts) — see Conventions |
-| `src/components/product/` | Story 80: `Header.astro`, `Footer.astro` (with the `help` slot; its «Продукт» column lists «Демо-сайт»), `Shot.astro` (responsive `astro:assets` image), `Tick.astro`, `shots.ts` (the screenshots + hero preload options), `home/*.astro` (one component per section) |
+| `src/components/product/` | Story 80: `Header.astro`, `Footer.astro` (with the `help` slot; three link columns and a bottom row, see Conventions), `Shot.astro` (responsive `astro:assets` image), `Tick.astro`, `shots.ts` (the screenshots + hero preload options), `home/*.astro` (one component per section) |
 | `src/scripts/tabs.js`, `src/scripts/header.js` | Story 80: the only two scripts of the product pages (tabs with keyboard support; header shadow and «Меню») |
 | `src/assets/shots/` | Story 80: the home's screenshots (WebP) and `facts.json` (`lawFilled`/`lawTotal`), written by `scripts/shots.mjs`; committed |
 | `scripts/shots.mjs` (`npm run shots`), `scripts/lib/shot-kep-line.cjs` | Story 80: reproducible screenshots from a running tabula demo; the `SHOTS` table is exported and tested in `test/shots.test.mjs` |
 | `scripts/budget.mjs` (`npm run budget`), `scripts/lib/serve-dist.mjs` | Story 80: the home's performance budget (600 KB at 390 px, lazy images, LCP preload); the static server of `dist/` shared with `a11y.mjs` |
 | `THIRD_PARTY_LICENSES.md` | The fonts (SIL OFL 1.1, via Fontsource) and the CC0 photos |
 | `test/tabs.test.mjs`, `test/shots.test.mjs` | `node --test`: tabs keyboard logic (pure helper + a fake DOM); the `SHOTS` table (every file exists, starts `RIFF….WEBP`, `facts.json` valid) |
-| `src/content/pages/*.md(x)`, `src/pages/[slug].astro`, `src/layouts/ProductPage.astro` | Story 80 (S2): the twelve reading pages of the site (the `pages` collection), at `/<slug>/` in the product layout; the `.mdx` ones import `offer.mjs` for the numbers and dates |
-| `src/config/offer.mjs` | Story 78 (W1): the **one source of the offer's numbers and dates** — `pilotUntil`, `priceYearUah`, `priceQuarterUah`, `asOf`, reply times, contacts, `cpUrl` / `turnstileSiteKey` (env `TABULA_CP_URL`, `TABULA_TURNSTILE_SITEKEY`), `requestsOpen`, `copiesWhere`; plus the operator line, the "what the institution gets" list (`includes`) and formatters. No page types a price or a date of the offer by hand: such a page is `.mdx` and imports this module; story 80 added `assistantStatus`, `demoSiteUrl`, `supportEmail` (the one public address; `contactEmail` is gone), `includesShort` (the price card's lines, each with `coveredBy` indexes into `includes`) and the helpers `withinWorkingDays`, `formatDateLongYear`, `yearOf`, `formatUah`; story 82 (S1a) added `complaintEmail` (the owner fills it in; `complaintEmail()` falls back to `privacyEmail()` while it is null), used by the section «Демо» (`#demo`) of `personalni-dani.mdx` |
-| `scripts/check-built.mjs` (`npm run check:built`; also runs after the build via `postbuild`) | Story 78/80: the product-page rules on all twelve product pages (header, no Starlight chrome, no header/footer link into the docs, forbidden phrases, ʼ, no-break spaces, «станом на» on the own pages, `zaiavka` scripts), the doc-page chrome rules, the operator line on every page. Rules are exported and unit-tested in `test/check-built.test.mjs` |
+| `src/content/pages/*.md(x)`, `src/pages/[slug].astro`, `src/layouts/ProductPage.astro` | Story 80 (S2): the thirteen reading pages of the site (the `pages` collection), at `/<slug>/` in the product layout; the `.mdx` ones import `offer.mjs` for the numbers and dates |
+| `src/config/offer.mjs` | Story 78 (W1): the **one source of the offer's numbers and dates** — `pilotUntil`, `priceYearUah`, `priceQuarterUah`, `asOf`, reply times, contacts, `cpUrl` / `turnstileSiteKey` (env `TABULA_CP_URL`, `TABULA_TURNSTILE_SITEKEY`), `requestsOpen`, `copiesWhere` (Hetzner), `backupRetentionDays`, `exitClosedDays`; plus `footerLine` (the footer bottom line), `exitText`, the "what the institution gets" list (`includes`) and formatters. No page types a price or a date of the offer by hand: such a page is `.mdx` and imports this module; story 80 added `assistantStatus`, `demoSiteUrl`, `supportEmail` (the one public address; `contactEmail` is gone), `includesShort` (the price card's lines, each with `coveredBy` indexes into `includes`) and the helpers `withinWorkingDays`, `formatDateLongYear`, `yearOf`, `formatUah`; story 82 (S1a) added `complaintEmail` (the owner fills it in; `complaintEmail()` falls back to `privacyEmail()` while it is null), used by the section «Демо» (`#demo`) of `personalni-dani.mdx` |
+| `scripts/check-built.mjs` (`npm run check:built`; also runs after the build via `postbuild`) | Story 78/80: the product-page rules on all thirteen product pages (header, no Starlight chrome, no header/footer link into the docs, forbidden phrases, ʼ, no-break spaces, «станом на» on the own pages, `zaiavka` scripts), the doc-page chrome rules, `footerLine` on every page, `CLOSED_SERVICE_PATTERNS` on the product pages. Rules are exported and unit-tested in `test/check-built.test.mjs` |
 | `scripts/a11y.mjs` (`npm run a11y`) | Story 78/80: axe-core (WCAG 2.2 AA) over the home and every reading page at 1280 and 320 px (reduced motion) in headless Chromium, served from `dist/`; CI job `a11y` |
 | `src/styles/site.css` | `customCss` for the Starlight (documentation) config: the deep ink-blue accent palette and the light-mode header border — see Conventions |
-| `src/components/Footer.astro` | `Footer` override for the documentation: Starlight's default footer, then «На головну Tabula», the GitHub links, the tagline and the operator line |
+| `src/components/EditLink.astro` | `EditLink` override that renders nothing (the docs' `editUrl` points into a private repository) |
+| `src/components/Footer.astro` | `Footer` override for the documentation: Starlight's default footer, then «На головну Tabula», «Підтримка», `footerLine` and «© 2026 Tabula» (no GitHub or licence links) |
 | `src/components/SiteTitle.astro` | `SiteTitle` override: the text default plus a small inline SVG wordmark mark |
 | `public/favicon.svg` | The site's mark (story 80, S1): the teal rounded square with the white «T», the same drawing as the product header's inline SVG, with literal hex colours (`#1F6F66`); Starlight's pages use the same file |
 | `scripts/lib/docs-transform.mjs` | Pure functions used by `fetch-docs.mjs`: frontmatter building/serialisation, link rewriting, `sidebar.order` from `docs/INDEX.md`, `editUrl` mapping, back-link removal. No filesystem or network access — this is what `test/docs-transform.test.mjs` unit-tests directly. |
@@ -144,10 +145,16 @@ happens in each workflow, not in the composite action. Both checkouts pass
 
 ## Conventions
 
-- The home (`/`) and the twelve reading pages are not Starlight pages. The home is `src/pages/index.astro` (product layout,
-  see the product-pages bullet below). The reading pages (`yak-tse-pratsiuie`, `khostynh-i-tsina`, `dlia-bukhhalterii`, `demo`,
-  `zakon-i-sait-shkoly`, `bezpeka-i-dani`, `pidtrymka`, `dostupnist`, `personalni-dani`, `zaiavka`, `pro-proiekt`,
-  `vstanovyty-samostiino`) live in the `pages` content collection (`src/content/pages/*.md(x)`, frontmatter `title` and
+- Tabula is a closed, paid service (footer-and-audience-pages spec, 2026-11-09): no user-facing text mentions open code, a
+  licence, GitHub (except «GitHub Pages» as this site's host on the privacy pages), self-installation or «вільна … назавжди»;
+  `check-built` holds this on every product page (`CLOSED_SERVICE_PATTERNS`). `/vstanovyty-samostiino/` was deleted and is an
+  Astro `redirects` entry to `/khostynh-i-tsina/` (out of the sitemap). Only `docs/editor/` is imported (`PUBLISHED_FOLDERS`
+  in `scripts/lib/docs-transform.mjs`); a link from it into `install/`, `qa/`, `dev/` or out of `docs/` keeps its text and loses
+  the link. Starlight shows no GitHub icon and no edit link (`src/components/EditLink.astro` renders nothing).
+- The home (`/`) and the thirteen reading pages are not Starlight pages. The home is `src/pages/index.astro` (product layout,
+  see the product-pages bullet below). The reading pages (`yak-tse-pratsiuie`, `khostynh-i-tsina` («Ціна й оплата»), `dlia-dyrektora`,
+  `dlia-vidpovidalnoho`, `dlia-bukhhalterii`, `demo`, `zakon-i-sait-shkoly`, `bezpeka-i-dani`, `pidtrymka`, `dostupnist`,
+  `personalni-dani`, `zaiavka`, `pro-proiekt`) live in the `pages` content collection (`src/content/pages/*.md(x)`, frontmatter `title` and
   `description`, no H1 in the body: `src/layouts/ProductPage.astro` renders the title as the page's one `<h1>`), are
   rendered by `src/pages/[slug].astro` at `/<slug>/`, and are styled by section 17 of `src/styles/product.css` (a narrow
   720 px column, Unbounded H1, Manrope 18 px; a table is wrapped in `<div class="reading-table" tabindex="0" role="region"
@@ -157,15 +164,20 @@ happens in each workflow, not in the composite action. Both checkouts pass
   `--sl-color-accent-high` (dark mode in `:root`, light mode in `:root[data-theme='light']`), following Starlight's own
   theme-colour convention. Light-mode accent ≈ `#1f3d63`, dark-mode ≈ `#8fb3e0` (≥ 5.7:1 contrast). The neutral gray scale
   is untouched. That is all `site.css` holds since S2: the landing/about/W1 rules were removed with those pages.
-- The product footer (`src/components/product/Footer.astro`) links every product page, so none is orphaned (`check-built`
-  fails a page the footer does not link): «Продукт» — the home anchors (ШІ-помічник, Шаблони, Панель, Ціна; `#…` on the home,
-  `{BASE_URL}#…` elsewhere), «Як це працює», «Хостинг і ціна»; «Для закладу» — Для бухгалтерії, «Закон і сайт школи», Безпека й
-  дані, Обробка персональних даних, Доступність; «Допомога» — Часті запитання, «Підтримка», «Подати заявку» (zaiavka/), the support and privacy
-  addresses, «Установити на власний сервер»; under the tagline in the first column — «Про проєкт».
+- The product footer (`src/components/product/Footer.astro`, footer-and-audience-pages spec): the brand column (mark, «Сайти для
+  шкіл, садочків і коледжів — з готовими розділами за законом.», «Про проєкт»), then «Для кого» (Для директора, Для відповідального
+  за сайт, Для бухгалтерії), «Корисно знати» (Як це працює, Ціна й оплата, Закон і сайт школи, Безпека й дані), «Допомога» (Часті
+  запитання, Підтримка, the support address); a bottom row with Обробка персональних даних · Доступність · the privacy address,
+  `footerLine` of `offer.mjs` and «© 2026 Tabula». The link to the current page has `aria-current="page"`. Below 900 px the brand
+  and «Допомога» take whole rows and the other two columns sit side by side. `check-built` fails an own page the footer does
+  not link, except `FOOTER_EXEMPT` (`demo`, `zaiavka`), which must be linked from some other product page. No operator (ФОП)
+  line anywhere in the chrome: «Про виконавця» is a section of «Для бухгалтерії» (`#vykonavets`), the full details on request.
+  `CommunityNote.astro` («Ви з відділу освіти громади?») closes «Для директора», «Для бухгалтерії» and «Ціна й оплата»;
+  `DocFlow.astro` is the accessible (text, list-based) document flow of «Для бухгалтерії». The exit text is `exitText` of `offer.mjs`.
 - The Starlight chrome (S2 of story 80): Starlight is the documentation only. The header is Starlight's own (wordmark via
   `src/components/SiteTitle.astro`, search, theme switch) — no site navigation, no request button; the wordmark leads to
   the product home. `src/components/Footer.astro` keeps Starlight's default footer (edit link, pagination) and adds the link
-  «На головну Tabula» (base-aware), the GitHub/licence/bug/vulnerability links, the tagline and the operator line. The
+  «На головну Tabula» (base-aware), «Підтримка», `footerLine` and «© 2026 Tabula». The
   product pages never link into `editor/`, `install/`, `qa/`, `dev/` from their header or footer (`check-built`); a body
   link from a text page into the docs is allowed. `qa/` is in no menu. `public/favicon.svg` is the product header's mark
   with literal hex colours (a favicon cannot read CSS custom properties); `favicon: '/favicon.svg'` in `astro.config.mjs`
@@ -237,7 +249,7 @@ happens in each workflow, not in the composite action. Both checkouts pass
 - The demo site (story 80, round 3): `offer.demoSiteUrl` stays `null` until a public demo exists. The hero's «Подивитися приклад сайту» and the templates section's «Відкрити приклад сайту» (always rendered now) use `demoHref(root)` from `offer.mjs`: the demo URL when set, else `{base}demo/`. `src/content/pages/demo.mdx` («Демо-сайт», reading page, linked from the footer's «Продукт» column) shows the amber chip «У розробці», the two verbatim sentences and links to `../#look` and `../#request` while `demoSiteUrl` is null; once it is set it shows the primary button «Відкрити демо-сайт» instead (no chip). `test/offer.test.mjs` covers both states of `demoHref`.
 - Layout shift (round 3): the first screen must not move when the fonts arrive (CLS 0.0000 over 10 loads at 1440 and 390, motion allowed and reduced). Unbounded and Manrope faces are `font-display: optional` (Caveat stays `swap`: it is below the first screen) and five files are preloaded in `src/layouts/Product.astro` (Unbounded cyrillic 600 and latin 600 — the heading and the wordmark — and Manrope cyrillic 400, 600 and 700 — the nav links are 600), so they are used from the first paint or not at all. The other faces (Manrope cyrillic 500 and 800 and the Latin Manrope) are not preloaded, so on a cold first visit those weights (the extra-bold lines, digits and Latin words) render in the Arial fallback and the real font arrives on the next page or visit — the price of CLS 0.000 with a light preload; ten preloads delayed the LCP image (slow 4G, cold cache, median of 5: LCP ~1660 ms at 1440 and ~1165 ms at 390 with ten, ~830 / ~745 with four, ~1130 / ~705 with the five now; FCP ~700–760 and CLS 0 throughout); the metric-matched fallbacks alone were not exact (the hero wrapped differently in Arial: CLS 0.017–0.35). Re-measure after touching the fonts or the hero text.
 - `astro.config.mjs` configures `@astrojs/sitemap` itself with a filter, because the integration lists the home twice (`…/site` and `…/site/`) when `base` has no trailing slash; Starlight only adds its own copy when none is configured.
-- Product-page checks: `check-built.mjs` treats a built page (the home and the twelve reading pages) whose `<html>` has `data-product-page` as a product page (seven header
+- Product-page checks: `check-built.mjs` treats a built page (the home and the thirteen reading pages) whose `<html>` has `data-product-page` as a product page (seven header
   links, no Starlight chrome, forbidden phrases, ʼ, no-break spaces before ₴/«року»/«грн» and inside dates on the raw text, «ШІ-помічник»
   spelling, the chip while `assistantStatus` is `testing`, a law word only with a link to `zakon-i-sait-shkoly/`); on every built page
   every `<img>` has `alt` and nothing refers to Google Fonts; the demo address (`127.0.0.1`, `localhost`) is kept out of every page
@@ -258,7 +270,7 @@ happens in each workflow, not in the composite action. Both checkouts pass
 - No real school, city, person, or domain in examples, issues, code, comments, commit messages
   or screenshots. The only example school is the fictitious «Вигаданий ліцей № 0»; screenshots
   come only from Tabula's demo site. There is no exception: the «Про проєкт» page says «Tabula створена в
-  українському ліцеї» and «Tabula розробляє команда в Україні» and names neither a school nor people
+  українському ліцеї» and «Tabula роблять учителі з досвідом програмування» and names neither a school nor people
   (story 80, slice S2).
 - Documentation text is never edited in this repository — fix it in `tabula-cms/tabula`.
 - Generated doc folders (`src/content/docs/{editor,install,qa,dev}/`) are gitignored and never
@@ -361,7 +373,7 @@ npm run dev
 npm run build         # runs check-links.mjs afterwards via postbuild; fails on a broken link
 npm run check:links   # same check, standalone, without rebuilding
 npm run check:built   # story 78 rules over dist/ (runs after the build too)
-npm run a11y          # axe over the home and the twelve reading pages, needs a build and `npx playwright install chromium`
+npm run a11y          # axe over the home and the thirteen reading pages, needs a build and `npx playwright install chromium`
 npm run budget        # story 80: the home's size/lazy/LCP budget, needs a build and Chromium
 npm run shots -- --template panorama   # story 80: screenshots from a running tabula demo (see CONTRIBUTING.md)
 npm test
