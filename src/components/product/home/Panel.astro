@@ -1,31 +1,112 @@
 ---
-// Section 9: Панель. The «Огляд» screen on a laptop and five short lines.
+// Section 9: Панель. Six things the panel does, each with its own screen, and five short lines under them.
+// From 900 px with scroll-driven animations (product.css §19) the section is a scroll story like «Харчування»:
+// the heading, the six steps and the laptop stay pinned while the laptop's screen crossfades through the six
+// panel screens and the current step is highlighted; six invisible spacers (`panel__track`) give the scroll its
+// length. Below 900 px, without support, or under reduced motion the six steps are a static list of cards with a
+// small screenshot each (`panel__card-shot`), and the laptop (`panel__stage`) is `display: none`: only one of the
+// two sets of pictures is ever shown, and both are lazy, so only the shown one is fetched.
 import Shot from '../Shot.astro';
 import { shots } from '../shots';
+
+// The first two texts are the mockup's own strings; «кожна версія» became «попередні версії» because the news
+// editor's «Історія» keeps the last 50 versions (docs/editor/novyny.md), not every one.
+const steps = [
+	{
+		title: 'Що зробити сьогодні',
+		text: 'Відкрили панель — і бачите наступні кроки. Нічого не треба тримати в голові.',
+		src: shots.adminOverview,
+		alt: 'Панель: екран «Огляд» з наступними кроками',
+	},
+	{
+		title: 'Пишете, як у Word',
+		text: 'Текст, фото й таблиці. Біля полів — підказки, а попередні версії зберігаються.',
+		src: shots.adminNewsEditor,
+		alt: 'Панель: редактор новини з кнопками «Фото» і «Таблиця» над текстом',
+	},
+	{
+		title: 'Сторінки — як у меню сайту',
+		text: 'Сторінки стоять так, як у меню. До кожної додаєте текст, документи, фото й людей.',
+		src: shots.adminPages,
+		alt: 'Панель: екран «Сторінки» зі списком сторінок сайту',
+	},
+	{
+		title: 'Усі документи в одному місці',
+		text: 'Статут, кошторис, накази — з типом і датою. Відвідувачі шукають їх за типом і роком.',
+		src: shots.adminDocuments,
+		alt: 'Панель: екран «Документи» з типами документів і списком файлів',
+	},
+	{
+		title: 'Фотоальбоми подій',
+		text: 'Перший дзвоник, олімпіади, екскурсії — альбомами, з підписами й автором фото.',
+		src: shots.adminAlbums,
+		alt: 'Панель: екран «Фотографії» зі списком альбомів',
+	},
+	{
+		title: 'Календар подій',
+		text: 'Збори, канікули, свята — з датою, часом і місцем. Батьки можуть підписатися на весь календар.',
+		src: shots.adminEvents,
+		alt: 'Панель: вкладка «Події» з найближчими подіями календаря',
+	},
+];
 ---
 
 <section id="panel" class="anchor">
 	<div class="wrap panel__inner">
-		<h2 class="reveal h2">Панель, з якою впорається кожен</h2>
-		<div class="reveal panel__body">
-			<div class="panel__laptop">
-				<div class="laptop__screen">
-					<Shot
-						src={shots.cropOverview}
-						alt="Панель: екран «Огляд» з наступними кроками"
-						widths={[640, 994]}
-						sizes="(min-width: 1200px) 820px, calc(100vw - 72px)"
-					/>
+		<div class="panel__story">
+			<div class="panel__pin">
+				<div class="reveal panel__text">
+					<h2 class="h2">Панель, з якою впорається кожен</h2>
+					<ol class="panel__steps">
+						{
+							steps.map((step) => (
+								<li class="panel__step">
+									<h3 class="panel__step-title">{step.title}</h3>
+									<p class="panel__step-text">{step.text}</p>
+									<div class="panel__card-shot">
+										<Shot
+											src={step.src}
+											alt={step.alt}
+											widths={[360, 720, 1110]}
+											sizes="(min-width: 760px) 360px, calc(100vw - 80px)"
+										/>
+									</div>
+								</li>
+							))
+						}
+					</ol>
 				</div>
-				<div class="laptop__base" aria-hidden="true"></div>
+				<div class="reveal panel__stage">
+					<div class="panel__laptop">
+						<div class="laptop__screen">
+							<div class="panel__screens">
+								{
+									steps.map((step) => (
+										<div class="panel__screen">
+											<Shot
+												src={step.src}
+												alt={step.alt}
+												widths={[560, 900, 1110]}
+												sizes="(min-width: 1200px) 640px, 50vw"
+											/>
+										</div>
+									))
+								}
+							</div>
+						</div>
+						<div class="laptop__base" aria-hidden="true"></div>
+					</div>
+					<div class="panel__dots" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></div>
+				</div>
 			</div>
-			<ul class="panel__list">
-				<li><b>«Огляд» підкаже,</b> що зробити сьогодні.</li>
-				<li><b>Ролі:</b> адміністратор, редактор, учні-автори з перевіркою.</li>
-				<li><b>Нічого не пропадає:</b> журнал змін і кошик.</li>
-				<li><b>Підказки</b> біля полів і довідка «Як зробити».</li>
-				<li><b>Переїзд</b> зі старого сайту на WordPress.</li>
-			</ul>
+			<div class="panel__track" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></div>
 		</div>
+		<ul class="panel__notes">
+			<li><b>«Огляд» підкаже,</b> що зробити сьогодні.</li>
+			<li><b>Ролі:</b> адміністратор, редактор, учні-автори з перевіркою.</li>
+			<li><b>Нічого не пропадає:</b> журнал змін і кошик.</li>
+			<li><b>Підказки</b> біля полів і довідка «Як зробити».</li>
+			<li><b>Переїзд</b> зі старого сайту на WordPress.</li>
+		</ul>
 	</div>
 </section>

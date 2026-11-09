@@ -4,11 +4,8 @@ import { offer, includesShort, formatDateLongYear, formatUah, nextDay, yearOf } 
 
 const base = import.meta.env.BASE_URL;
 const root = base.endsWith('/') ? base : `${base}/`;
-// The count-up of the sum (product.css §18): the real text stays in the DOM (the screen readers' and the
-// no-animation text); an `aria-hidden` overlay counts the thousands and the three digits of the rest up to
-// the very same value. `--t` thousands, `--a`/`--b`/`--c` the last three digits.
-const rest = String(offer.priceYearUah % 1000).padStart(3, '0');
-const countVars = `--t:${Math.floor(offer.priceYearUah / 1000)};--a:${rest[0]};--b:${rest[1]};--c:${rest[2]}`;
+// The sum never changes: under scroll-driven animations it comes into focus as the card enters, then its marker
+// (a thin band under the digits) draws (product.css §16, item 4); without them it is simply sharp with the marker drawn.
 ---
 
 <section id="price" class="anchor">
@@ -21,7 +18,7 @@ const countVars = `--t:${Math.floor(offer.priceYearUah / 1000)};--a:${rest[0]};-
 		<div class="reveal price-card">
 			<p class="chip">До {formatDateLongYear(offer.pilotUntil)} — безкоштовно</p>
 			<p class="price-card__sum">
-				<span class="marker marker--scroll"><i class="count count--sum" style={countVars}><i class="count__real">{formatUah(offer.priceYearUah)}</i><i class="count__anim" aria-hidden="true"></i></i></span>
+				<span class="marker marker--price"><span class="price-focus">{formatUah(offer.priceYearUah)}</span></span>
 				<span>на рік з {yearOf(nextDay(offer.pilotUntil))}&#160;року</span>
 			</p>
 			<p class="price-card__sub">{formatUah(offer.priceQuarterUah)} щокварталу · без ПДВ · {formatUah(0)} за створення</p>

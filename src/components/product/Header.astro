@@ -1,6 +1,6 @@
 ---
 // The sticky header of the product pages (story 80). Seven links and the button «Подати заявку»
-// above 900 px; below, the button and a native <details> «Меню» that lists the links and
+// from 1100 px; below, the button and a native <details> «Меню» that lists the links and
 // «Звʼязатися» (no JavaScript). On the home the links are `#…` anchors; on other product pages
 // they go to `{BASE_URL}#…` (prop `home`).
 import { offer } from '../../config/offer.mjs';
@@ -48,7 +48,7 @@ const links = [
 						stroke-width="2"
 						stroke-linecap="round"
 						aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"></path></svg
-					>Меню
+					><span class="nav-menu__label">Меню</span>
 				</summary>
 				<nav class="nav-menu__panel" aria-label="Меню сторінки">
 					<ul>

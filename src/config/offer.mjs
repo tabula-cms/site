@@ -34,8 +34,8 @@ export const offer = Object.freeze({
 	// «Коли запрацює ШІ-помічник?».
 	assistantStatus: 'testing',
 	// Story 80, decision 12: the public demo site; null until one exists. The home's «Подивитися
-	// приклад сайту» goes there when set, else to #look, and «Відкрити приклад сайту» renders
-	// only when it is set.
+	// приклад сайту» and «Відкрити приклад сайту» go there when set, else to the page «Демо-сайт»
+	// (demoHref below), which then shows the «У розробці» chip; once set, that page shows a button instead.
 	demoSiteUrl: null,
 	// Decision 24: an optional public phone number; pages show it only when set.
 	contactPhone: null,
@@ -225,4 +225,17 @@ export const includesShort = Object.freeze([
 /** `4800` -> `'4 800 грн'`: the sum for running text, no-break spaces (U+00A0) inside and before «грн». */
 export function formatGrn(n) {
 	return `${formatNumber(n).replaceAll(' ', ' ')} грн`;
+}
+
+// Story 80, round 3: where the home's «Подивитися приклад сайту» / «Відкрити приклад сайту» lead. `root` is the
+// site's base with a trailing slash; `url` defaults to offer.demoSiteUrl (a parameter so both states are testable).
+export function demoHref(root, url = offer.demoSiteUrl) {
+	return url ? url : `${root}demo/`;
+}
+
+// Story 80, round 3: what the page «Демо-сайт» shows. Without a demo site: the «У розробці» chip and the two sentences
+// (`buttonHref` is null); with one: the button «Відкрити демо-сайт» to `buttonHref`, no chip. src/content/pages/demo.mdx
+// reads this, so the branch is unit-tested (test/offer.test.mjs).
+export function demoPageState(url = offer.demoSiteUrl) {
+	return url ? { chip: false, buttonHref: url } : { chip: true, buttonHref: null };
 }

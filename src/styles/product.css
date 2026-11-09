@@ -7,14 +7,14 @@
 
 /* ---------------------------------------------------------------------------------------------
  * 1. Fonts, self-hosted from @fontsource (decision 8): Cyrillic and Latin subsets only, one
- * file per weight, `font-display: swap`. The unicode-range keeps a Latin letter out of the
+ * file per weight, `font-display: optional` for Unbounded and Manrope (preloaded by src/layouts/Product.astro: used at first paint or not at all, so a late font never shifts the layout), `swap` for Caveat (below the first screen). The unicode-range keeps a Latin letter out of the
  * Cyrillic file and the other way round, so a page downloads only what it uses.
  * --------------------------------------------------------------------------------------------- */
 @font-face {
 	font-family: 'Unbounded';
 	font-style: normal;
 	font-weight: 600;
-	font-display: swap;
+	font-display: optional;
 	src: url('../../node_modules/@fontsource/unbounded/files/unbounded-cyrillic-600-normal.woff2') format('woff2');
 	unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
 }
@@ -22,7 +22,7 @@
 	font-family: 'Unbounded';
 	font-style: normal;
 	font-weight: 600;
-	font-display: swap;
+	font-display: optional;
 	src: url('../../node_modules/@fontsource/unbounded/files/unbounded-latin-600-normal.woff2') format('woff2');
 	unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
@@ -30,7 +30,7 @@
 	font-family: 'Manrope';
 	font-style: normal;
 	font-weight: 400;
-	font-display: swap;
+	font-display: optional;
 	src: url('../../node_modules/@fontsource/manrope/files/manrope-cyrillic-400-normal.woff2') format('woff2');
 	unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
 }
@@ -38,7 +38,7 @@
 	font-family: 'Manrope';
 	font-style: normal;
 	font-weight: 400;
-	font-display: swap;
+	font-display: optional;
 	src: url('../../node_modules/@fontsource/manrope/files/manrope-latin-400-normal.woff2') format('woff2');
 	unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
@@ -46,7 +46,7 @@
 	font-family: 'Manrope';
 	font-style: normal;
 	font-weight: 500;
-	font-display: swap;
+	font-display: optional;
 	src: url('../../node_modules/@fontsource/manrope/files/manrope-cyrillic-500-normal.woff2') format('woff2');
 	unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
 }
@@ -54,7 +54,7 @@
 	font-family: 'Manrope';
 	font-style: normal;
 	font-weight: 500;
-	font-display: swap;
+	font-display: optional;
 	src: url('../../node_modules/@fontsource/manrope/files/manrope-latin-500-normal.woff2') format('woff2');
 	unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
@@ -62,7 +62,7 @@
 	font-family: 'Manrope';
 	font-style: normal;
 	font-weight: 600;
-	font-display: swap;
+	font-display: optional;
 	src: url('../../node_modules/@fontsource/manrope/files/manrope-cyrillic-600-normal.woff2') format('woff2');
 	unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
 }
@@ -70,7 +70,7 @@
 	font-family: 'Manrope';
 	font-style: normal;
 	font-weight: 600;
-	font-display: swap;
+	font-display: optional;
 	src: url('../../node_modules/@fontsource/manrope/files/manrope-latin-600-normal.woff2') format('woff2');
 	unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
@@ -78,7 +78,7 @@
 	font-family: 'Manrope';
 	font-style: normal;
 	font-weight: 700;
-	font-display: swap;
+	font-display: optional;
 	src: url('../../node_modules/@fontsource/manrope/files/manrope-cyrillic-700-normal.woff2') format('woff2');
 	unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
 }
@@ -86,7 +86,7 @@
 	font-family: 'Manrope';
 	font-style: normal;
 	font-weight: 700;
-	font-display: swap;
+	font-display: optional;
 	src: url('../../node_modules/@fontsource/manrope/files/manrope-latin-700-normal.woff2') format('woff2');
 	unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
@@ -94,7 +94,7 @@
 	font-family: 'Manrope';
 	font-style: normal;
 	font-weight: 800;
-	font-display: swap;
+	font-display: optional;
 	src: url('../../node_modules/@fontsource/manrope/files/manrope-cyrillic-800-normal.woff2') format('woff2');
 	unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
 }
@@ -102,7 +102,7 @@
 	font-family: 'Manrope';
 	font-style: normal;
 	font-weight: 800;
-	font-display: swap;
+	font-display: optional;
 	src: url('../../node_modules/@fontsource/manrope/files/manrope-latin-800-normal.woff2') format('woff2');
 	unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
@@ -403,6 +403,7 @@
 }
 .nav-links a,
 .nav-menu__panel a {
+	white-space: nowrap;
 	text-decoration: none;
 	color: var(--ink);
 }
@@ -467,9 +468,10 @@
 .nav-menu__panel li:last-child a {
 	border-bottom: 0;
 }
-@media (max-width: 900px) {
-	.nav-links,
-	.hide-sm {
+/* The seven links and the button fit on one line, with comfortable gaps, from 1100 px (the row needs 1025 px, so at least 75 px of air is left; measured); below it the links
+ * move into «Меню». The button never wraps at any width (below 480 px the header is tighter and «Меню» is icon-only, see below). */
+@media (max-width: 1099px) {
+	.nav-links {
 		display: none;
 	}
 	.nav-menu {
@@ -477,6 +479,52 @@
 	}
 	.site-header__inner {
 		gap: 12px;
+	}
+}
+@media (max-width: 900px) {
+	.hide-sm {
+		display: none;
+	}
+}
+/* Nothing in the header wraps. The button never wraps; below 480 px «Меню» is only the three-bar icon (the word stays
+ * as visually hidden text, so the accessible name is still «Меню»; the target is 44 x 44) and the header is a little
+ * tighter, so brand + button + icon fit down to 320 px. */
+.site-header .btn {
+	white-space: nowrap;
+}
+@media (max-width: 479px) {
+	.nav-menu__label {
+		position: absolute;
+		width: 1px;
+		height: 1px;
+		overflow: hidden;
+		clip-path: inset(50%);
+		white-space: nowrap;
+	}
+	.nav-menu > summary {
+		width: 44px;
+		height: 44px;
+		padding: 0;
+		justify-content: center;
+		box-sizing: border-box;
+	}
+	.site-header__inner {
+		padding-left: 14px;
+		padding-right: 14px;
+		gap: 8px;
+	}
+	.site-header__actions {
+		gap: 8px;
+	}
+	.brand {
+		gap: 8px;
+	}
+	.brand__name {
+		font-size: 17px;
+	}
+	.site-header__actions .btn-main {
+		font-size: 14px;
+		padding: 10px 14px;
 	}
 }
 
@@ -544,6 +592,27 @@
 	min-width: 0;
 	max-width: 540px;
 }
+/* The H1 breaks «Сайт закладу освіти / без рутини» wherever the column is wide enough (stacked layout below 1180 px,
+ * where the text has the whole row; 44 px from 1180 px, where it has a 572 px column beside the laptop); on phones
+ * «закладу освіти» never splits: «Сайт / закладу освіти / без рутини». */
+.hero__title .nw {
+	white-space: nowrap;
+}
+@media (max-width: 1179px) {
+	.hero__text {
+		flex-basis: 100%;
+		max-width: 720px;
+	}
+}
+@media (min-width: 1180px) {
+	.hero__text {
+		flex: 0 0 572px;
+		max-width: none;
+	}
+	.hero__inner .hero__visual {
+		flex: 1 1 480px;
+	}
+}
 .hero__text .chip {
 	margin: 0 0 22px;
 }
@@ -551,9 +620,14 @@
 	margin: 0;
 	font-family: var(--display);
 	font-weight: 600;
-	font-size: clamp(32px, 10.2vw, 58px);
+	font-size: clamp(26px, 8.6vw, 52px);
 	line-height: 1.08;
 	letter-spacing: -0.03em;
+}
+@media (min-width: 1180px) {
+	.hero__title {
+		font-size: 44px;
+	}
 }
 .hero__sub {
 	margin: 22px 0 0;
@@ -561,11 +635,39 @@
 	line-height: 1.55;
 	color: var(--text);
 }
+/* The quiet line under the hero sentence: what kinds of institution Tabula is for, a link to #kinds. Secondary text,
+ * not a button; a 44 px tap target on phones (§15). */
+.hero__kinds {
+	margin: 12px 0 0;
+	text-wrap: balance;
+}
+.hero__kinds a {
+	display: inline-block;
+	padding: 8px 0;
+	font-size: 16px;
+	line-height: 1.45;
+	font-weight: 600;
+	color: var(--text);
+	text-decoration: underline;
+	text-decoration-color: #b9c5c2;
+	text-underline-offset: 4px;
+}
+.hero__kinds .nw {
+	white-space: nowrap;
+}
+.hero__kinds .nw span {
+	display: inline-block;
+	text-decoration: none;
+}
+.hero__kinds a:hover {
+	color: var(--accent);
+	text-decoration-color: currentColor;
+}
 .hero__buttons {
 	display: flex;
 	flex-wrap: wrap;
 	gap: 12px;
-	margin-top: 34px;
+	margin-top: 24px;
 }
 .hero__visual {
 	flex: 1 1 580px;
@@ -602,6 +704,13 @@
 	padding: 14px 16px;
 	box-shadow: 0 16px 34px rgba(23, 40, 58, 0.14);
 }
+/* The card hangs below the laptop (72 px of extra room under it) so it never covers the school name at the foot of the
+ * laptop's screen; it is hidden below 900 px (hide-sm). */
+@media (min-width: 901px) {
+	.hero__visual {
+		padding-bottom: 112px;
+	}
+}
 .card-kicker {
 	margin: 0;
 	display: flex;
@@ -626,6 +735,7 @@
 /* The marker under «без рутини» and under the price, and under a key phrase of three headings. It is
  * drawn in full by default; section 16 animates it (on load for the hero, on scroll for the others). */
 .marker {
+	white-space: nowrap;
 	background-image: linear-gradient(transparent 60%, var(--marker) 60%);
 	background-repeat: no-repeat;
 	background-size: 100% 100%;
@@ -1556,39 +1666,74 @@
 	padding-top: 32px;
 	padding-bottom: 88px;
 }
-.panel__inner .h2 {
+.panel__text .h2 {
 	max-width: 760px;
 }
-.panel__body {
-	display: flex;
-	flex-wrap: wrap;
-	gap: 32px;
-	margin-top: 32px;
-	align-items: center;
-}
-.panel__laptop {
-	flex: 999 1 600px;
-	min-width: 0;
-}
-.panel__laptop .laptop__screen img {
-	aspect-ratio: 16 / 9;
-	object-position: left top;
-	background: #ffffff;
-}
-.panel__laptop .laptop__base {
-	margin: 0 -2%;
-}
-.panel__list {
-	flex: 1 1 300px;
-	min-width: 0;
+/* The six steps: cards with a small screenshot each. Under the scroll story (§19) they are a plain list beside
+ * the pinned laptop, and the laptop (`panel__stage`) exists only there. */
+.panel__steps {
 	list-style: none;
-	margin: 0;
+	margin: 32px 0 0;
 	padding: 0;
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+	gap: 20px;
+}
+.panel__step {
 	display: flex;
 	flex-direction: column;
-	gap: 18px;
-	font-size: 16px;
+	background: var(--surface);
+	border: 1px solid #dce5e2;
+	border-radius: 16px;
+	padding: 22px;
+}
+.panel__step-title {
+	margin: 0;
+	font-family: var(--display);
+	font-weight: 600;
+	font-size: 17px;
+	line-height: 1.3;
+	color: var(--ink);
+}
+.panel__step-text {
+	margin: 10px 0 0;
+	font-size: 15px;
+	line-height: 1.55;
+	color: var(--text);
+}
+.panel__card-shot {
+	margin-top: auto;
+	padding-top: 16px;
+}
+.panel__card-shot img {
+	display: block;
+	width: 100%;
+	height: auto;
+	aspect-ratio: 16 / 9;
+	object-fit: cover;
+	object-position: left top;
+	background: #ffffff;
+	border: 1px solid #dce5e2;
+	border-radius: 10px;
+}
+.panel__stage,
+.panel__track {
+	display: none;
+}
+/* The five short lines under the scene (they are not steps). */
+.panel__notes {
+	list-style: none;
+	margin: 40px 0 0;
+	padding: 0;
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+	gap: 14px 28px;
+	font-size: 15px;
 	line-height: 1.5;
+	color: var(--text);
+}
+.panel__notes b {
+	color: var(--ink);
 }
 
 /* ---------------------------------------------------------------------------------------------
@@ -1641,10 +1786,15 @@
 .price-card__sum .marker {
 	font-family: var(--display);
 	font-weight: 600;
-	font-size: clamp(36px, 11vw, 54px);
+	font-size: clamp(40px, 12vw, 62px);
 	letter-spacing: -0.03em;
 }
-.price-card__sum span:last-child {
+/* The price's marker is a thin band under the digits, never over them. */
+.price-card__sum .marker--price {
+	background-image: linear-gradient(transparent 80%, var(--marker) 80%);
+	padding-bottom: 2px;
+}
+.price-card__sum > span:last-child {
 	font-size: 18px;
 	color: var(--text);
 	font-weight: 600;
@@ -1887,6 +2037,7 @@
 	.nav-menu > summary,
 	.four a,
 	.nav-menu__panel a,
+	.hero__kinds a,
 	.law__text a.quiet {
 		min-height: 44px;
 		box-sizing: border-box;
@@ -1998,12 +2149,12 @@
 }
 
 /* Staggering without time delays: each item's index (--i) shifts its own scroll range. */
-:is(.ticks, .panel__list, .price-card__list, .why__table, .four__inner, .kinds__grid, .steps) > :nth-child(1) { --i: 0; }
-:is(.ticks, .panel__list, .price-card__list, .why__table, .four__inner, .kinds__grid, .steps) > :nth-child(2) { --i: 1; }
-:is(.ticks, .panel__list, .price-card__list, .why__table, .four__inner, .kinds__grid, .steps) > :nth-child(3) { --i: 2; }
-:is(.ticks, .panel__list, .price-card__list, .why__table, .four__inner, .kinds__grid, .steps) > :nth-child(4) { --i: 3; }
-:is(.ticks, .panel__list, .price-card__list, .why__table, .four__inner, .kinds__grid, .steps) > :nth-child(5) { --i: 4; }
-:is(.ticks, .panel__list, .price-card__list, .why__table, .four__inner, .kinds__grid, .steps) > :nth-child(6) { --i: 5; }
+:is(.ticks, .panel__notes, .price-card__list, .why__table, .four__inner, .kinds__grid, .steps) > :nth-child(1) { --i: 0; }
+:is(.ticks, .panel__notes, .price-card__list, .why__table, .four__inner, .kinds__grid, .steps) > :nth-child(2) { --i: 1; }
+:is(.ticks, .panel__notes, .price-card__list, .why__table, .four__inner, .kinds__grid, .steps) > :nth-child(3) { --i: 2; }
+:is(.ticks, .panel__notes, .price-card__list, .why__table, .four__inner, .kinds__grid, .steps) > :nth-child(4) { --i: 3; }
+:is(.ticks, .panel__notes, .price-card__list, .why__table, .four__inner, .kinds__grid, .steps) > :nth-child(5) { --i: 4; }
+:is(.ticks, .panel__notes, .price-card__list, .why__table, .four__inner, .kinds__grid, .steps) > :nth-child(6) { --i: 5; }
 .faq__inner > .faq-item:nth-of-type(1) { --i: 0; }
 .faq__inner > .faq-item:nth-of-type(2) { --i: 1; }
 .faq__inner > .faq-item:nth-of-type(3) { --i: 2; }
@@ -2037,14 +2188,14 @@
 
 		/* 1. Reveal: sections rise ~24 px with a fade over entry 0–40 %; items follow one after another. */
 		.reveal,
-		:is(.ticks, .panel__list, .price-card__list, .why__table, .four__inner, .kinds__grid, .steps) > *,
+		:is(.ticks, .panel__notes, .price-card__list, .why__table, .four__inner, .kinds__grid, .steps) > *,
 		.faq__inner > .faq-item {
 			animation-name: rise;
 			animation-timing-function: linear;
 			animation-fill-mode: both;
 		}
 		.reveal,
-		:is(.ticks, .panel__list, .price-card__list, .why__table, .four__inner, .kinds__grid, .steps) > *,
+		:is(.ticks, .panel__notes, .price-card__list, .why__table, .four__inner, .kinds__grid, .steps) > *,
 		.faq__inner > .faq-item {
 			animation-timeline: view();
 		}
@@ -2052,26 +2203,23 @@
 			animation-range-start: entry 0%;
 			animation-range-end: entry 40%;
 		}
-		:is(.ticks, .panel__list, .price-card__list, .why__table, .four__inner, .kinds__grid, .steps) > *,
+		:is(.ticks, .panel__notes, .price-card__list, .why__table, .four__inner, .kinds__grid, .steps) > *,
 		.faq__inner > .faq-item {
 			animation-range-start: entry calc(var(--i, 0) * 5%);
 			animation-range-end: entry calc(40% + var(--i, 0) * 5%);
 		}
 
 		/* 2. Devices come alive once as they enter. */
-		.look__panel .laptop,
-		.panel__laptop {
+		.look__panel .laptop {
 			transform-origin: 50% 100%;
 			animation-name: tilt;
 			animation-timing-function: linear;
 			animation-fill-mode: both;
 		}
-		.look__panel .laptop,
-		.panel__laptop {
+		.look__panel .laptop {
 			animation-timeline: view();
 		}
-		.look__panel .laptop,
-		.panel__laptop {
+		.look__panel .laptop {
 			animation-range-start: entry 0%;
 			animation-range-end: entry 40%;
 		}
@@ -2124,11 +2272,28 @@
 			animation-range-start: entry 10%;
 			animation-range-end: entry 60%;
 		}
+		/* The price: the digits never change, but the sum comes into focus as the card scrolls in (semi-transparent
+		 * and soft, fully sharp and opaque at 40 % of the card's entry, end state = the static page), then the
+		 * marker under it draws (entry 40–70 %). Both ride on the card's own view timeline. */
 		.price-card {
 			view-timeline-name: --price-card;
 		}
-		.price-card .marker--scroll {
+		.price-focus {
+			display: inline-block;
+			animation-name: price-focus;
+			animation-timing-function: linear;
+			animation-fill-mode: both;
 			animation-timeline: --price-card;
+			animation-range-start: entry 0%;
+			animation-range-end: entry 40%;
+		}
+		.marker--price {
+			animation-name: draw;
+			animation-timing-function: linear;
+			animation-fill-mode: both;
+			animation-timeline: --price-card;
+			animation-range-start: entry 40%;
+			animation-range-end: entry 70%;
 		}
 	}
 
@@ -2384,26 +2549,6 @@
 	inherits: false;
 	initial-value: 0;
 }
-@property --th {
-	syntax: '<integer>';
-	inherits: false;
-	initial-value: 0;
-}
-@property --d1 {
-	syntax: '<integer>';
-	inherits: false;
-	initial-value: 0;
-}
-@property --d2 {
-	syntax: '<integer>';
-	inherits: false;
-	initial-value: 0;
-}
-@property --d3 {
-	syntax: '<integer>';
-	inherits: false;
-	initial-value: 0;
-}
 
 @keyframes fade-up {
 	from {
@@ -2603,18 +2748,16 @@
 		--n: var(--to);
 	}
 }
-@keyframes count-sum {
+@keyframes price-focus {
 	from {
-		--th: 0;
-		--d1: 0;
-		--d2: 0;
-		--d3: 0;
+		opacity: 0.35;
+		filter: blur(6px);
+		transform: scale(0.96);
 	}
 	to {
-		--th: var(--t);
-		--d1: var(--a);
-		--d2: var(--b);
-		--d3: var(--c);
+		opacity: 1;
+		filter: none;
+		transform: none;
 	}
 }
 /* The «Харчування» story. Four invisible spacers (75 vh each) have a view timeline each (--s1…--s4); a step is the
@@ -2947,7 +3090,7 @@
 			animation-range-end: entry 40%, cover 100%;
 		}
 
-		/* 4. Counters: «23 з 24» and the price count up while they enter; the real text stays in the DOM (the
+		/* 4. Counters: «23 з 24» counts up while it enters (the price does not: owner, 2026-11-09); the real text stays in the DOM (the
 		 * overlay is aria-hidden) and is only transparent while the overlay shows the very same text. */
 		.count {
 			position: relative;
@@ -2972,13 +3115,6 @@
 		}
 		.count--n .count__anim::before {
 			content: counter(n);
-		}
-		.count--sum .count__anim {
-			counter-reset: th var(--th) da var(--d1) db var(--d2) dc var(--d3);
-			animation-name: count-sum;
-		}
-		.count--sum .count__anim::before {
-			content: counter(th) '\00a0' counter(da) counter(db) counter(dc) '\00a0\20b4';
 		}
 		.count__anim {
 			animation-duration: auto;
@@ -3260,6 +3396,236 @@
 			#meals .meals__sheet-out {
 				animation-name: sheet-out;
 				animation-timeline: --s4;
+			}
+		}
+	}
+
+	/* 6. «Панель» as a scroll story, from 900 px (and 780 px of height, so the whole pinned scene fits) with
+	 * scroll-driven animations only; the model is §5 («Харчування»). The heading, the six steps and the laptop are
+	 * pinned together (`.panel__pin`, sticky, sized to its content: at most 628 px from 900 px wide up (measured 614–628), plus 84 px of header room and some air, so the story needs 780 px of height); six invisible spacers (`.panel__track`, 75 vh each, then a 50 vh
+	 * tail) give the scroll its length and the six view timelines (--p1…--p6). The laptop's screen crossfades through
+	 * the six panel screens, the current step is dark with an accent bar and the others #5f6e83 (colours, not opacity,
+	 * so every step keeps ≥ 4.5:1), the six dots follow. Below 900 px, without support, or under reduced motion the
+	 * section is the static list of cards (the small screenshots) and the laptop is not shown. */
+	@media (min-width: 900px) and (min-height: 780px) {
+		@supports (animation-timeline: view()) {
+			#panel {
+				timeline-scope: --p1, --p2, --p3, --p4, --p5, --p6;
+			}
+			#panel .panel__story {
+				display: grid;
+				grid-template-columns: minmax(0, 1fr);
+			}
+			#panel .reveal {
+				animation: none;
+			}
+			#panel .panel__pin,
+			#panel .panel__track {
+				grid-area: 1 / 1;
+			}
+			#panel .panel__pin {
+				position: sticky;
+				top: 84px;
+				display: grid;
+				grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+				gap: 0 56px;
+				align-items: center;
+				align-self: start;
+			}
+			#panel .panel__track {
+				display: block;
+				height: 500vh;
+				pointer-events: none;
+			}
+			#panel .panel__track i {
+				display: block;
+				height: 75vh;
+			}
+			#panel .panel__track i:nth-child(1) {
+				view-timeline-name: --p1;
+			}
+			#panel .panel__track i:nth-child(2) {
+				view-timeline-name: --p2;
+			}
+			#panel .panel__track i:nth-child(3) {
+				view-timeline-name: --p3;
+			}
+			#panel .panel__track i:nth-child(4) {
+				view-timeline-name: --p4;
+			}
+			#panel .panel__track i:nth-child(5) {
+				view-timeline-name: --p5;
+			}
+			#panel .panel__track i:nth-child(6) {
+				view-timeline-name: --p6;
+			}
+			#panel .panel__text .h2 {
+				font-size: clamp(28px, 3.4vw, 40px);
+			}
+			#panel .panel__steps {
+				display: flex;
+				flex-direction: column;
+				gap: 4px;
+				margin-top: 22px;
+			}
+			#panel .panel__step {
+				background: none;
+				border: 0;
+				border-left: 3px solid transparent;
+				border-radius: 0;
+				padding: 7px 0 7px 16px;
+				animation-duration: auto;
+				animation-timing-function: linear;
+				animation-fill-mode: both;
+				animation-range-start: normal;
+				animation-range-end: normal;
+			}
+			#panel .panel__step-title {
+				font-size: 16px;
+				color: inherit;
+			}
+			#panel .panel__step-text {
+				margin-top: 4px;
+				font-size: 15px;
+				line-height: 1.45;
+				color: inherit;
+			}
+			#panel .panel__card-shot {
+				display: none;
+			}
+			#panel .panel__step:nth-child(1) {
+				animation-name: step-first;
+				animation-timeline: --p1;
+			}
+			#panel .panel__step:nth-child(2) {
+				animation-name: step-mid;
+				animation-timeline: --p2;
+			}
+			#panel .panel__step:nth-child(3) {
+				animation-name: step-mid;
+				animation-timeline: --p3;
+			}
+			#panel .panel__step:nth-child(4) {
+				animation-name: step-mid;
+				animation-timeline: --p4;
+			}
+			#panel .panel__step:nth-child(5) {
+				animation-name: step-mid;
+				animation-timeline: --p5;
+			}
+			#panel .panel__step:nth-child(6) {
+				animation-name: step-last;
+				animation-timeline: --p6;
+			}
+			#panel .panel__stage {
+				display: block;
+				position: relative;
+				padding-left: 28px;
+			}
+			#panel .panel__screens {
+				position: relative;
+				aspect-ratio: 16 / 9;
+				overflow: hidden;
+				background: #ffffff;
+				border-radius: 6px 6px 0 0;
+			}
+			#panel .panel__screen {
+				position: absolute;
+				inset: 0;
+				animation-duration: auto;
+				animation-timing-function: linear;
+				animation-fill-mode: both;
+				animation-range-start: normal;
+				animation-range-end: normal;
+			}
+			#panel .panel__screen img {
+				width: 100%;
+				height: 100%;
+				border-radius: 0;
+				object-position: left top;
+			}
+			#panel .laptop__base {
+				margin: 0 -2%;
+			}
+			#panel .panel__screen:nth-child(1) {
+				animation-name: lay-first;
+				animation-timeline: --p1;
+			}
+			#panel .panel__screen:nth-child(2) {
+				animation-name: lay-mid;
+				animation-timeline: --p2;
+			}
+			#panel .panel__screen:nth-child(3) {
+				animation-name: lay-mid;
+				animation-timeline: --p3;
+			}
+			#panel .panel__screen:nth-child(4) {
+				animation-name: lay-mid;
+				animation-timeline: --p4;
+			}
+			#panel .panel__screen:nth-child(5) {
+				animation-name: lay-mid;
+				animation-timeline: --p5;
+			}
+			#panel .panel__screen:nth-child(6) {
+				animation-name: lay-last;
+				animation-timeline: --p6;
+			}
+			/* the six dots at the stage's left edge: the current one is filled */
+			#panel .panel__dots {
+				display: flex;
+				flex-direction: column;
+				gap: 10px;
+				position: absolute;
+				left: 0;
+				top: 50%;
+				translate: 0 -50%;
+			}
+			#panel .panel__dots i {
+				position: relative;
+				display: block;
+				width: 10px;
+				height: 10px;
+				border-radius: 50%;
+				background: #d3dcd9;
+			}
+			#panel .panel__dots i::after {
+				content: '';
+				position: absolute;
+				inset: 0;
+				border-radius: 50%;
+				background: var(--accent);
+				opacity: 0;
+				animation-duration: auto;
+				animation-timing-function: linear;
+				animation-fill-mode: both;
+			}
+			#panel .panel__dots i:nth-child(1)::after {
+				animation-name: lay-first;
+				animation-timeline: --p1;
+			}
+			#panel .panel__dots i:nth-child(2)::after {
+				animation-name: lay-mid;
+				animation-timeline: --p2;
+			}
+			#panel .panel__dots i:nth-child(3)::after {
+				animation-name: lay-mid;
+				animation-timeline: --p3;
+			}
+			#panel .panel__dots i:nth-child(4)::after {
+				animation-name: lay-mid;
+				animation-timeline: --p4;
+			}
+			#panel .panel__dots i:nth-child(5)::after {
+				animation-name: lay-mid;
+				animation-timeline: --p5;
+			}
+			#panel .panel__dots i:nth-child(6)::after {
+				animation-name: lay-last;
+				animation-timeline: --p6;
+			}
+			#panel .panel__notes {
+				margin-top: 24px;
 			}
 		}
 	}
