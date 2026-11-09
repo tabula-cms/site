@@ -16,6 +16,7 @@ import {
 	formatNumber,
 	nextDay,
 	privacyEmail,
+	complaintEmail,
 	demoHref,
 	demoPageState,
 } from '../src/config/offer.mjs';
@@ -86,6 +87,13 @@ test('formatNumber: a narrow no-break space between thousands', () => {
 
 test('privacyEmail: operatorEmail when set, else supportEmail', () => {
 	assert.equal(privacyEmail(), offer.operatorEmail || offer.supportEmail);
+});
+
+test('complaintEmail: the owner’s address when set, else privacyEmail()', () => {
+	assert.ok(offer.complaintEmail === null || /^[^@\s]+@[^@\s]+\.[a-z]+$/.test(offer.complaintEmail));
+	assert.equal(complaintEmail(null), privacyEmail());
+	assert.equal(complaintEmail('abuse@example.org'), 'abuse@example.org');
+	assert.equal(complaintEmail(), offer.complaintEmail || privacyEmail());
 });
 
 test('offer: story 80 fields — assistantStatus, demoSiteUrl, supportEmail', () => {

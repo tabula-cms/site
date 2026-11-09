@@ -2878,6 +2878,85 @@
 		translate: 0 0;
 	}
 }
+/* Both stories (owner, 2026-11-09: readers did not notice that the pinned scene changes). The points after the
+ * first are not there yet: each rises 14 px and fades in as its own step arrives (16–32 % of its timeline, the same
+ * moment its colour turns dark), and scrolling back takes it away again, so the list visibly grows with the scroll.
+ * A new screen is laid on top of the previous one instead of crossfading: it rises from below and fades in over the
+ * same range while the one under it sinks back (smaller, darker); scrolling back lifts it off. All of it is
+ * `translate`/`scale`/`rotate`/`opacity`/`filter`; the timelines are linear, the ease is in the keyframes. */
+@keyframes step-appear {
+	0%,
+	16% {
+		opacity: 0;
+		translate: 0 14px;
+		animation-timing-function: cubic-bezier(0.2, 0.7, 0.2, 1);
+	}
+	32%,
+	100% {
+		opacity: 1;
+		translate: 0 0;
+	}
+}
+@keyframes screen-on {
+	0%,
+	16% {
+		opacity: 0;
+		translate: 0 42%;
+		animation-timing-function: cubic-bezier(0.2, 0.7, 0.2, 1);
+	}
+	23% {
+		opacity: 1;
+	}
+	34%,
+	100% {
+		opacity: 1;
+		translate: 0 0;
+	}
+}
+@keyframes screen-under {
+	0%,
+	16% {
+		scale: 1;
+		filter: brightness(1);
+	}
+	34%,
+	100% {
+		scale: 0.93;
+		filter: brightness(0.82);
+	}
+}
+@keyframes card-on {
+	0%,
+	16% {
+		opacity: 0;
+		translate: 0 72px;
+		rotate: 5deg;
+		animation-timing-function: cubic-bezier(0.2, 0.7, 0.2, 1);
+	}
+	23% {
+		opacity: 1;
+	}
+	34%,
+	100% {
+		opacity: 1;
+		translate: 0 0;
+		rotate: 0deg;
+	}
+}
+@keyframes card-under {
+	0%,
+	16% {
+		translate: 0 0;
+		scale: 1;
+		filter: brightness(1);
+	}
+	34%,
+	100% {
+		translate: -13cqw 10px;
+		scale: 0.9;
+		filter: brightness(0.9);
+	}
+}
 
 /* The story's extra screens are display:none everywhere except in the story itself. */
 .meals__alle,
@@ -3206,16 +3285,16 @@
 				animation-timeline: --s1;
 			}
 			#meals .ticks > li:nth-child(2) {
-				animation-name: step-mid;
-				animation-timeline: --s2;
+				animation-name: step-mid, step-appear;
+				animation-timeline: --s2, --s2;
 			}
 			#meals .ticks > li:nth-child(3) {
-				animation-name: step-mid;
-				animation-timeline: --s3;
+				animation-name: step-mid, step-appear;
+				animation-timeline: --s3, --s3;
 			}
 			#meals .ticks > li:nth-child(4) {
-				animation-name: step-last;
-				animation-timeline: --s4;
+				animation-name: step-last, step-appear;
+				animation-timeline: --s4, --s4;
 			}
 			#meals .meals__visual {
 				position: relative;
@@ -3370,23 +3449,23 @@
 				animation-range-end: normal;
 			}
 			#meals .meals__admin {
-				animation-name: lay-first;
-				animation-timeline: --s1;
+				animation-name: card-under;
+				animation-timeline: --s2;
 			}
 			#meals .meals__day {
-				animation-name: lay-mid;
-				animation-timeline: --s2;
+				animation-name: card-on, card-under;
+				animation-timeline: --s2, --s3;
 			}
 			#meals .chat {
 				animation-name: chat-step;
 				animation-timeline: --s2;
 			}
 			#meals .meals__alle {
-				animation-name: lay-mid;
-				animation-timeline: --s3;
+				animation-name: card-on, card-under;
+				animation-timeline: --s3, --s4;
 			}
 			#meals .meals__sheet {
-				animation-name: lay-last;
+				animation-name: card-on;
 				animation-timeline: --s4;
 			}
 			#meals .meals__sheet-scan {
@@ -3498,24 +3577,24 @@
 				animation-timeline: --p1;
 			}
 			#panel .panel__step:nth-child(2) {
-				animation-name: step-mid;
-				animation-timeline: --p2;
+				animation-name: step-mid, step-appear;
+				animation-timeline: --p2, --p2;
 			}
 			#panel .panel__step:nth-child(3) {
-				animation-name: step-mid;
-				animation-timeline: --p3;
+				animation-name: step-mid, step-appear;
+				animation-timeline: --p3, --p3;
 			}
 			#panel .panel__step:nth-child(4) {
-				animation-name: step-mid;
-				animation-timeline: --p4;
+				animation-name: step-mid, step-appear;
+				animation-timeline: --p4, --p4;
 			}
 			#panel .panel__step:nth-child(5) {
-				animation-name: step-mid;
-				animation-timeline: --p5;
+				animation-name: step-mid, step-appear;
+				animation-timeline: --p5, --p5;
 			}
 			#panel .panel__step:nth-child(6) {
-				animation-name: step-last;
-				animation-timeline: --p6;
+				animation-name: step-last, step-appear;
+				animation-timeline: --p6, --p6;
 			}
 			#panel .panel__stage {
 				display: block;
@@ -3538,6 +3617,10 @@
 				animation-range-start: normal;
 				animation-range-end: normal;
 			}
+			/* the shadow of a screen being laid on: the screen's own overflow clips it once the screen is in place */
+			#panel .panel__screen + .panel__screen {
+				box-shadow: 0 -14px 32px rgba(23, 40, 58, 0.28);
+			}
 			#panel .panel__screen img {
 				width: 100%;
 				height: 100%;
@@ -3548,27 +3631,27 @@
 				margin: 0 -2%;
 			}
 			#panel .panel__screen:nth-child(1) {
-				animation-name: lay-first;
-				animation-timeline: --p1;
-			}
-			#panel .panel__screen:nth-child(2) {
-				animation-name: lay-mid;
+				animation-name: screen-under;
 				animation-timeline: --p2;
 			}
+			#panel .panel__screen:nth-child(2) {
+				animation-name: screen-on, screen-under;
+				animation-timeline: --p2, --p3;
+			}
 			#panel .panel__screen:nth-child(3) {
-				animation-name: lay-mid;
-				animation-timeline: --p3;
+				animation-name: screen-on, screen-under;
+				animation-timeline: --p3, --p4;
 			}
 			#panel .panel__screen:nth-child(4) {
-				animation-name: lay-mid;
-				animation-timeline: --p4;
+				animation-name: screen-on, screen-under;
+				animation-timeline: --p4, --p5;
 			}
 			#panel .panel__screen:nth-child(5) {
-				animation-name: lay-mid;
-				animation-timeline: --p5;
+				animation-name: screen-on, screen-under;
+				animation-timeline: --p5, --p6;
 			}
 			#panel .panel__screen:nth-child(6) {
-				animation-name: lay-last;
+				animation-name: screen-on;
 				animation-timeline: --p6;
 			}
 			/* the six dots at the stage's left edge: the current one is filled */
