@@ -41,7 +41,8 @@
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
-import { offer, footerLine, formatDate, formatDateLongYear, formatGrn } from '../src/config/offer.mjs';
+import { offer, footerLine, formatDate, formatDateLongYear, formatGrn, checkedOnFor, SERVICE_SLUGS } from '../src/config/offer.mjs';
+import { refNumbers } from '../src/lib/refs.mjs';
 
 export const LAW_PAGE_SLUG = 'zakon-i-sait-shkoly';
 
@@ -59,8 +60,10 @@ export const FORBIDDEN_PHRASES = [
 	'Метастудія',
 	'school.org.ua',
 ];
-// Allowed only in the law page's sentence about МОН's letter (decision 8).
+// Allowed only in the law page's sentence about МОН's letter (decision 8) and, since spec 84, in «Як це працює»'s card
+// «Сайт на іншій системі (наприклад, uCoz, …)».
 export const UCOZ_PAGE = 'zakon-i-sait-shkoly';
+export const UCOZ_PAGES = [UCOZ_PAGE, 'yak-tse-pratsiuie'];
 // Decision 8: a page whose text matches this must say «станом на».
 export const LAW_PATTERN = /Закон|постанов|Prozorro|КЕКВ|ДК 021/;
 
@@ -80,11 +83,12 @@ export function findForbidden(text, { allowUcoz = false } = {}) {
 /** Problems with the source of one own page; `name` is the file name without extension. */
 export function checkOwnSource(name, text) {
 	const problems = [];
-	for (const phrase of findForbidden(text, { allowUcoz: name === UCOZ_PAGE })) {
+	for (const phrase of findForbidden(text, { allowUcoz: UCOZ_PAGES.includes(name) })) {
 		problems.push(`forbidden phrase «${phrase}»`);
 	}
 	// Spec 83: a page with `hero` says «Перевірено {checkedOn}» in its hero (RolePage.astro) instead of «станом на».
-	if (LAW_PATTERN.test(text) && !/станом на/i.test(text) && !/^hero:/m.test(text)) {
+	// Spec 84 §8: a page that names a law only to send the reader to «Закон і сайт школи» (a link to it) needs neither.
+	if (LAW_PATTERN.test(text) && !/станом на/i.test(text) && !/^hero:/m.test(text) && !LAW_PAGE_LINK.test(text)) {
 		problems.push('names a law or a procurement rule but has no «станом на»');
 	}
 	if (BAD_APOSTROPHE.test(text)) {
@@ -105,9 +109,12 @@ export function checkAsOfDate(bodyText, asOfText) {
 	return problems;
 }
 
+// Spec 84 §8: a link to «Закон і сайт школи» (in the MDX source or the built HTML).
+export const LAW_PAGE_LINK = new RegExp(`${LAW_PAGE_SLUG}/`);
+
 /** The law-pattern rule on a built page's <main> text: a law or procurement rule needs «станом на». */
-export function checkBuiltAsOf(_name, bodyText) {
-	if (LAW_PATTERN.test(bodyText) && !/станом на|Перевірено/i.test(bodyText)) {
+export function checkBuiltAsOf(_name, bodyText, mainHtml = '') {
+	if (LAW_PATTERN.test(bodyText) && !/станом на|Перевірено/i.test(bodyText) && !LAW_PAGE_LINK.test(mainHtml)) {
 		return ['the built page names a law or a procurement rule but has neither «станом на» nor «Перевірено»'];
 	}
 	return [];
@@ -507,7 +514,17 @@ export function checkProductScripts(html, readSrc = () => null, { allowTry = fal
 /** Every product-page rule on one built page's HTML; `isHome` adds the chip and the claims, `allowUcoz` is the law page's. */
 export function checkProductPage(
 	html,
-	{ isHome = false, isTry = false, allowUcoz = false, assistantStatus = offer.assistantStatus, readSrc = () => null, slugs = null, base = '/site' } = {},
+	{
+		isHome = false,
+		isTry = false,
+		allowUcoz = false,
+		assistantStatus = offer.assistantStatus,
+		readSrc = () => null,
+		slugs = null,
+		base = '/site',
+		checkedIso = offer.checkedOn,
+		service = false,
+	} = {},
 ) {
 	const problems = [];
 	problems.push(...checkProductHeader(html));
@@ -528,7 +545,8 @@ export function checkProductPage(
 	if (isHome) problems.push(...checkLawClaims(html, { requireClaims: true }));
 	// Spec 83: a role page (RolePage.astro, `data-role-page`) also loads src/scripts/page-tools.js (copy, print).
 	problems.push(...checkProductScripts(html, readSrc, { allowTry: isTry, allowTools: /\bdata-role-page\b/.test(html) }));
-	problems.push(...checkOfferNumbers(text));
+	problems.push(...checkOfferNumbers(text, offer, checkedIso));
+	if (service) problems.push(...checkServicePage(html));
 	problems.push(...checkTypography(visibleText(extractMain(html))).map((p) => `<main>: ${p}`));
 	problems.push(...checkTypography(visibleText(footerHtml(html))).map((p) => `footer: ${p}`));
 	if (slugs) problems.push(...checkFooterLinks(html, slugs, base));
@@ -554,7 +572,7 @@ const fold = (text) => text.replace(/[  ]/g, ' ').replace(/\s+/g, ' ');
  * «разом»); «… грн/₴ щокварталу / за квартал» the quarter's; «безкоштовно до …» and «до … безкоштовно» the end of the
  * pilot; «Перевірено …» the checked date; «відповідаємо протягом N» / «відповімо протягом N» the reply times.
  */
-export function checkOfferNumbers(text, o = offer) {
+export function checkOfferNumbers(text, o = offer, checkedIso = o.checkedOn) {
 	const t = fold(text);
 	const problems = [];
 	const want = (what, got, expected) => {
@@ -571,7 +589,7 @@ export function checkOfferNumbers(text, o = offer) {
 	const pilotEnd = fold(formatDateLongYear(o.pilotUntil)).replace(/ року$/, '');
 	for (const m of t.matchAll(/[Бб]езкоштовно до (\d{1,2} [а-яії]+ \d{4})/g)) want('the end of the free period', m[1], pilotEnd);
 	for (const m of t.matchAll(/[Дд]о (\d{1,2} [а-яії]+ \d{4}) року[^.]{0,40}?безкоштовно/g)) want('the end of the free period', m[1], pilotEnd);
-	const checked = fold(formatDateLongYear(o.checkedOn)).replace(/ року$/, '');
+	const checked = fold(formatDateLongYear(checkedIso)).replace(/ року$/, '');
 	for (const m of t.matchAll(/[Пп]еревірено (\d{1,2} [а-яії]+ \d{4})/g)) want('the checked date', m[1], checked);
 	for (const m of t.matchAll(/відповідаємо протягом (\d+) робоч/g)) want('the support reply time', Number(m[1]), o.supportReplyDays);
 	for (const m of t.matchAll(/відповімо протягом (\d+) робоч/g)) want('the request reply time', Number(m[1]), o.requestReplyDays);
@@ -607,6 +625,55 @@ export function checkTypography(text) {
 	if (count('„') !== count('“')) problems.push(`„ without its “ (${count('„')} „, ${count('“')} “)`);
 	if (count('«') !== count('»')) problems.push(`« without its » (${count('«')} «, ${count('»')} »)`);
 	for (const m of text.matchAll(/\d[  ]\d{3}(?!\d)/g)) problems.push(`a digit group without U+00A0 in "${m[0]}"`);
+	return problems;
+}
+
+// ---------------------------------------------------------------------------------------------
+// Spec 84, «Перевірки»: the pages of the group «Про сервіс».
+
+// Not in the visitor's text of the group (spec 84 §1, §3, §11): the old date line, the word «пілот», «Джерело:» after a
+// line, and the names that decisions 7, 8 and 17 keep off these pages.
+export const SERVICE_FORBIDDEN = [
+	{ re: /[Сс]таном на/, what: '«Станом на» (the group says «Перевірено …» in the hero)' },
+	{ re: /пілот/i, what: '«пілот» (spec 83: «пробний період»)' },
+	{ re: /Джерело:/, what: '«Джерело:» in the text (sources are [n] and «Джерела»)' },
+	{ re: /Anthropic|Resend|Cloudflare|Telegram/i, what: 'the name of a supplier (decisions 7 and 17)' },
+	{ re: /ШІ-помічник/i, what: '«ШІ-помічник» (decision 8)' },
+];
+// Sources only from official sites of public authorities: no legal press or code aggregators (spec 84 §3, §11).
+export const UNOFFICIAL_SOURCES = /legalaid\.wiki|kodeksy\.com\.ua|telegraf\.com\.ua|ligazakon\.net|yur-gazeta\.com/i;
+
+/** „ used as the outer quote: a „ that is not inside «…» (spec 83 §3: «…» outside, „…“ inside). */
+export function outerLowQuotes(text) {
+	let depth = 0;
+	let found = 0;
+	for (const ch of text) {
+		if (ch === '«') depth += 1;
+		else if (ch === '»') depth = Math.max(0, depth - 1);
+		else if (ch === '„' && depth === 0) found += 1;
+	}
+	return found;
+}
+
+/** Every [n] of the page has its line in «Джерела», and every line is cited (spec 84 §11). */
+export function checkRefs(html) {
+	const { cited, listed } = refNumbers(html);
+	const problems = [];
+	for (const n of cited) if (!listed.has(n)) problems.push(`[${n}] is cited but «Джерела» has no line ${n}`);
+	for (const n of listed) if (!cited.has(n)) problems.push(`«Джерела» line ${n} is never cited in the text`);
+	return problems;
+}
+
+export function checkServicePage(html) {
+	const main = extractMain(html);
+	const text = visibleText(main);
+	const problems = [];
+	for (const rule of SERVICE_FORBIDDEN) if (rule.re.test(text)) problems.push(`spec 84: ${rule.what}`);
+	if (outerLowQuotes(text) > 0) problems.push('spec 84: „ as the outer quote (use «…» outside, „…“ inside)');
+	for (const m of main.matchAll(/href="([^"]+)"/g)) {
+		if (UNOFFICIAL_SOURCES.test(m[1])) problems.push(`spec 84: a link to an unofficial source (${m[1]})`);
+	}
+	problems.push(...checkRefs(main).map((p) => `spec 84: ${p}`));
 	return problems;
 }
 
@@ -750,7 +817,7 @@ function main() {
 	const failures = [];
 	const fail = (where, what) => failures.push(`${where}: ${what}`);
 	const asOfText = formatDate(offer.asOf);
-	const checkedText = formatDateLongYear(offer.checkedOn).replace(/\u00a0/g, ' ');
+	const checkedTextFor = (slug) => formatDateLongYear(checkedOnFor(slug)).replace(/\u00a0/g, ' ');
 
 	const pages = walkSources(pagesDir);
 	for (const { full, rel } of pages) {
@@ -767,9 +834,9 @@ function main() {
 		const html = readFileSync(builtFile, 'utf8');
 		const body = htmlText(extractMain(html));
 		for (const problem of checkAsOfDate(body, asOfText)) fail(`dist (${rel})`, problem);
-		for (const problem of checkBuiltAsOf(name, body)) fail(`dist (${rel})`, problem);
-		for (const problem of checkCheckedDate(body, checkedText)) fail(`dist (${rel})`, problem);
-		for (const phrase of findForbidden(body, { allowUcoz: name === UCOZ_PAGE })) {
+		for (const problem of checkBuiltAsOf(name, body, extractMain(html))) fail(`dist (${rel})`, problem);
+		for (const problem of checkCheckedDate(body, checkedTextFor(name))) fail(`dist (${rel})`, problem);
+		for (const phrase of findForbidden(body, { allowUcoz: UCOZ_PAGES.includes(name) })) {
 			fail(`dist (${rel})`, `forbidden phrase «${phrase}»`);
 		}
 		if (name === 'zaiavka') {
@@ -794,7 +861,9 @@ function main() {
 			for (const problem of checkProductPage(html, {
 					isHome: rel === 'index.html',
 					isTry: rel === path.join(TRY_SLUG, 'index.html'),
-					allowUcoz: rel === path.join(UCOZ_PAGE, 'index.html'),
+					allowUcoz: UCOZ_PAGES.some((slug) => rel === path.join(slug, 'index.html')),
+					checkedIso: checkedOnFor(first),
+					service: SERVICE_SLUGS.includes(first) && rel === path.join(first, 'index.html'),
 					readSrc: (src) => readBuilt(distDir, base, src),
 					slugs: ownSlugs,
 					base,
