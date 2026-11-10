@@ -8,20 +8,44 @@ import { offer, authorsLine, formatDateLongYear, formatGrn, nextDay, yearOf } fr
 const pilotEnd = formatDateLongYear(offer.pilotUntil);
 const paidYear = yearOf(nextDay(offer.pilotUntil));
 
+/**
+ * Spec 84 §4: the four pages of the group «Про сервіс», in the order of ServiceNav.astro (the footer's column «Про
+ * сервіс» lists them in its own order). `share` is the text of ShareButton.astro when a page is forwarded.
+ */
+export const SERVICE_PAGES = Object.freeze([
+	{ slug: 'yak-tse-pratsiuie', title: 'Як це працює', about: 'етапи, строки й хто що робить', share: null },
+	{ slug: 'khostynh-i-tsina', title: 'Ціна й оплата', about: 'ціна, оплата й що буде, якщо вирішите відмовитися', share: null },
+	{ slug: 'bezpeka-i-dani', title: 'Безпека й дані', about: 'де зберігаються дані закладу й хто має до них доступ', share: 'Переслати директорові' },
+	{ slug: 'zakon-i-sait-shkoly', title: 'Закон і сайт школи', about: 'що закон вимагає оприлюднити на сайті закладу', share: null },
+]);
+
 /** The three role pages, in the switcher's order. `about` is the line under the card in «Інші сторінки». */
 export const ROLES = Object.freeze([
-	{ slug: 'dlia-dyrektora', title: 'Для директора', about: 'що дає Tabula закладу й чи це безпечно', share: 'Переслати директорові' },
+	{
+		slug: 'dlia-dyrektora',
+		title: 'Для директора',
+		about: 'що дає Tabula закладу й чи це безпечно',
+		serviceAbout: 'що дає Tabula закладу й чи це безпечно',
+		share: 'Переслати директорові',
+	},
 	{
 		slug: 'dlia-vidpovidalnoho',
 		title: 'Для того, хто веде сайт',
 		about: 'що зробити в перший тиждень і що робити щотижня',
+		serviceAbout: 'що зробити в перший тиждень',
 		share: null,
 	},
-	{ slug: 'dlia-bukhhalterii', title: 'Для бухгалтерії', about: 'ціна, коди, документи й порядок оплати', share: 'Переслати бухгалтерові' },
+	{
+		slug: 'dlia-bukhhalterii',
+		title: 'Для бухгалтерії',
+		about: 'ціна, коди, документи й порядок оплати',
+		serviceAbout: 'ціна, коди, документи й порядок оплати',
+		share: 'Переслати бухгалтерові',
+	},
 ]);
 
 export function roleBySlug(slug) {
-	const role = ROLES.find((r) => r.slug === slug);
+	const role = ROLES.find((r) => r.slug === slug) ?? SERVICE_PAGES.find((p) => p.slug === slug && p.share);
 	if (!role) throw new Error(`audience: no role page "${slug}"`);
 	return role;
 }
@@ -32,6 +56,13 @@ export function roleBySlug(slug) {
 const request = { kind: 'link', text: 'Подати заявку', href: 'zaiavka/', primary: true };
 const guide = { kind: 'link', text: 'Відкрити посібник', href: 'editor/', primary: true };
 const writeUs = { kind: 'link', text: 'Написати нам', href: `mailto:${offer.supportEmail}` };
+const templates = { kind: 'link', text: 'Подивитися шаблони', href: '#look', root: true };
+const reportProblem = {
+	kind: 'link',
+	text: 'Повідомити про проблему',
+	href: `mailto:${offer.supportEmail}?subject=${encodeURIComponent(offer.securitySubject)}`,
+};
+const printList = { kind: 'print', mode: 'page', text: 'Роздрукувати перелік' };
 const askDocuments = {
 	kind: 'link',
 	text: 'Запросити документи',
@@ -121,6 +152,118 @@ export const HEROES = Object.freeze({
 		end: [],
 		related: false,
 		community: 'short',
+		// Spec 84 §8: the row of the group and the label «Про сервіс».
+		service: 'khostynh-i-tsina',
+		checkedAt: 'service',
+	},
+	// Spec 84 §5–7: the pages of the group «Про сервіс». `service` is the page's slug (ServiceNav.astro); `toc` is
+	// the list of «На цій сторінці» with the spec's anchors (the H2s carry them as ids); `forWhom` adds «Для кого».
+	robota: {
+		role: null,
+		service: 'yak-tse-pratsiuie',
+		label: 'Про сервіс',
+		heading: 'Як проходить запуск сайту закладу',
+		lead: 'Ви подаєте заявку, ми домовляємося про деталі й підписуємо договір про пробний період. Потім ми створюємо сайт, а працівник закладу наповнює його за перший тиждень.',
+		facts: [
+			{ title: `Відповідаємо на заявку протягом ${offer.requestReplyDays} робочих днів.`, text: 'Заявка ні до чого не зобовʼязує.' },
+			{
+				title: 'Від заявки до готового сайту — зазвичай 1–2 тижні.',
+				text: `Сайт створюємо протягом ${offer.siteCreateDays} робочих днів після підписання договору.`,
+			},
+			{
+				title: `Перший тиждень — приблизно ${offer.firstWeekHours} години роботи,`,
+				text: `якщо документи вже зібрано в одній папці. Далі — близько ${offer.weeklyMinutes} хвилин на тиждень.`,
+			},
+			{ title: 'Старий сайт працює, доки новий не буде готовий.', text: 'Перенести новини й сторінки допоможемо.' },
+		],
+		actions: [request, templates],
+		note: [],
+		checked: true,
+		checkedAt: 'service',
+		toc: [
+			{ id: 'zapusk', text: 'Як проходить запуск' },
+			{ id: 'khto-shcho-robyt', text: 'Що робимо ми, а що — заклад' },
+			{ id: 'yak-perenesty', text: 'Як перенести старий сайт' },
+			{ id: 'adresa', text: 'Яку адресу вибрати' },
+			{ id: 'dopomoha', text: 'Як отримати допомогу' },
+			{ id: 'pytannia', text: 'Часті запитання' },
+		],
+		end: [request, writeUs],
+		forWhom: true,
+		community: 'long',
+	},
+	bezpeka: {
+		role: null,
+		service: 'bezpeka-i-dani',
+		label: 'Про сервіс',
+		heading: 'Де зберігаються дані закладу й хто має до них доступ',
+		lead: 'Сайт закладу і його резервні копії зберігаються на серверах у Європейському Союзі (ЄС). Дані на сайті належать закладу, а ми обробляємо їх лише за договором і лише для того, щоб сайт працював.',
+		facts: [
+			{ title: 'Сервери в ЄС.', text: 'Сайт і копії розміщено в дата-центрі компанії Hetzner у Фінляндії.' },
+			{
+				title: 'Дані належать закладу.',
+				text: 'Заклад є володільцем персональних даних на своєму сайті, а ми — розпорядником за договором.',
+			},
+			{ title: 'Копії щодня.', text: `Резервні копії зашифровано, вони зберігаються ${offer.backupRetentionDays} днів.` },
+			{
+				title: 'Без російських сервісів.',
+				text: 'Серед наших постачальників немає російських компаній, а шаблони сайту не підключають лічильників, карт чи відео з російських сервісів.',
+			},
+		],
+		actions: [request, reportProblem],
+		note: [],
+		checked: true,
+		checkedAt: 'service',
+		toc: [
+			{ id: 'de-dani', text: 'Де зберігаються сайт і дані' },
+			{ id: 'dostup', text: 'Хто має доступ до даних' },
+			{ id: 'zakhyst', text: 'Як ми захищаємо сайт' },
+			{ id: 'vidnovlennia', text: 'Як повернути видалене' },
+			{ id: 'intsydent', text: 'Що робити, якщо щось сталося' },
+			{ id: 'vykhid-dani', text: 'Що буде з даними, якщо ви відмовитеся' },
+			{ id: 'pytannia', text: 'Часті запитання' },
+		],
+		end: [request, { kind: 'share', to: 'bezpeka-i-dani' }],
+		forWhom: true,
+		community: 'long',
+		print: true,
+	},
+	zakon: {
+		role: null,
+		service: 'zakon-i-sait-shkoly',
+		label: 'Про сервіс',
+		heading: 'Що закон вимагає оприлюднити на сайті закладу освіти',
+		lead: 'Стаття 30 Закону України «Про освіту» визначає, які документи й відомості заклад оприлюднює на своєму сайті [1]. Тут зібрано повний перелік, строки й вимоги інших законів. Перелік можна роздрукувати й позначати виконане.',
+		facts: [
+			{
+				title: `Строк — ${offer.law.art30Days} робочих днів.`,
+				text: `Документ має зʼявитися на сайті не пізніше ніж через ${offer.law.art30Days} робочих днів після затвердження чи змін, якщо закон не встановлює іншого строку [1].`,
+			},
+			{ title: 'Немає власного сайту — оприлюднюють на сайті засновника [1].' },
+			{ title: 'Фінанси оприлюднюють і заклад, і засновник:', text: 'кошторис, звітність, благодійну допомогу [1].' },
+			{
+				title: 'Відповідає заклад,',
+				text: 'а організовує роботу керівник.',
+				link: { text: 'Що буде, якщо документів немає', href: '#perevirky' },
+			},
+		],
+		actions: [printList, { ...request, primary: true }],
+		note: ['Сторінка пояснює закон простими словами й не замінює консультації юриста.'],
+		checked: true,
+		checkedFirst: true,
+		checkedAt: 'service',
+		toc: [
+			{ id: 'stattia-30', text: 'Що оприлюднити за статтею 30' },
+			{ id: 'finansy', text: 'Які фінансові документи оприлюднити' },
+			{ id: 'inshi-zakony', text: 'Що вимагають інші закони' },
+			{ id: 'perevirky', text: 'Хто перевіряє і що буде, якщо документів немає' },
+			{ id: 'zminy', text: 'Що змінилося з 2024 року' },
+			{ id: 'inshi-vymohy', text: 'Інші вимоги: мова, доступність, фото, російські сервіси' },
+		],
+		end: [printList, request],
+		forWhom: true,
+		community: 'long',
+		print: 'checklist',
 	},
 });
 

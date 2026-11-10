@@ -1,0 +1,20 @@
+---
+// Spec 84 §7: «Що змінилося з 2024 року» — the changes of the law with the day they took effect, newest first
+// (src/data/lawChanges.mjs).
+import RefText from './RefText.astro';
+import { LAW_CHANGES } from '../../../data/lawChanges.mjs';
+import { formatDateLongYear } from '../../../config/offer.mjs';
+---
+
+<ol class="changelog">
+	{
+		LAW_CHANGES.map((change) => (
+			<li class="changelog__item">
+				<strong>
+					<time datetime={change.date}>{formatDateLongYear(change.date)}.</time>
+				</strong>{' '}
+				<RefText text={change.text} />
+			</li>
+		))
+	}
+</ol>

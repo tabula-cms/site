@@ -1,6 +1,7 @@
 ---
 // Spec 83 §4: «Джерела» — the numbered list at the end of the page (laws and resolutions first, then explanations), each
-// with a link back to its first mention and, when known, to the official text.
+// with a link back to its first mention and, when known, to the official text. A title is HTML (spec 84: an article
+// index is <sup>), written by us in src/data/sources.mjs or a page, never taken from outside.
 import { typo } from '../../../lib/typo.mjs';
 
 interface Props {
@@ -13,7 +14,7 @@ const { items } = Astro.props;
 	{
 		items.map((item, i) => (
 			<li id={`source-${i + 1}`}>
-				{item.url ? <a href={item.url}>{typo(item.title)}</a> : typo(item.title)}{' '}
+				{item.url ? <a href={item.url} set:html={typo(item.title)} /> : <Fragment set:html={typo(item.title)} />}{' '}
 				<a class="sources__back more" href={`#ref-${i + 1}`}>
 					↑ до тексту
 				</a>

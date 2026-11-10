@@ -11,6 +11,8 @@ interface Action {
 	to?: string;
 	mode?: string;
 	primary?: boolean;
+	// An anchor of the home (`#look`): the link goes to the site's root, not to this page.
+	root?: boolean;
 }
 interface Props {
 	actions: Action[];
@@ -33,7 +35,7 @@ const href = (h: string) => (/^[a-z]+:/.test(h) || h.startsWith('#') ? h : `${ro
 						{typo(action.text ?? 'Роздрукувати')}
 					</button>
 				) : (
-					<a class:list={['btn', action.primary ? 'btn-main' : 'btn-line']} href={href(action.href!)}>
+					<a class:list={['btn', action.primary ? 'btn-main' : 'btn-line']} href={action.root ? `${root}${action.href}` : href(action.href!)}>
 						{typo(action.text!)}
 					</a>
 				),

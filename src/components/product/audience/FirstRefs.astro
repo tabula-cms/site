@@ -1,0 +1,9 @@
+---
+// Spec 84 §11: the first [n] of each source on the page gets the anchor `ref-n` that «↑ до тексту» of SourceList.astro
+// points to — wherever it stands (the hero, a table, a ChangeLog row), so no author has to mark it.
+import { firstRefIds } from '../../../lib/refs.mjs';
+
+const html = firstRefIds(await Astro.slots.render('default'));
+---
+
+<Fragment set:html={html} />

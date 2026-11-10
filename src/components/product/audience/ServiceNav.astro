@@ -1,0 +1,26 @@
+---
+// Spec 84 §4: the row of the four pages of the group «Про сервіс» under the header, like the role switcher of spec 83
+// (the same styles: chips that scroll sideways on phones); the current one has aria-current="page".
+import { SERVICE_PAGES } from '../../../config/audience.mjs';
+
+interface Props {
+	current: string;
+}
+const { current } = Astro.props;
+const base = import.meta.env.BASE_URL;
+const root = base.endsWith('/') ? base : `${base}/`;
+---
+
+<nav class="role-switch service-nav" aria-label="Про сервіс">
+	<ul>
+		{
+			SERVICE_PAGES.map((page) => (
+				<li>
+					<a href={`${root}${page.slug}/`} aria-current={page.slug === current ? 'page' : undefined}>
+						{page.title}
+					</a>
+				</li>
+			))
+		}
+	</ul>
+</nav>

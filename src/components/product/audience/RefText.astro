@@ -1,0 +1,15 @@
+---
+// Spec 84 §3 and §9: a plain string of the spec with its source numbers written «[n]» and article indexes as
+// superscript digits («41¹»): [n] becomes a SourceRef, the index a <sup> (spec 84 §3: «41<sup>1</sup>» in code).
+// `typo()` puts the no-break spaces in every text piece. FirstRefs.astro (RolePage) gives the first [n] its anchor.
+import SourceRef from './SourceRef.astro';
+import { typo } from '../../../lib/typo.mjs';
+import { refParts } from '../../../lib/refs.mjs';
+
+interface Props {
+	text: string;
+}
+const parts = refParts(Astro.props.text);
+---
+
+{parts.map((part) => (part.ref ? <SourceRef n={part.ref} /> : part.sup ? <sup>{part.sup}</sup> : typo(part.text)))}

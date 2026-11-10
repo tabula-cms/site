@@ -1,14 +1,16 @@
 ---
 // One step of Steps.astro / TimelineStage.astro: optional «хто» (`who`), a bold title, optional «скільки часу»
 // (`time`), then the text. A step whose title holds links writes it in its own text instead (no `title`).
+// Spec 84 §5: `meta` — a line under the title with «Хто:», «Час:», «Документ:» (`[{ label, text }]`).
 import { typo } from '../../../lib/typo.mjs';
 
 interface Props {
 	title?: string;
 	time?: string;
 	who?: string;
+	meta?: { label: string; text: string }[];
 }
-const { title, time, who } = Astro.props;
+const { title, time, who, meta = [] } = Astro.props;
 ---
 
 <li class="step">
@@ -18,6 +20,20 @@ const { title, time, who } = Astro.props;
 				{who && <span class="who">{who}</span>}
 				{title && <strong class="step__title">{typo(title)}</strong>}
 				{time && <span class="step__time">{typo(time)}</span>}
+			</p>
+		)
+	}
+	{
+		meta.length > 0 && (
+			<p class="step__meta">
+				{meta.map((m, i) => (
+					<>
+						{i > 0 && <span aria-hidden="true"> · </span>}
+						<span>
+							<span class="step__label">{m.label}:</span> {typo(m.text)}
+						</span>
+					</>
+				))}
 			</p>
 		)
 	}
