@@ -1,0 +1,47 @@
+---
+// Spec 83 §4 and §10: the top of a role page (and of «Ціна й оплата»): the role's label, the H1 (the reader's task),
+// the lead, «Коротко», the buttons and a small line with the note and «Перевірено {checkedOn}».
+import KeyFacts from './KeyFacts.astro';
+import Actions from './Actions.astro';
+import { offer, formatDateLongYear } from '../../../config/offer.mjs';
+import { typo } from '../../../lib/typo.mjs';
+
+interface Props {
+	hero: {
+		label: string | null;
+		heading: string;
+		lead: string;
+		facts: { title: string; text?: string }[];
+		actions: any[];
+		note: (string | { text: string; href: string })[];
+		checked: boolean;
+		checkedFirst?: boolean;
+	};
+}
+const { hero } = Astro.props;
+const checked = hero.checked ? `Перевірено ${formatDateLongYear(offer.checkedOn)}.` : null;
+const note = hero.checkedFirst && checked ? [checked, ...hero.note] : hero.note;
+const tail = !hero.checkedFirst ? checked : null;
+---
+
+<header class="role-hero">
+	{hero.label && <p class="role-hero__label">{hero.label}</p>}
+	<h1 data-print-summary>{typo(hero.heading)}</h1>
+	<p class="role-hero__lead">{typo(hero.lead)}</p>
+	<KeyFacts items={hero.facts} />
+	<Actions actions={hero.actions} class="role-hero__actions" />
+	{
+		(note.length > 0 || tail) && (
+			<p class="role-hero__note">
+				{note.map((piece, i) => (
+					<>
+						{i > 0 && ' '}
+						{typeof piece === 'string' ? typo(piece) : <a href={piece.href}>{typo(piece.text)}</a>}
+					</>
+				))}
+				{tail && note.length > 0 && <span aria-hidden="true"> · </span>}
+				{tail && <span class="role-hero__checked">{typo(tail)}</span>}
+			</p>
+		)
+	}
+</header>

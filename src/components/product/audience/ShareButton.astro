@@ -1,0 +1,20 @@
+---
+// Spec 83 §10: «Переслати бухгалтерові» / «Переслати директорові» — a mail with a ready subject and the address of the
+// role page `to`; the sender picks the recipient in their own mail program.
+import { roleBySlug } from '../../../config/audience.mjs';
+
+interface Props {
+	to: string;
+	primary?: boolean;
+}
+const { to, primary = false } = Astro.props;
+const role = roleBySlug(to);
+const base = import.meta.env.BASE_URL;
+const root = base.endsWith('/') ? base : `${base}/`;
+const url = new URL(`${root}${role.slug}/`, Astro.site ?? 'https://tabula-cms.github.io').href;
+const subject = `Tabula: сторінка «${role.title}»`;
+const body = `«${role.title}» — ${role.about}:\n${url}`;
+const href = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+---
+
+<a class:list={['btn', primary ? 'btn-main' : 'btn-line']} href={href}>{role.share}</a>

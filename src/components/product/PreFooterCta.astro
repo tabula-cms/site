@@ -1,0 +1,22 @@
+---
+// Spec 83 §9: the band above the footer on every product page but the request form: free until the end of the trial
+// period, «Подати заявку», «Подивитися шаблони». On the home the links are its anchors.
+import { offer, formatDateLongYear } from '../../config/offer.mjs';
+
+interface Props {
+	home?: boolean;
+}
+const { home = false } = Astro.props;
+const base = import.meta.env.BASE_URL;
+const root = base.endsWith('/') ? base : `${base}/`;
+---
+
+<section class="prefooter" aria-label="Подати заявку">
+	<div class="prefooter__inner">
+		<p class="prefooter__text">Безкоштовно до {formatDateLongYear(offer.pilotUntil)}</p>
+		<p class="prefooter__actions">
+			<a class="btn btn-main" href={home ? '#request' : `${root}zaiavka/`}>Подати заявку</a>
+			<a class="btn btn-line" href={home ? '#look' : `${root}#look`}>Подивитися шаблони</a>
+		</p>
+	</div>
+</section>

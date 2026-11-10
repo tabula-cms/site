@@ -5,10 +5,9 @@
 // (`plans.year_uah` <-> priceYearUah, `pilot.defaultUntil` <-> pilotUntil, `requests.replyDays`
 // <-> requestReplyDays); the coordinator checks they agree in each PR that touches either side.
 //
-// The operator is never named here or anywhere else on the site (decision 5): no name, no РНОКПП, no
-// address. Since the footer-and-audience-pages spec (2026-11-09) the footer no longer carries an operator
-// line: «ФОП на єдиному податку, без ПДВ» lives in the section «Про виконавця» of «Для бухгалтерії»
-// (#vykonavets), and the full details are given on request.
+// The operator: decision 5 of story 78 kept the operator unnamed; spec 83 (owner's decision «Реквізити», 2026-11-09)
+// publishes the details openly on «Для бухгалтерії». They live only in `offer.operator` below, filled in by the owner;
+// an empty field is not shown. No real details are ever typed anywhere else.
 
 export const offer = Object.freeze({
 	// Decision 2: the last day of the free pilot (ISO date). The paid period starts the next day.
@@ -18,13 +17,13 @@ export const offer = Object.freeze({
 	// Decision 3: the quarterly instalment; must equal priceYearUah / 4 (test/offer.test.mjs).
 	priceQuarterUah: 1200,
 	// Decision 24: the value of the pilot's free services for the institution's books, per MONTH
-	// of the pilot: priceYearUah / 12 = 4 800 / 12 = 400 (test/offer.test.mjs holds this). Pages
-	// say «— {pilotValueUah} грн за кожен місяць пілоту», never a lump sum.
+	// of the pilot: priceYearUah / 12 = 4 800 / 12 = 400 (test/offer.test.mjs holds this). Spec 83 uses it only
+	// in the unconfirmed decision `pilotActValue` («400 грн за повний місяць, за неповний — пропорційно дням»).
 	pilotValueUah: 400,
 	// Decision 8: the date the law and procurement texts were last checked against their sources.
 	asOf: '2026-11-08',
-	// Decision 24: the usual reply time to a request, in working days. Pages always write
-	// «зазвичай протягом N робочих днів», never a promise.
+	// Decision 24: the usual reply time to a request, in working days. The home writes «зазвичай протягом N…»;
+	// the spec-83 pages use the spec's own wording («Ми відповімо протягом N робочих днів»).
 	requestReplyDays: 2,
 	// Decision 24: the usual reply time to a support e-mail, in working days.
 	supportReplyDays: 2,
@@ -77,13 +76,90 @@ export const offer = Object.freeze({
 	// The same spec, «Механізм виходу»: after the paid period the site stays closed this many days, then it
 	// is deleted (its copies disappear within backupRetentionDays more).
 	exitClosedDays: 30,
+
+	// ---- Spec 83 (audience pages, 2026-11-09) ------------------------------------------------------------
+	// The date the four pages «Для директора», «Для того, хто веде сайт», «Для бухгалтерії» and «Ціна й оплата»
+	// were checked: they say «Перевірено {formatDateLongYear(checkedOn)}» (not «станом на», which keeps `asOf`).
+	checkedOn: '2026-11-09',
+	// Owner's decision «Термінова допомога»: mail only; the subject «Терміново» gets a reply the same working day.
+	urgentSubject: 'Терміново',
+	// The subject of «Запросити документи» on «Для бухгалтерії».
+	documentsSubject: 'Документи для бухгалтерії',
+	// Owner's decision «Час на сайт»: the first week takes about this many hours, then about weeklyMinutes a week.
+	firstWeekHours: '3–4',
+	weeklyMinutes: 30,
+	// «Ви нічого не зламаєте»: deleted items stay in the bin this many days.
+	trashDays: 30,
+	// The exit: the address on tabula.org.ua is not given to another institution for at least this many months.
+	addressHoldMonths: 12,
+	// Spec 83, decisions 3 and 4 (not confirmed yet, see `decisions`): the numbers their texts use.
+	contractUntil: '2027-12-31',
+	paymentBankDays: 10,
+	graceDays: 45,
+	noticeDays: 60,
+	// The law's numbers the pages repeat (checked on checkedOn; the sources are listed on «Для бухгалтерії»).
+	law: Object.freeze({
+		// A report in Prozorro for a contract made without the e-system: from this sum a year (one subject).
+		reportLimitUah: 50000,
+		// The rule above holds until this day; then law № 4888-IX takes full effect.
+		reportRuleUntil: '2027-03-24',
+		// Open tenders for services: from this sum a year.
+		tenderLimitUah: 200000,
+		// From reportRuleUntil: a report from this sum in euro a year.
+		newReportLimitEur: 2000,
+		// Working days: the annual plan published in Prozorro; a commitment filed with the Treasury; the report.
+		planPublishDays: 5,
+		commitmentDays: 7,
+		reportDays: 10,
+		// Working days: what the institution publishes on its site under article 30 (charity, budget, documents) and
+		// the qualification plan (resolution № 800).
+		art30Days: 10,
+		qualificationPlanDays: 2,
+		// Months: the most a budget institution may pay in advance for services (resolution № 1070).
+		prepayMonths: 3,
+	}),
+	// The codes of the purchase.
+	dk021: '72410000-7',
+	dk021Name: 'Послуги провайдерів',
+	dk021Class: '7241',
+	kekv: '2240',
+	kekvName: 'Оплата послуг (крім комунальних)',
+
+	// {дані: …} of spec 83: the operator's details, published openly on «Для бухгалтерії» (owner's decision
+	// «Реквізити»). The owner fills them in; a field that is null is not shown (Requisites.astro), and a sentence that
+	// needs it is left out. Never put real details anywhere but here.
+	operator: Object.freeze({
+		// ПІБ of the фізична особа — підприємець.
+		name: null,
+		// РНОКПП.
+		rnokpp: null,
+		address: null,
+		iban: null,
+		bank: null,
+		// КВЕДи from the extract, e.g. ['62.01 …', '63.11 …']; the accountant advises 63.11 among them.
+		kved: null,
+		// From the spec's text: the 3rd group of the single tax at 5 %, not a VAT payer.
+		taxGroup: 3,
+		taxRatePercent: 5,
+		vatPayer: false,
+	}),
+	// {дані: назва ліцею, місто} of «Хто ми»: the lyceum where Tabula started. Owner's decision «Хто ми»: a name, a
+	// city and a link to its live site, where Tabula has worked since `since`. Shown only when filled in.
+	lyceum: Object.freeze({
+		name: null,
+		city: null,
+		url: null,
+		since: 2026,
+	}),
 });
 
-// The footer's bottom line (the footer-and-audience-pages spec, answer 2, variant 1), verbatim: who made
-// Tabula and for whom. It replaced the sentence about free software and the operator line; check-built
-// holds it on every page of the site (product pages and the documentation).
-export const footerLine =
-	'Tabula зробили вчителі з досвідом програмування — для інших шкіл. Щоб сайт закладу вів його працівник, а не найнятий програміст.';
+// The authors line (owner's decision «Хто ми», spec 83 §9): the first sentence opens «Хто ми» on «Для директора»
+// and the note under its buttons; the whole line is the footer's line under the columns.
+export const authorsLine = 'Tabula зробили вчителі, які вміють програмувати.';
+
+// The footer's line under the columns (spec 83 §9, verbatim; it replaced the line of the footer-and-audience-pages
+// spec): who made Tabula and why. check-built holds it on every page of the site (product pages and the documentation).
+export const footerLine = `${authorsLine} Ми хотіли, щоб сайт закладу вели його власні працівники, а не найнятий програміст.`;
 
 // «Механізм виходу» of the same spec: the text for the site (home FAQ, «Ціна й оплата», «Безпека й дані»,
 // «Для директора»), verbatim but for the number, which comes from exitClosedDays.
@@ -293,3 +369,92 @@ export function demoHref(root, url = offer.demoSiteUrl) {
 export function demoPageState(url = offer.demoSiteUrl) {
 	return url ? { chip: false, buttonHref: url } : { chip: true, buttonHref: null };
 }
+
+// ---------------------------------------------------------------------------------------------
+// Spec 83: the texts and lists of the audience pages (below the helpers they use).
+
+/**
+ * {рішення: …} of spec 83: texts that wait for the owner's confirmation. A page shows one only through `decided()`,
+ * which returns null until `confirmed` is true, so an unconfirmed promise never reaches the site. `text: null` is a
+ * decision the spec names without a wording yet (`todo` says what is missing).
+ */
+export const decisions = Object.freeze({
+	// Decision 1: notice and the archive (Для директора, «Що буде, якщо Tabula припинить роботу?»).
+	terminationNotice: Object.freeze({
+		confirmed: false,
+		text: `У договорі записано, що про припинення послуги ми попередимо щонайменше за ${offer.noticeDays} днів і передамо архів.`,
+	}),
+	// Decision 2: the monthly acts of the pilot (Для бухгалтерії, the timeline's step 2).
+	pilotActs: Object.freeze({
+		confirmed: false,
+		text: `наприкінці кожного місяця пробного періоду надсилає акт за цей місяць; останній — ${formatDateLongYear(offer.pilotUntil)}.`,
+	}),
+	// Decision 2: the value of the pilot's services in the act (Для бухгалтерії, «Коротко», «Пробний період»).
+	pilotActValue: Object.freeze({
+		confirmed: false,
+		text: `Вартість послуг в акті — ${formatGrn(offer.pilotValueUah)} за повний місяць, за неповний — пропорційно дням.`,
+	}),
+	// Decision 3: the contract for the paid year (Для бухгалтерії, the timeline's step 7).
+	contract2027: Object.freeze({
+		confirmed: false,
+		text: `Ціна не змінюється протягом року, а договір діє до ${formatDateLongYear(offer.contractUntil)}. Заклад платить у межах бюджетних асигнувань протягом ${offer.paymentBankDays} банківських днів після підписання акта. Якщо асигнувань не виділили, заклад може розірвати договір. За неповний квартал оплата пропорційна дням. Штрафів за затримку бюджетного фінансування договір не містить.`,
+	}),
+	// Decision 4: free days from 1 January until the contract is made (Для директора, FAQ).
+	januaryGrace: Object.freeze({
+		confirmed: false,
+		text: `Сайт працює безкоштовно, поки заклад укладає договір і реєструє зобовʼязання, — до ${offer.graceDays} календарних днів від ${formatDateLongYear(nextDay(offer.pilotUntil))}. Платити за ці дні не потрібно.`,
+	}),
+	// Decision 4: a late payment (Для бухгалтерії, «Довідка»; Ціна й оплата, its own section).
+	latePayment: Object.freeze({
+		confirmed: false,
+		text: `Публічний сайт ми не вимикаємо: у закладу обовʼязок за статтею 30. Якщо оплата за актом затримується понад ${offer.graceDays} календарних днів, ми напишемо керівникові закладу й домовимося.`,
+	}),
+	// Decision 8: who answers when the operator is ill (Для директора, «Хто ми»). No wording yet.
+	whoIfIll: Object.freeze({
+		confirmed: false,
+		text: null,
+		todo: 'хто відповідає, якщо виконавець хворіє; «учителі» в множині, а виконавець — один ФОП',
+	}),
+});
+
+/** The text of a confirmed decision, or null (unconfirmed or without a wording): the page then leaves it out. */
+export function decided(key, all = decisions) {
+	const d = all[key];
+	if (!d) throw new Error(`offer: no decision "${key}"`);
+	return d.confirmed && d.text ? d.text : null;
+}
+
+// Spec 83 §7, «Які документи ми надаємо». `status`: 'ready' | 'preparing' | 'onRequest' | 'off' (StatusBadge.astro).
+// `pdf` is the address of the sample once it exists: the row then shows «Завантажити PDF» (and its status should be
+// 'ready'); a 'preparing' row offers «Надішлемо, щойно буде готово».
+export const documents = Object.freeze([
+	{ name: 'Витяг із ЄДР', why: 'щоб не утримувати ПДФО й військовий збір', when: 'разом із договором', status: 'ready', pdf: null },
+	{ name: 'Витяг із реєстру платників єдиного податку', why: 'щоб підтвердити групу єдиного податку й статус неплатника ПДВ', when: 'разом із договором', status: 'ready', pdf: null },
+	{ name: 'Зразок договору про безоплатне надання послуг і акта до нього', why: 'для пробного періоду', when: 'до підписання', status: 'preparing', pdf: null },
+	{ name: `Зразок договору на ${yearOf(nextDay(offer.pilotUntil))} рік`, why: 'для основної закупівлі', when: 'до підписання', status: 'preparing', pdf: null },
+	{ name: 'Зразок акта й рахунку на оплату', why: 'для щоквартальної оплати', when: 'щокварталу', status: 'preparing', pdf: null },
+	{ name: 'Зразок наказу про призначення працівника, який веде сайт', why: 'щоб призначити відповідального', when: 'разом із договором', status: 'preparing', pdf: null },
+	{ name: 'Зразок згоди батьків на фото й відео дітей', why: 'для публікації фото', when: 'до зйомки', status: 'preparing', pdf: null },
+]);
+
+// Spec 83 §8, «Що входить у ціну» on «Ціна й оплата». `assistant: true` marks the line that carries the
+// «Ще не ввімкнено» badge while `assistantStatus` is 'testing'.
+export const priceIncludes = Object.freeze([
+	{ text: 'Сайт за адресою ваш-заклад.tabula.org.ua або на власному домені закладу' },
+	{ text: 'Усі вісім шаблонів і готові розділи за статтею 30 Закону України «Про освіту»' },
+	{ text: 'Панель керування сайтом українською' },
+	{ text: 'Щоденні зашифровані резервні копії' },
+	{ text: 'Оновлення й захищене зʼєднання (HTTPS)' },
+	{ text: 'Допомога електронною поштою' },
+	{ text: 'Сайт без реклами' },
+	{ text: 'Помічник зі штучним інтелектом у межах місячного ліміту', assistant: true },
+]);
+
+// Spec 83 §8, «Що буде, якщо вирішите відмовитися» (`#vykhid` of «Ціна й оплата»): the exit, step by step.
+export const exitSteps = Object.freeze([
+	'Усі документи, фото й новини отримаєте одним архівом. Його можна відкрити в будь-якому браузері, а матеріали — перенести на будь-який інший сайт.',
+	'Сайт працює до кінця строку договору.',
+	`Ще ${offer.exitClosedDays} днів після цього сайт буде закритий для відвідувачів, але ви зможете увійти й завантажити архів. Якщо назвете адресу нового сайту, стара адреса вестиме туди.`,
+	'Потім ми видаляємо сайт і його резервні копії та надсилаємо лист-підтвердження.',
+	`Адреса на tabula.org.ua зникає разом із сайтом і щонайменше протягом ${offer.addressHoldMonths} місяців не передається іншому закладу. Власний домен лишається вашим.`,
+]);

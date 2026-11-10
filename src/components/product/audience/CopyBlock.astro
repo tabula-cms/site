@@ -1,0 +1,21 @@
+---
+// Spec 83 §7: a text with the button «Скопіювати» (the line of the annual plan). The button is shown and works only with
+// JavaScript (src/scripts/page-tools.js); the text is always there to select by hand.
+import { typo } from '../../../lib/typo.mjs';
+
+interface Props {
+	id: string;
+	text: string;
+	label: string;
+}
+const { id, text, label } = Astro.props;
+---
+
+<figure class="copy" data-print-summary>
+	<figcaption class="copy__label">{label}</figcaption>
+	<blockquote class="copy__text" id={id}><p>{typo(text)}</p></blockquote>
+	<p class="copy__actions">
+		<button type="button" class="btn btn-line" data-copy={id} hidden>Скопіювати</button>
+		<span class="copy__status" role="status"></span>
+	</p>
+</figure>

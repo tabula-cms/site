@@ -1,0 +1,47 @@
+---
+// Spec 83 §7: «Які документи ми надаємо» — offer.documents as a table (document · what for · when · state · action).
+// A sample in preparation offers «Надішлемо, щойно буде готово» (mailto); once `pdf` is set, «Завантажити PDF».
+import StatusBadge from './StatusBadge.astro';
+import { offer, documents } from '../../../config/offer.mjs';
+import { typo } from '../../../lib/typo.mjs';
+
+const notify = (name: string) =>
+	`mailto:${offer.supportEmail}?subject=${encodeURIComponent(`Надішліть, щойно буде готово: ${name}`)}`;
+---
+
+<div class="reading-table" tabindex="0" role="region" aria-label="Документи, які ми надаємо">
+	<table class="doc-table">
+		<caption>Документи для бухгалтерії</caption>
+		<thead>
+			<tr>
+				<th scope="col">Документ</th>
+				<th scope="col">Для чого</th>
+				<th scope="col">Коли</th>
+				<th scope="col">Стан</th>
+			</tr>
+		</thead>
+		<tbody>
+			{
+				documents.map((doc) => (
+					<tr>
+						<th scope="row">{typo(doc.name)}</th>
+						<td>{typo(doc.why)}</td>
+						<td>{typo(doc.when)}</td>
+						<td>
+							<StatusBadge status={doc.status} />
+							{doc.pdf ? (
+								<a class="doc-table__action" href={doc.pdf}>
+									Завантажити PDF
+								</a>
+							) : doc.status === 'preparing' ? (
+								<a class="doc-table__action more" href={notify(doc.name)}>
+									Надішлемо, щойно буде готово
+								</a>
+							) : null}
+						</td>
+					</tr>
+				))
+			}
+		</tbody>
+	</table>
+</div>

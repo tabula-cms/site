@@ -8,7 +8,8 @@
 // each at 1280 and 320 px, in a context with `reducedMotion: 'reduce'` (so revealed content is measured,
 // not its first frame). On the home every tab of every tablist is also clicked in turn and axe runs after
 // each. The documentation (Starlight) is not scanned. Prints the violation count and the time per page
-// and width; exits 1 on any violation.
+// and width; exits 1 on any violation. Spec 83 adds: no product page scrolls sideways at 360 px, and the summary print
+// of «Для бухгалтерії» fits one A4 sheet.
 
 import { existsSync, readdirSync } from 'node:fs';
 import { chromium } from 'playwright';
@@ -95,6 +96,36 @@ async function visibleHeader(browser, origin) {
 	return problems;
 }
 
+// Spec 83 §11: no product page scrolls sideways at 360 px. Returns the number of pages that do.
+async function noSideScroll(browser, origin) {
+	let problems = 0;
+	const context = await browser.newContext({ viewport: { width: 360, height: 800 }, reducedMotion: 'reduce' });
+	const tab = await context.newPage();
+	for (const page of PAGES) {
+		await tab.goto(`${origin}${baseNoSlash}/${page}`, { waitUntil: 'load' });
+		const extra = await tab.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+		console.log(`a11y: /${page} @ 360px — ${extra > 0 ? `scrolls sideways by ${extra} px: FAILED` : 'no sideways scroll'}`);
+		if (extra > 0) problems += 1;
+	}
+	await context.close();
+	return problems;
+}
+
+// Spec 83 §11: «Роздрукувати» on «Для бухгалтерії» prints «Коротко», the details and the plan line on ONE A4 sheet
+// (the class `print-summary` the button sets, then the print media). Returns 1 when it takes more.
+async function accountingSummaryPrint(browser, origin) {
+	const context = await browser.newContext();
+	const tab = await context.newPage();
+	await tab.goto(`${origin}${baseNoSlash}/dlia-bukhhalterii/`, { waitUntil: 'load' });
+	await tab.evaluate(() => document.documentElement.classList.add('print-summary'));
+	await tab.emulateMedia({ media: 'print' });
+	const pdf = await tab.pdf({ format: 'A4', preferCSSPageSize: true, printBackground: true });
+	const sheets = (pdf.toString('latin1').match(/\/Type\s*\/Page[^s]/g) ?? []).length;
+	await context.close();
+	console.log(`a11y: «Для бухгалтерії» printed by «Роздрукувати» — ${sheets} A4 sheet(s)${sheets === 1 ? '' : ': FAILED, expected 1'}`);
+	return sheets === 1 ? 0 : 1;
+}
+
 async function main() {
 	if (!existsSync(distDir)) {
 		console.error('a11y: dist/ not found — run "npm run build" first');
@@ -150,6 +181,8 @@ async function main() {
 		}
 		violations += await homeWithMotion(browser, origin, Date.now());
 		violations += await visibleHeader(browser, origin);
+		violations += await noSideScroll(browser, origin);
+		violations += await accountingSummaryPrint(browser, origin);
 	} finally {
 		await browser.close();
 		server.close();

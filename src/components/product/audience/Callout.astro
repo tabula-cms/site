@@ -1,0 +1,14 @@
+---
+// Spec 83 §10: a side note — «Важливо» (`important`) or «Примітка» (`note`). A <div role="note">, not an <aside>: a
+// complementary landmark may not sit inside <main>.
+interface Props {
+	type?: 'important' | 'note';
+}
+const { type = 'note' } = Astro.props;
+const label = type === 'important' ? 'Важливо' : 'Примітка';
+---
+
+<div class:list={['callout', `callout--${type}`]} role="note" aria-label={label}>
+	<p class="callout__label" aria-hidden="true">{label}</p>
+	<slot />
+</div>

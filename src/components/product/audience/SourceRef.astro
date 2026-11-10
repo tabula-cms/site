@@ -1,0 +1,11 @@
+---
+// Spec 83 §4: a source in the text is its number, [n], linked to SourceList.astro. The first mention of a source has
+// `first`, so the list can link back to it.
+interface Props {
+	n: number;
+	first?: boolean;
+}
+const { n, first = false } = Astro.props;
+---
+
+<sup class="ref"><a href={`#source-${n}`} id={first ? `ref-${n}` : undefined}>[{n}]</a></sup>

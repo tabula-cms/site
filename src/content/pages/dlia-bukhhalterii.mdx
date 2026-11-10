@@ -1,117 +1,271 @@
 ---
 title: Для бухгалтерії
-description: "Як оформити розміщення сайту закладу освіти: хто підписує, схема документів, календар, рядок у річному плані, межа 50 000 грн, КЕКВ, документи, податки, пілот, зміни з 24.03.2027, про виконавця."
+description: "Як оформити закупівлю Tabula: ціна, коди ДК 021 і КЕКВ, пробний період, рядок річного плану, документи, реквізити й порядок оплати."
+hero: bukhhalteriia
 ---
 
 import {
 	offer,
-	formatDate,
+	decided,
+	formatDateLongYear,
 	formatGrn,
+	formatNumber,
 	nextDay,
+	yearOf,
 } from '../../config/offer.mjs';
-import DocFlow from '../../components/product/DocFlow.astro';
-import CommunityNote from '../../components/product/CommunityNote.astro';
+import { accountingActions } from '../../config/audience.mjs';
+import AnswerList from '../../components/product/audience/AnswerList.astro';
+import Actions from '../../components/product/audience/Actions.astro';
+import Requisites from '../../components/product/audience/Requisites.astro';
+import ChoiceCards from '../../components/product/audience/ChoiceCards.astro';
+import Card from '../../components/product/audience/Card.astro';
+import Timeline from '../../components/product/audience/Timeline.astro';
+import TimelineStage from '../../components/product/audience/TimelineStage.astro';
+import Step from '../../components/product/audience/Step.astro';
+import Callout from '../../components/product/audience/Callout.astro';
+import CopyBlock from '../../components/product/audience/CopyBlock.astro';
+import DocumentTable from '../../components/product/audience/DocumentTable.astro';
+import Faq from '../../components/product/audience/Faq.astro';
+import SourceRef from '../../components/product/audience/SourceRef.astro';
+import SourceList from '../../components/product/audience/SourceList.astro';
 
-export const planYear = nextDay(offer.pilotUntil).slice(0, 4);
+export const pilotEnd = formatDateLongYear(offer.pilotUntil);
+export const paidYear = yearOf(nextDay(offer.pilotUntil));
+export const law = offer.law;
+export const ruleUntil = formatDateLongYear(law.reportRuleUntil);
+export const mail = `mailto:${offer.supportEmail}`;
+export const internetExample = 46000;
 
-Станом на {formatDate(offer.asOf)}. Кожне правило нижче має посилання на джерело. Узгодьте рядок плану й код з уповноваженою особою закладу.
+export const short = [
+	{ term: 'Замовник', text: 'Заклад освіти. Якщо договори укладає відділ освіти — див. «Хто укладає договір».', more: '#khto-ukladaie-dohovir' },
+	{ term: 'Ціна', text: `${formatGrn(offer.priceYearUah)} на рік. ПДВ не нараховується: виконавець не є платником ПДВ.`, more: '#khto-nadaie-posluhy' },
+	{ term: 'Оплата', text: `${formatGrn(offer.priceQuarterUah)} щокварталу, після підписання акта приймання-передачі наданих послуг (далі — акт).`, more: '#shchokvartalu' },
+	{
+		term: 'Пробний період',
+		text: [
+			`До ${pilotEnd} безкоштовно. Оформлюємо договором про безоплатне надання послуг і актом, у якому зазначено вартість послуг.`,
+			decided('pilotActValue'),
+		].filter(Boolean).join(' '),
+		more: '#yak-oformyty-vid-probnoho-periodu-do-oplaty',
+	},
+	{ term: 'Код за Єдиним закупівельним словником (ДК 021:2015)', text: `${offer.dk021} «${offer.dk021Name}».`, more: '#zvit-prozorro' },
+	{ term: 'Код економічної класифікації видатків (КЕКВ)', text: `${offer.kekv} «${offer.kekvName}».`, more: '#kekv' },
+	{ term: 'Вид закупівлі', text: 'Закупівля без використання електронної системи закупівель; рядок у річному плані.', more: '#vidkryti-torhy' },
+	{
+		term: 'Звіт у Prozorro',
+		text: `Не потрібен, якщо всі закупівлі класу ${offer.dk021Class} (разом з інтернетом і доменом) за рік коштують менше ${formatGrn(law.reportLimitUah)}. Правило діє до ${ruleUntil}.`,
+		more: '#zvit-prozorro',
+	},
+	{
+		term: 'Податок на доходи фізичних осіб (ПДФО) і військовий збір',
+		text: 'Не утримуються: разом із договором надаємо витяг із Єдиного державного реєстру (ЄДР).',
+		more: '#pdfo',
+	},
+	{
+		term: 'Документи',
+		text: 'Договір, акти й рахунки на оплату. Підпис — у спосіб, зручний закладу: «Вчасно» чи інший сервіс електронного документообігу, PDF із кваліфікованим електронним підписом (КЕП) або папір поштою.',
+		more: '#yaki-dokumenty-my-nadaiemo',
+	},
+];
 
-## Хто підписує
+export const planLine = `Предмет закупівлі: послуги з хостингу (розміщення) вебсайту закладу освіти. Код ДК 021:2015: ${offer.dk021} «${offer.dk021Name}». КЕКВ: ${offer.kekv}. Джерело фінансування: місцевий бюджет. Очікувана вартість: ${formatGrn(offer.priceYearUah)}. Вид закупівлі: закупівля без використання електронної системи закупівель. Орієнтовний початок: січень ${paidYear} року.`;
 
-Якщо заклад — окрема юридична особа з власним рахунком у казначействі, договір підписує заклад. Якщо облік веде централізована бухгалтерія відділу освіти й договори укладає відділ, замовником є відділ, і суму рахують за всі його заклади разом.
+{/* The official texts are linked only where the address is certain; the rest wait for the owner's check (spec 83 §7:
+    «Перед публікацією звірити реквізити кожного акта з офіційним текстом»). */}
+export const sources = [
+	{ title: 'Закон України «Про освіту» від 05.09.2017 № 2145-VIII, стаття 30, частини третя й четверта.', url: 'https://zakon.rada.gov.ua/laws/show/2145-19' },
+	{
+		title: 'Закон України «Про публічні закупівлі» від 25.12.2015 № 922-VIII; Особливості здійснення публічних закупівель, затверджені постановою Кабінету Міністрів України від 12.10.2022 № 1178 (зі змінами, чинними з 1 вересня 2026 року).',
+		url: 'https://zakon.rada.gov.ua/laws/show/922-19',
+	},
+	{
+		title: 'Порядок реєстрації та обліку бюджетних зобовʼязань розпорядників бюджетних коштів та одержувачів бюджетних коштів в органах Державної казначейської служби України, затверджений наказом Мінфіну від 02.03.2012 № 309.',
+		url: null,
+	},
+	{ title: 'Порядок визначення предмета закупівлі, затверджений наказом Мінекономіки від 15.04.2020 № 708.', url: null },
+	{
+		title: 'Інструкція щодо застосування економічної класифікації видатків бюджету та Інструкція щодо застосування класифікації кредитування бюджету, затверджені наказом Мінфіну від 12.03.2012 № 333.',
+		url: null,
+	},
+	{ title: 'Податковий кодекс України, пункт 177.8 статті 177.', url: 'https://zakon.rada.gov.ua/laws/show/2755-17' },
+	{ title: 'Податковий кодекс України, пункт 16¹ підрозділу 10 розділу XX.', url: 'https://zakon.rada.gov.ua/laws/show/2755-17' },
+	{ title: 'Бюджетний кодекс України, стаття 48.', url: 'https://zakon.rada.gov.ua/laws/show/2456-17' },
+	{
+		title: 'Постанова Кабінету Міністрів України від 04.12.2019 № 1070 «Деякі питання здійснення розпорядниками (одержувачами) бюджетних коштів попередньої оплати товарів, робіт і послуг, що закуповуються за бюджетні кошти».',
+		url: 'https://zakon.rada.gov.ua/laws/show/1070-2019-%D0%BF',
+	},
+	{ title: 'Закон України «Про публічні закупівлі» від 27.05.2026 № 4888-IX; лист Мінекономіки від 17.08.2026 № 3323-04/76414-06.', url: 'https://zakon.rada.gov.ua/laws/show/4888-20' },
+];
 
-Джерело: [Бюджетна бухгалтерія, 2022](https://buhgalter.com.ua/articles/buhgalterskiy-oblik/vedennya-buhobliku-u-shkoli-vidokremleno-chi-tsentralizovano/).
+<div data-print-summary>
 
-## Хто кому що надсилає
+## Коротко
 
-<DocFlow />
+<AnswerList items={short} />
 
-## Календар
-
-<div class="reading-table" tabindex="0" role="region" aria-label={`Календар оформлення на ${planYear} рік`}>
-<table>
-<caption>Календар оформлення на {planYear} рік</caption>
-<thead>
-<tr><th scope="col">Коли</th><th scope="col">Що робимо</th></tr>
-</thead>
-<tbody>
-<tr><th scope="row">Вересень–листопад</th><td>Потреба в кошторисі на {planYear} рік.</td></tr>
-<tr><th scope="row">До договору</th><td>Рядок у річному плані. План оприлюднюють у Prozorro протягом 5 робочих днів після затвердження. Джерело: <a href="https://tndr.com.ua/article/zakupivli-do-50-tys-grn-z-01-07-2026-yak-vidobrazhaty-informacziyu-v-elektronnij-systemi-zakupivel/">tndr.com.ua</a>.</td></tr>
-<tr><th scope="row">Грудень</th><td>Договір.</td></tr>
-<tr><th scope="row">Січень</th><td>Реєстрація в казначействі (до 7 робочих днів). Джерело: <a href="https://oblikbudget.com.ua/article/410-restratsya-byudjetnih-zobovyazan-roboch-situats">oblikbudget.com.ua</a>.</td></tr>
-<tr><th scope="row">Кінець березня</th><td>Перший акт.</td></tr>
-</tbody>
-</table>
 </div>
 
-## Рядок у річному плані
+<Actions actions={accountingActions} />
 
-Рядок плану, який можна взяти за основу:
+<div data-print-summary>
 
-<blockquote class="plan-line">
-<p>Предмет закупівлі: послуги з розміщення та супроводу вебсайту закладу. Код ДК 021:2015 72410000-7 „Послуги провайдерів“ (за класифікатором — 72415000-2 „Послуги з хостингу для вебсайтів“); код погодьте з уповноваженою особою. Очікувана вартість — {formatGrn(offer.priceYearUah)}. Договір без використання електронної системи.</p>
-</blockquote>
+## Хто надає послуги
 
-З 01.07.2026 очікувана вартість у плані включає ПДВ, якщо постачальник його сплачує. Ми — без ПДВ. Джерело: [tndr.com.ua](https://tndr.com.ua/article/zakupivli-do-50-tys-grn-z-01-07-2026-yak-vidobrazhaty-informacziyu-v-elektronnij-systemi-zakupivel/).
+<Requisites />
 
-## Межа 50 000 грн
+Витяг із ЄДР і витяг із реєстру платників єдиного податку надсилаємо разом із договором.
 
-Станом на {formatDate(offer.asOf)}:
+</div>
 
-- Якщо за рік один предмет закупівлі коштує менше 50 000 грн (з ПДВ, якщо він є), досить рядка в плані й договору, звіт не потрібен. Джерело: [Prozorro Infobox](https://infobox.prozorro.org/articles/vse-pro-publikaciyu-zvitiv-po-ukladenim-dogovoram-v-umovah-sogodennya).
-- Від 50 000 грн потрібен ще звіт про договір у Prozorro протягом 10 робочих днів після підписання договору. Джерело: [Мінекономіки](https://me.gov.ua/InfoRez/Details/ee922d65-5e66-4082-82f8-9851e7236da6?lang=uk-UA).
-- Тендер не потрібен до 200 000 грн (постанова КМУ № 957, з 01.09.2026). Ділити закупівлю на частини заборонено. Штраф — до 170 000 грн (КУпАП, ст. 164-14). Джерело: [tndr.com.ua](https://tndr.com.ua/article/zbilsheno-vartisni-mezhi-dlya-zakupivel-tovariv-robit-ta-poslug-z-01-09-2026-yak-cze-vlyvaye-na-obrannya-vydu-zakupivli-ta-mozhlyvi-ryzyky/).
-- Межу рахують за предметом закупівлі за рік, а не за одним договором. Розміщення сайту й інтернет під тим самим кодом можуть рахуватися разом. Джерело: [Radnyk Academy](https://radnyk.academy/blog/shodo-zakupivel-do-50-tis-grn).
+## Хто укладає договір
 
-Ці правила — за постановою КМУ № 1178, поки новий закон не введено в дію повністю. Джерело: [Prozorro Infobox](https://infobox.prozorro.org/articles/shchodo-nabrannya-chinnosti-ta-vvedennya-v-diyu-zakonu-ukrajini-pro-publichni-zakupivli-vid-27-05-2026-4888-ix).
+<ChoiceCards>
+<Card title="Заклад — окрема юридична особа, бухгалтерію веде сам.">
+Договір укладає заклад, акти підписує керівник закладу або уповноважена особа. Покроковий порядок наведено нижче.
+</Card>
+<Card title="Заклад — окрема юридична особа, облік веде централізована бухгалтерія.">
+Замовником однаково є заклад: договір укладає й акти підписує він. Централізована бухгалтерія веде облік і готує платіжні інструкції.
+</Card>
+<Card title="Договори за заклади укладає відділ освіти.">
+Тоді замовник — відділ освіти, і вартість рахують за всі заклади разом, з інтернетом і доменами. Межу {formatGrn(law.reportLimitUah)} за класом {offer.dk021Class} відділ найчастіше перевищує вже з першим закладом, тож звіт у Prozorro потрібен. <a href={mail}>Напишіть нам</a>, і ми обговоримо, як оформити договір на кілька закладів.
+</Card>
+</ChoiceCards>
 
-## КЕКВ
+## Як оформити: від пробного періоду до оплати
 
-КЕКВ 2240 „Оплата послуг (крім комунальних)“. За цим кодом Казначейство відносило підтримку й обслуговування сайту. Джерело: [розʼяснення Казначейства, 2014 (Дебет-Кредит)](https://news.dtkt.ua/accounting/individual-transactions/31295-vitracajemo-kosti-na-veb-sait-instruktaz-derzkaznaceistva), стаття російською. Розʼяснення старе, тож перевірте код з головним бухгалтером.
+<Timeline>
+<TimelineStage title={`Зараз — пробний період (до ${pilotEnd})`}>
+<Step who="Tabula">
 
-## Документи
+надсилає договір про безоплатне надання послуг у спосіб, який обрав заклад (див. нижче). Він містить розділ про обробку персональних даних. Керівник закладу або уповноважена особа підписує його кваліфікованим електронним підписом.
 
-- Договір підписуємо кваліфікованим електронним підписом (КЕП) через „Вчасно“.
-- Щокварталу — рахунок і акт, теж у „Вчасно“.
-- Платіж — після акта.
+</Step>
+{decided('pilotActs') && (
+<Step who="Tabula">
+<p>{decided('pilotActs')}</p>
+</Step>
+)}
+<Step who="Заклад">
 
-<h3 id="paket">Пакет документів до розмови</h3>
+наказом керівника приймає безоплатно отримані послуги й відображає їх в обліку як благодійну допомогу. Порядок відображення в обліку й звітності уточніть у головного розпорядника бюджетних коштів або в централізованій бухгалтерії.
 
-Зразки — PDF без підписів і особистих даних, щоб ви побачили їх заздалегідь.
+</Step>
+<Step who="Заклад">
 
-<ul class="samples">
-	{/* TODO: link each sample once its PDF is ready (the contract and the order go through a lawyer first). */}
-	<li>Зразок угоди про безоплатні послуги на час пілоту й акта до неї <span class="chip chip--sm">Готуємо</span></li>
-	<li>Зразок договору на {planYear} рік (з розділом про обробку персональних даних і про вихід) <span class="chip chip--sm">Готуємо</span></li>
-	<li>Зразок рахунку й акта наданих послуг за квартал <span class="chip chip--sm">Готуємо</span></li>
-	<li>Зразок наказу про відповідального за сайт <span class="chip chip--sm">Готуємо</span></li>
-	<li>Витяг з ЄДР і витяг з реєстру платників єдиного податку — надсилаємо на запит.</li>
-</ul>
+протягом {law.art30Days} робочих днів після підписання акта оприлюднює на своєму сайті перелік отриманих послуг із їхньою вартістю <SourceRef n={1} first />.
 
-## Податки з оплати
+</Step>
+</TimelineStage>
 
-Ми — ФОП на єдиному податку, без ПДВ. Утримувати ПДФО й військовий збір з оплати не треба: разом з договором надсилаємо витяг з ЄДР (ПКУ, п. 177.8). Джерело: [buhplatforma.com.ua](https://buhplatforma.com.ua/news/264-dokumenti).
+<Callout type="note">
 
-## Пілот
+**Як підписати документи.** Оберіть спосіб, зручний закладу: «Вчасно» чи інший сервіс електронного документообігу, яким ви вже користуєтеся; договір у PDF, підписаний КЕП керівника на id.gov.ua й надісланий електронною поштою; або два паперові примірники поштою. Якщо вам зручніше інакше — <a href={mail}>напишіть</a>, підлаштуємося.
 
-До {formatDate(offer.pilotUntil)} послуги безоплатні: угода з їхньою вартістю{offer.pilotValueUah != null && <> — {formatGrn(offer.pilotValueUah)} за кожен місяць пілоту</>} і акт приймання. Заклад ставить їх на облік і протягом 10 робочих днів оприлюднює на своєму сайті як благодійну допомогу (Закон „Про освіту“, ст. 30 ч. 3–4, ст. 79). Угода не зобовʼязує заклад купувати послугу потім.
+</Callout>
 
-Джерела: безоплатні послуги — це благодійна допомога, її оформлюють документами й ставлять на облік ([osvita.ua](https://osvita.ua/school/90325/)); строк і місце оприлюднення — [Закон „Про освіту“, ст. 30](https://urst.com.ua/pro_osvitu/st-30) та [info.eo.gov.ua](https://info.eo.gov.ua/oprylyudnennya-informacziyi-na-vykonannya-statti-30-zakonu-ukrayiny-pro-osvitu/).
+<TimelineStage title={`Підготовка до ${paidYear} року`}>
+<Step who="Заклад">
 
-## З 24.03.2027
+включає видатки за КЕКВ {offer.kekv} до бюджетного запиту на {paidYear} рік, а після затвердження — до кошторису. Якщо бюджетний запит уже подано, передбачте ці видатки в межах уже запланованих за КЕКВ {offer.kekv} (там зазвичай є й інтернет).
 
-- Закон „Про публічні закупівлі“ № 4888-IX вводиться в дію повністю.
-- Межі — у євро без ПДВ.
-- Для послуг від 2 тис. євро — звіт про закупівлю без електронної системи.
-- {formatGrn(offer.priceYearUah)} на рік для одного закладу — нижче цієї межі.
-- Сторінку оновимо, коли ухвалять нові Особливості.
+</Step>
+<Step who="Заклад">
 
-Джерела: [Prozorro Infobox](https://infobox.prozorro.org/articles/shchodo-nabrannya-chinnosti-ta-vvedennya-v-diyu-zakonu-ukrajini-pro-publichni-zakupivli-vid-27-05-2026-4888-ix); [лист Мінекономіки, buhgalter.com.ua](https://buhgalter.com.ua/news/zakupivli-za-derzhkoshty/noviy-zakon-pro-publichni-zakupivli-minekonomiki-poyasnilo-shcho-diye/); [текст закону, zakon.rada.gov.ua](https://zakon.rada.gov.ua/laws/show/4888-20).
+вносить закупівлю до річного плану закупівель на {paidYear} рік. План оприлюднює в Prozorro протягом {law.planPublishDays} робочих днів після затвердження <SourceRef n={2} first />. Рядок плану можна скопіювати:
 
-<h2 id="vykonavets">Про виконавця</h2>
+<CopyBlock id="ryadok-planu" label="Рядок річного плану" text={planLine} />
 
-ФОП, 3-тя група єдиного податку, без ПДВ. КВЕДи: [уточнити: перелік з витягу]. ПІБ, РНОКПП і адресу надаємо на запит: <a href={`mailto:${offer.supportEmail}`}>{offer.supportEmail}</a>.
+</Step>
+<Step who="Tabula">
 
-<p class="cta-row"><a class="btn btn-main" href="../zaiavka/">Подати заявку</a></p>
+надсилає договір на {paidYear} рік — після затвердження кошторису, зазвичай наприкінці грудня або в січні.{decided('contract2027') && <> {decided('contract2027')}</>}
 
-<CommunityNote />
+</Step>
+<Step who="Заклад">
+
+протягом {law.commitmentDays} робочих днів після укладення договору подає бюджетне зобовʼязання на реєстрацію в орган Казначейства <SourceRef n={3} first />.
+
+</Step>
+</TimelineStage>
+
+<div id="shchokvartalu">
+<TimelineStage title={`Щокварталу з ${paidYear} року`}>
+<Step who="Tabula">
+
+наприкінці кварталу надсилає акт і рахунок на оплату.
+
+</Step>
+<Step who="Заклад">
+
+підписує акт і подає фінансове зобовʼязання на реєстрацію в орган Казначейства.
+
+</Step>
+<Step who="Казначейство">
+
+перераховує {formatGrn(offer.priceQuarterUah)} за платіжною інструкцією закладу.
+
+</Step>
+</TimelineStage>
+</div>
+</Timeline>
+
+<Callout type="note">
+
+Зазвичай заклад платить після підписання акта. Попередню оплату можна обговорити окремо — див. [«Довідку»](#mozhna-platyty-napered).
+
+</Callout>
+
+## Які документи ми надаємо
+
+<DocumentTable />
+
+## Довідка
+
+<Faq id="zvit-prozorro" q="Чи потрібен звіт у Prozorro?">
+
+До {ruleUntil} звіт потрібен, якщо предмет закупівлі за рік коштує {formatGrn(law.reportLimitUah)} або більше. Це стосується договорів, укладених без електронної системи закупівель. Звіт оприлюднюють протягом {law.reportDays} робочих днів після укладення договору <SourceRef n={2} />.
+
+Предмет закупівлі послуг визначають за четвертою цифрою коду ДК 021:2015 <SourceRef n={4} first />. До класу {offer.dk021Class} належать доступ до інтернету (72411000-4), хостинг вебсайтів (72415000-2) і доменні імена (72417000-6), тож їх рахують разом. Приклад: інтернет на {formatGrn(internetExample)} і Tabula на {formatGrn(offer.priceYearUah)} — разом {formatGrn(internetExample + offer.priceYearUah)}, і звіт потрібен.
+
+</Faq>
+<Faq id="vidkryti-torhy" q="Чи потрібні відкриті торги?">
+
+Ні. Послуги вартістю менше ніж {formatGrn(law.tenderLimitUah)} на рік можна закупити без процедури, за прямим договором <SourceRef n={2} />. Ділити предмет закупівлі на частини, щоб уникнути процедури, заборонено.
+
+</Faq>
+<Faq id="kekv" q={`Чому КЕКВ ${offer.kekv}?`}>
+
+Код {offer.kekv} «{offer.kekvName}» охоплює оплату послуг, які не віднесено до інших кодів <SourceRef n={5} first />. Код погодьте з головним розпорядником бюджетних коштів.
+
+</Faq>
+<Faq id="pdfo" q="Чому не утримувати ПДФО й військовий збір?">
+
+Податковий агент не утримує ПДФО з доходу, виплаченого фізичній особі — підприємцю, якщо вона надала документ про державну реєстрацію <SourceRef n={6} first />. Те саме правило діє для військового збору <SourceRef n={7} first />. Таким документом є витяг із ЄДР, який ми надсилаємо разом із договором. У податковому розрахунку (додаток 4ДФ) виплату показують з ознакою доходу 157.
+
+</Faq>
+<Faq id="nemaie-v-koshtorysi" q={`Що робити, якщо видатків на ${paidYear} рік немає в кошторисі?`}>
+
+Бюджетне зобовʼязання можна взяти лише в межах бюджетних асигнувань <SourceRef n={8} first />. <a href={mail}>Напишіть нам</a> — домовимося про дату договору.
+
+</Faq>
+{decided('latePayment') && (
+<Faq id="zatrymka-oplaty" q="Що буде, якщо оплата затримується?">
+<p>{decided('latePayment')}</p>
+</Faq>
+)}
+<Faq id="mozhna-platyty-napered" q="Чи можна платити наперед?">
+
+Зазвичай заклад платить після підписання акта. Якщо закладу так зручніше й це передбачено договором і порядком виконання вашого місцевого бюджету, можлива попередня оплата, але не більше ніж за {law.prepayMonths} місяці <SourceRef n={9} first />.
+
+</Faq>
+<Faq id="novyi-zakon" q={`Що зміниться з ${ruleUntil}?`}>
+
+Закон України «Про публічні закупівлі» від 27.05.2026 № 4888-IX буде введено в дію повністю <SourceRef n={10} first />. Вартісні межі встановлено в євро, без ПДВ. Звіт про закупівлю без електронної системи потрібен для товарів і послуг від {formatNumber(law.newReportLimitEur)} євро на рік. Для Tabula предмет закупівлі — клас {offer.dk021Class}. Ми оновимо цю сторінку, коли ухвалять нові Особливості здійснення публічних закупівель.
+
+</Faq>
+
+## Джерела
+
+Кожне джерело перевірено {formatDateLongYear(offer.checkedOn)}.
+
+<SourceList items={sources} />

@@ -1,0 +1,33 @@
+---
+// Spec 83 §7: «Хто надає послуги» — the operator's details from offer.operator. A field the owner has not filled in is
+// not shown; the tax line and the address come from offer.mjs too.
+import { offer } from '../../../config/offer.mjs';
+import { typo } from '../../../lib/typo.mjs';
+
+const o = offer.operator;
+const rows = [
+	o.name && ['Фізична особа — підприємець', o.name],
+	o.rnokpp && ['Реєстраційний номер облікової картки платника податків (РНОКПП)', o.rnokpp],
+	o.address && ['Адреса', o.address],
+	o.iban && ['IBAN', o.bank ? `${o.iban}, ${o.bank}` : o.iban],
+	[
+		'Оподаткування',
+		`Платник єдиного податку ${o.taxGroup}-ї групи (ставка ${o.taxRatePercent} %), ${o.vatPayer ? 'платник ПДВ' : 'не платник ПДВ'}`,
+	],
+	Array.isArray(o.kved) && o.kved.length > 0 && ['Види діяльності за Класифікатором видів економічної діяльності (КВЕД)', o.kved.join('; ')],
+	['Електронна пошта', offer.supportEmail],
+].filter(Boolean) as [string, string][];
+---
+
+<dl class="requisites" data-print-summary>
+	{
+		rows.map(([term, value]) => (
+			<div class="requisites__row">
+				<dt>{typo(term)}</dt>
+				<dd>
+					{value === offer.supportEmail ? <a href={`mailto:${value}`}>{value}</a> : typo(value)}
+				</dd>
+			</div>
+		))
+	}
+</dl>

@@ -1,0 +1,70 @@
+---
+// Spec 83 §4: a page for a role of the institution (and «Ціна й оплата», which shares its hero): the switcher of the
+// three role pages, the hero (RoleHero), «На цій сторінці» (right of the text from 1100 px, a closed list after the
+// hero below), the MDX body, then «Що далі», «Інші сторінки» and the line for the education department. The hero and
+// the end come from src/config/audience.mjs (`hero` of the page's frontmatter); the body from the page's MDX.
+//
+// Print (spec 83 §4, the pages with `print`): buttons and «докладніше» are hidden and the page's address and
+// «Перевірено …» are printed at the bottom; «Роздрукувати» on «Для бухгалтерії» prints only «Коротко», the
+// details and the plan line (`data-print-summary`), on one A4 sheet. See audience.css and src/scripts/page-tools.js.
+import Product from './Product.astro';
+import RoleSwitcher from '../components/product/audience/RoleSwitcher.astro';
+import RoleHero from '../components/product/audience/RoleHero.astro';
+import OnThisPage from '../components/product/audience/OnThisPage.astro';
+import Actions from '../components/product/audience/Actions.astro';
+import RelatedRoles from '../components/product/audience/RelatedRoles.astro';
+import CommunityLine from '../components/product/audience/CommunityLine.astro';
+import { HEROES, tocItems } from '../config/audience.mjs';
+import { offer, formatDateLongYear } from '../config/offer.mjs';
+import { slugUk } from '../lib/typo.mjs';
+import '../styles/audience.css';
+
+interface Props {
+	title: string;
+	description: string;
+	hero: keyof typeof HEROES;
+	headings: { depth: number; slug: string; text: string }[];
+}
+const { title, description, hero: key, headings } = Astro.props;
+const hero = HEROES[key];
+if (!hero) throw new Error(`RolePage: no hero "${key}" in src/config/audience.mjs`);
+const items = hero.toc ? tocItems(headings, (h: { slug: string; text: string }) => (/[^\x00-\x7f]/.test(h.slug) ? slugUk(h.text) : h.slug)) : [];
+const pageUrl = new URL(Astro.url.pathname, Astro.site ?? 'https://tabula-cms.github.io').href;
+---
+
+<Product title={`${title} — Tabula`} description={description}>
+	{hero.role && <RoleSwitcher current={hero.role} />}
+	<article class:list={['role', hero.toc && 'role--toc', hero.print && 'role--print']} data-role-page>
+		<RoleHero hero={hero} />
+		<div class="role__grid">
+			<OnThisPage items={items} />
+			<div class="role__body reading">
+				<slot />
+			</div>
+		</div>
+		{
+			(hero.end.length > 0 || hero.related || hero.community) && (
+				<footer class="role__end">
+					{hero.end.length > 0 && (
+						<section class="next" aria-labelledby="next-title">
+							<h2 id="next-title">Що далі</h2>
+							<Actions actions={hero.end} />
+						</section>
+					)}
+					{hero.related && hero.role && <RelatedRoles current={hero.role} />}
+					{hero.community && <CommunityLine short={hero.community === 'short'} />}
+				</footer>
+			)
+		}
+		{
+			hero.print && (
+				<p class="print-only print-stamp" data-print-summary>
+					{pageUrl} · Перевірено {formatDateLongYear(offer.checkedOn)}
+				</p>
+			)
+		}
+	</article>
+	<script>
+		import '../scripts/page-tools.js';
+	</script>
+</Product>

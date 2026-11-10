@@ -16,6 +16,7 @@ export const collections = {
 	// at /<slug>/ by src/pages/[slug].astro in the product layout. Not part of Starlight's `docs`.
 	pages: defineCollection({
 		loader: glob({ pattern: '*.{md,mdx}', base: './src/content/pages' }),
-		schema: z.object({ title: z.string(), description: z.string() }),
+		// Spec 83: `hero` names the page's hero in src/config/audience.mjs (the role pages and «Ціна й оплата»).
+		schema: z.object({ title: z.string(), description: z.string(), hero: z.string().optional() }),
 	}),
 };

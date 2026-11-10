@@ -1,56 +1,52 @@
 ---
 title: Ціна й оплата
-description: Що входить у розміщення сайту закладу освіти, скільки це коштує, як відбувається оплата і що буде, якщо заклад піде.
+description: "Скільки коштує сайт закладу освіти на Tabula, що входить у ціну, як заклад платить і що буде, якщо вирішите відмовитися."
+hero: tsina
 ---
 
-import {
-	offer,
-	includes,
-	exitText,
-	formatDate,
-	formatDateLongYear,
-	formatGrn,
-	nextDay,
-} from '../../config/offer.mjs';
-import CommunityNote from '../../components/product/CommunityNote.astro';
+import { offer, decided, formatGrn, priceIncludes, exitSteps } from '../../config/offer.mjs';
+import PriceCard from '../../components/product/audience/PriceCard.astro';
+import StatusBadge from '../../components/product/audience/StatusBadge.astro';
+import Steps from '../../components/product/audience/Steps.astro';
+import Step from '../../components/product/audience/Step.astro';
 
-Станом на {formatDate(offer.asOf)}.
+<PriceCard />
 
-Tabula — сервіс: ми розміщуємо, оновлюємо й підтримуємо сайт, а заклад платить за рік. Ціна відома наперед.
-
-## Що отримує заклад
+## Що входить у ціну
 
 <ul>
-{includes.map((item) => (
-	<li>{item.title}</li>
+{priceIncludes.map((item) => (
+	<li>{item.text}{item.assistant && offer.assistantStatus === 'testing' && <> <StatusBadge status="off" /></>}</li>
 ))}
 </ul>
 
-## Скільки коштує
+Власний домен (якщо він потрібен) заклад оплачує окремо реєстраторові доменів.
 
-До {formatDate(offer.pilotUntil)} — безкоштовно. З {formatDateLongYear(nextDay(offer.pilotUntil))} — {formatGrn(offer.priceYearUah)} на рік ({formatGrn(offer.priceQuarterUah)} за квартал), без ПДВ.
+## Як ви платите
 
-Без ПДВ, ФОП на єдиному податку. Докладно — у розділі [„Про виконавця“](../dlia-bukhhalterii/#vykonavets) на сторінці [„Для бухгалтерії“](../dlia-bukhhalterii/).
+<Steps>
+<Step>
+<p>Договір укладаємо на рік.</p>
+</Step>
+<Step>
+<p>Наприкінці кварталу ми надсилаємо акт приймання-передачі наданих послуг і рахунок на оплату — тим способом, який зручний закладу.</p>
+</Step>
+<Step>
+<p>Заклад підписує акт і сплачує {formatGrn(offer.priceQuarterUah)}.</p>
+</Step>
+</Steps>
 
-<p class="cta-row"><a class="btn btn-main" href="../zaiavka/">Подати заявку</a></p>
+Як оформити закупівлю й що внести до плану, описано на сторінці [«Для бухгалтерії»](../dlia-bukhhalterii/).
 
-## Як відбувається оплата
+{decided('latePayment') && (
+<>
+<h2 id="zatrymka-oplaty">Що буде, якщо оплата затримується</h2>
+<p>{decided('latePayment')}</p>
+</>
+)}
 
-- Договір укладаємо на рік.
-- Щокварталу надсилаємо акт і рахунок.
-- Платіж — після акта.
-- Передоплати за весь рік немає.
+<h2 id="vykhid">Що буде, якщо вирішите відмовитися</h2>
 
-Якщо головний розпорядник дозволяє, можна платити за квартал наперед. Попередня оплата за послуги — не більш як за 3 місяці, у межах, які встановлює головний розпорядник (постанова КМУ № 1070 від 04.12.2019, станом на {formatDate(offer.asOf)}). Джерело: [Ліга:Закон, новини](https://buh.ligazakon.net/news/191472_uryad-onoviv-umovi-poperedno-oplati-za-byudzhetn-koshti).
-
-Що писати в кошторисі й у плані — на сторінці [«Для бухгалтерії»](../dlia-bukhhalterii/).
-
-## Якщо оплата затримується
-
-Поки договір реєструють і платіж іде через казначейство, сайт працює як завжди — до 45 днів.
-
-<h2 id="vykhid">Якщо заклад піде</h2>
-
-<p>{exitText}</p>
-
-<CommunityNote />
+<ol>
+{exitSteps.map((step) => <li>{step}</li>)}
+</ol>

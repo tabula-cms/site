@@ -1,0 +1,25 @@
+---
+// Spec 83 §4: «Інші сторінки» — cards of the two other role pages with what each one is about.
+import { ROLES } from '../../../config/audience.mjs';
+
+interface Props {
+	current: string;
+}
+const { current } = Astro.props;
+const base = import.meta.env.BASE_URL;
+const root = base.endsWith('/') ? base : `${base}/`;
+---
+
+<section class="related" aria-labelledby="related-title">
+	<h2 id="related-title">Інші сторінки</h2>
+	<ul class="related__list">
+		{
+			ROLES.filter((role) => role.slug !== current).map((role) => (
+				<li class="related__card">
+					<a href={`${root}${role.slug}/`}>{role.title}</a>
+					<span>{role.about}</span>
+				</li>
+			))
+		}
+	</ul>
+</section>

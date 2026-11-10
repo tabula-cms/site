@@ -1,0 +1,14 @@
+---
+// A card of CardGrid.astro / ChoiceCards.astro: a title and its text (the slot).
+import { typo } from '../../../lib/typo.mjs';
+
+interface Props {
+	title: string;
+}
+const { title } = Astro.props;
+---
+
+<li class="card">
+	<p class="card__title">{typo(title)}</p>
+	<div class="card__body"><slot /></div>
+</li>

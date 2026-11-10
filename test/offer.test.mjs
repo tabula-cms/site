@@ -10,6 +10,12 @@ import {
 	formatGrn,
 	yearOf,
 	footerLine,
+	authorsLine,
+	decisions,
+	decided,
+	documents,
+	priceIncludes,
+	exitSteps,
 	exitText,
 	parseIsoDate,
 	formatDate,
@@ -59,8 +65,9 @@ test('offer: no ASCII or right-quote apostrophe between Cyrillic letters in the 
 test('footerLine: who made Tabula, verbatim from the spec, no operator details', () => {
 	assert.equal(
 		footerLine,
-		'Tabula зробили вчителі з досвідом програмування — для інших шкіл. Щоб сайт закладу вів його працівник, а не найнятий програміст.',
+		'Tabula зробили вчителі, які вміють програмувати. Ми хотіли, щоб сайт закладу вели його власні працівники, а не найнятий програміст.',
 	);
+	assert.ok(footerLine.startsWith(authorsLine));
 	assert.doesNotMatch(footerLine, /ФОП|підприєм|ПДВ/);
 });
 
@@ -184,4 +191,45 @@ test('offer: story 82 demo fields', async () => {
 	assert.deepEqual(DEMO_ROLES, ['Учитель', 'Директор', 'Заступник директора', 'Інше']);
 	assert.equal(demoHeading(['school']), 'Спробуйте Tabula на прикладі ліцею');
 	assert.equal(demoHeading(['school', 'zdo']), 'Спробуйте Tabula');
+});
+
+test('spec 83: every decision waits for the owner — decided() shows nothing until it is confirmed', () => {
+	for (const [key, d] of Object.entries(decisions)) {
+		assert.equal(typeof d.confirmed, 'boolean', key);
+		assert.ok(d.text === null || typeof d.text === 'string', key);
+		if (!d.confirmed) assert.equal(decided(key), null, key);
+		if (d.text) assert.doesNotMatch(d.text, /\{|\[уточн/, key);
+	}
+	assert.equal(decided('x', { x: { confirmed: true, text: 'Так.' } }), 'Так.');
+	assert.equal(decided('x', { x: { confirmed: true, text: null } }), null);
+	assert.throws(() => decided('nope'));
+});
+
+test('spec 83: the decisions take their numbers from offer', () => {
+	assert.ok(decisions.terminationNotice.text.includes(`${offer.noticeDays} днів`));
+	assert.ok(decisions.latePayment.text.includes(`${offer.graceDays} календарних днів`));
+	assert.ok(decisions.januaryGrace.text.includes(`${offer.graceDays} календарних днів`));
+	assert.ok(decisions.pilotActValue.text.includes(formatGrn(offer.pilotValueUah)));
+	assert.ok(decisions.contract2027.text.includes(formatDateLongYear(offer.contractUntil)));
+});
+
+test('spec 83: the operator and the lyceum are empty until the owner fills them in', () => {
+	for (const key of ['name', 'rnokpp', 'address', 'iban', 'bank', 'kved']) assert.equal(offer.operator[key], null, key);
+	for (const key of ['name', 'city', 'url']) assert.equal(offer.lyceum[key], null, key);
+	assert.ok(parseIsoDate(offer.checkedOn));
+	assert.ok(offer.asOf <= offer.checkedOn);
+});
+
+test('spec 83: documents, price lines and the exit steps', () => {
+	for (const doc of documents) assert.ok(['ready', 'preparing', 'onRequest', 'off'].includes(doc.status), doc.name);
+	assert.equal(priceIncludes.length, 8);
+	assert.equal(priceIncludes.filter((i) => i.assistant).length, 1);
+	assert.equal(exitSteps.length, 5);
+	assert.ok(exitSteps[2].includes(`${offer.exitClosedDays} днів`));
+	assert.ok(exitSteps[4].includes(`${offer.addressHoldMonths} місяців`));
+	const bad = /[А-ЯҐЄІЇа-яґєії]['’][А-ЯҐЄІЇа-яґєії]/;
+	for (const text of [...exitSteps, ...priceIncludes.map((i) => i.text), ...documents.flatMap((d) => [d.name, d.why])]) {
+		assert.doesNotMatch(text, bad, text);
+		assert.doesNotMatch(text, /"/, text);
+	}
 });

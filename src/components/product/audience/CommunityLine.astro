@@ -1,0 +1,15 @@
+---
+// Spec 83 §4 and §8: one line for the education department of a community (it replaced the block «Ви з відділу освіти
+// громади?»): the long form on the role pages, the short one on «Ціна й оплата».
+import { offer } from '../../../config/offer.mjs';
+
+interface Props {
+	short?: boolean;
+}
+const { short = false } = Astro.props;
+const text = short
+	? 'Ви з відділу освіти громади? →'
+	: 'Ви з відділу освіти громади? Розкажемо, як оформити договір на кілька закладів →';
+---
+
+<p class="community"><a href={`mailto:${offer.supportEmail}`}>{text}</a></p>
