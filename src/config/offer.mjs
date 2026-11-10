@@ -81,6 +81,14 @@ export const offer = Object.freeze({
 	// The date the four pages «Для директора», «Для того, хто веде сайт», «Для бухгалтерії» and «Ціна й оплата»
 	// were checked: they say «Перевірено {formatDateLongYear(checkedOn)}» (not «станом на», which keeps `asOf`).
 	checkedOn: '2026-11-09',
+	// Spec 84 §4: the dates «Перевірено …» of the page groups. `service` is the one date of the group «Про сервіс»
+	// (Як це працює, Ціна й оплата, Безпека й дані, Закон і сайт школи): change it whenever a norm on «Закон і сайт
+	// школи» changes. `roles` is spec 83's checkedOn. See `checkedOnFor()`.
+	checkedAt: Object.freeze({ roles: '2026-11-09', service: '2026-11-10' }),
+	// Spec 84 §5: the site is created within this many working days after the pilot contract is signed.
+	siteCreateDays: 3,
+	// Spec 84 §6: «Безпека» is handled like «Терміново» (a reply the same working day).
+	securitySubject: 'Безпека',
 	// Owner's decision «Термінова допомога»: mail only; the subject «Терміново» gets a reply the same working day.
 	urgentSubject: 'Терміново',
 	// The subject of «Запросити документи» on «Для бухгалтерії».
@@ -96,6 +104,9 @@ export const offer = Object.freeze({
 	contractUntil: '2027-12-31',
 	paymentBankDays: 10,
 	graceDays: 45,
+	// Spec 84, decision 15: the pilot goes on (the same contract, the same monthly acts) until the contract for the paid
+	// year is made, but not past this day — graceDays calendar days from the day after pilotUntil (test/offer.test.mjs).
+	graceUntil: '2027-02-14',
 	noticeDays: 60,
 	// The law's numbers the pages repeat (checked on checkedOn; the sources are listed on «Для бухгалтерії»).
 	law: Object.freeze({
@@ -379,10 +390,18 @@ export function demoPageState(url = offer.demoSiteUrl) {
  * decision the spec names without a wording yet (`todo` says what is missing).
  */
 export const decisions = Object.freeze({
-	// Decision 1: notice and the archive (Для директора, «Що буде, якщо Tabula припинить роботу?»).
+	// Decision 1: notice and the archive (Для директора, «Що буде, якщо Tabula припинить роботу?»; spec 84: Безпека й
+	// дані, after «Що буде з даними»). Still open, and this repository is public: no proposed wording is kept here.
 	terminationNotice: Object.freeze({
 		confirmed: false,
-		text: `У договорі записано, що про припинення послуги ми попередимо щонайменше за ${offer.noticeDays} днів і передамо архів.`,
+		text: null,
+		todo: 'попередження про припинення роботи Tabula і передача архіву (строк попередження)',
+	}),
+	// Spec 83, decision 6 (spec 84: «Як це працює», «Хто вестиме сайт, якщо працівник захворіє»). Still open.
+	twoAdmins: Object.freeze({
+		confirmed: false,
+		text: null,
+		todo: 'чи може бути два адміністратори',
 	}),
 	// Decision 2: the monthly acts of the pilot (Для бухгалтерії, the timeline's step 2).
 	pilotActs: Object.freeze({
@@ -409,7 +428,8 @@ export const decisions = Object.freeze({
 		confirmed: false,
 		text: `Публічний сайт ми не вимикаємо: у закладу обовʼязок за статтею 30. Якщо оплата за актом затримується понад ${offer.graceDays} календарних днів, ми напишемо керівникові закладу й домовимося.`,
 	}),
-	// Decision 8: who answers when the operator is ill (Для директора, «Хто ми»). No wording yet.
+	// Decision 8 (spec 84: decision 19): who stands behind the service and who answers when the operator is ill
+	// (Для директора, «Хто ми»). No wording yet.
 	whoIfIll: Object.freeze({
 		confirmed: false,
 		text: null,
@@ -458,3 +478,32 @@ export const exitSteps = Object.freeze([
 	'Потім ми видаляємо сайт і його резервні копії та надсилаємо лист-підтвердження.',
 	`Адреса на tabula.org.ua зникає разом із сайтом і щонайменше протягом ${offer.addressHoldMonths} місяців не передається іншому закладу. Власний домен лишається вашим.`,
 ]);
+
+/** Spec 84 §4: the date «Перевірено …» of an own page — the group «Про сервіс» has its own (`checkedAt.service`). */
+export const SERVICE_SLUGS = Object.freeze(['yak-tse-pratsiuie', 'khostynh-i-tsina', 'bezpeka-i-dani', 'zakon-i-sait-shkoly']);
+export function checkedOnFor(slug, o = offer) {
+	return SERVICE_SLUGS.includes(slug) ? o.checkedAt.service : o.checkedAt.roles;
+}
+
+// Spec 84 §5, «Що робимо ми, а що — заклад» (ResponsibilitySplit.astro): `ours` and `school`, each item a text and an
+// optional link (href relative to the site's root). «Для директора» shows the same points in short.
+export const responsibilities = Object.freeze({
+	ours: Object.freeze([
+		{ text: 'Розміщуємо сайт на своїх серверах і стежимо, щоб він працював.' },
+		{ text: 'Щодня робимо зашифровані резервні копії.' },
+		{ text: 'Оновлюємо систему й сертифікат захищеного зʼєднання (HTTPS).' },
+		{ text: 'Допомагаємо перенести старий сайт.' },
+		{ text: `На листи з темою «${offer.urgentSubject}» відповідаємо того самого робочого дня, на інші — протягом ${offer.supportReplyDays} робочих днів.` },
+		{ text: 'Надсилаємо договір, акти й рахунки на оплату тим способом, який зручний закладу.' },
+	]),
+	school: Object.freeze([
+		{ text: 'Призначає працівника, який веде сайт.' },
+		{ text: 'Наповнює сайт новинами, сторінками й документами.' },
+		{
+			text: 'Вчасно оприлюднює те, чого вимагає закон, і не оприлюднює інформації з обмеженим доступом.',
+			link: { text: 'Що треба оприлюднити', href: 'zakon-i-sait-shkoly/' },
+		},
+		{ text: 'Отримує згоду батьків, перш ніж фотографувати дітей.' },
+		{ text: 'Підписує договір і акти.' },
+	]),
+});

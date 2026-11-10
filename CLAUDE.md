@@ -2,7 +2,7 @@
 
 > Internal reference for Claude Code sessions working in this repository.
 >
-> **Last verified: 2026-11-10 (spec 83: audience pages v2).**
+> **Last verified: 2026-11-10 (spec 84: the group «Про сервіс»).**
 >
 > **How to keep this file honest:** every pull request that changes a convention, a command,
 > or the file layout updates the matching section of this file in the same PR.
@@ -49,6 +49,8 @@ Exists now:
 | `src/content/pages/*.md(x)`, `src/pages/[slug].astro`, `src/layouts/ProductPage.astro` | Story 80 (S2): the thirteen reading pages of the site (the `pages` collection), at `/<slug>/` in the product layout; the `.mdx` ones import `offer.mjs` for the numbers and dates |
 | `src/config/offer.mjs` | Story 78 (W1): the **one source of the offer's numbers and dates** — `pilotUntil`, `priceYearUah`, `priceQuarterUah`, `asOf`, reply times, contacts, `cpUrl` / `turnstileSiteKey` (env `TABULA_CP_URL`, `TABULA_TURNSTILE_SITEKEY`), `requestsOpen`, `copiesWhere` (Hetzner), `backupRetentionDays`, `exitClosedDays`; plus `footerLine` (the footer bottom line), `exitText`, the "what the institution gets" list (`includes`) and formatters. No page types a price or a date of the offer by hand: such a page is `.mdx` and imports this module; story 80 added `assistantStatus`, `demoSiteUrl`, `supportEmail` (the one public address; `contactEmail` is gone), `includesShort` (the price card's lines, each with `coveredBy` indexes into `includes`) and the helpers `withinWorkingDays`, `formatDateLongYear`, `yearOf`, `formatUah`; story 82 (S1a) added `complaintEmail` (the owner fills it in; `complaintEmail()` falls back to `privacyEmail()` while it is null), used by the section «Демо» (`#demo`) of `personalni-dani.mdx`; story 82 (S1b) added `demoOpen` (false), `demoKinds` (`['school']`), `demoUrl` (env `TABULA_DEMO_URL`), `demoTurnstileSiteKey` (env `TABULA_DEMO_TURNSTILE_SITEKEY`), `DEMO_KINDS`, `DEMO_ROLES` and `demoHeading()`; spec 83 added `checkedOn` («Перевірено …»), `urgentSubject`, `documentsSubject`, `firstWeekHours`, `weeklyMinutes`, `trashDays`, `addressHoldMonths`, `contractUntil`, `paymentBankDays`, `graceDays`, `noticeDays`, `law` (procurement limits and working-day deadlines), the codes (`dk021*`, `kekv*`), `operator` and `lyceum` (null until the owner fills them in), `authorsLine` (and `footerLine` built from it), `decisions` + `decided()`, `documents`, `priceIncludes`, `exitSteps` |
 | `src/layouts/RolePage.astro`, `src/config/audience.mjs`, `src/components/product/audience/*`, `src/styles/audience.css`, `src/scripts/page-tools.js` | Spec 83: the role pages and «Ціна й оплата» (hero, «На цій сторінці», the components of spec §10, print, «Скопіювати»/«Роздрукувати») — see Conventions |
+| `src/data/article30.mjs`, `src/data/lawChanges.mjs`, `src/data/sources.mjs` | Spec 84: the list «Що оприлюднити» of «Закон і сайт школи» (article 30, finances, other laws; `panelKey` names the matching item of tabula's `src/config/transparency.js`), the law's changes (ChangeLog), the sources with full requisites and the numbered «Джерела» of each page (official texts only) |
+| `src/lib/refs.mjs`, `test/spec84.test.mjs` | Spec 84: `refParts()` (`[n]` and `41¹` in a spec string), `firstRefIds()` (the anchor `ref-n` of a source's first mention), `refNumbers()`; the tests of spec 84's data and checks |
 | `src/components/product/PreFooterCta.astro` | Spec 83 §9: the band above the footer of every product page but `zaiavka` |
 | `src/lib/typo.mjs`, `src/components/product/Typo.astro` | Spec 83: `typo()`/`typoHtml()` (no-break spaces) and `slugUk()` (Latin heading ids); `Typo.astro` runs them over every own page's body |
 | `test/typo.test.mjs` | `node --test`: `typo()`, `typoHtml()`, `slugUk()` |
@@ -199,6 +201,21 @@ happens in each workflow, not in the composite action. Both checkouts pass
   «Реквізити»), the lyceum of «Хто ми» (`offer.lyceum`) are null until the owner fills them in; a null field is not shown.
   Texts that wait for the owner's confirmation are `offer.decisions.*` (`confirmed: false`); pages show them only through
   `decided()`, so an unconfirmed promise never renders.
+- The group «Про сервіс» (spec 84, 2026-11-10): «Як це працює» (`hero: robota`), «Ціна й оплата» (`tsina`), «Безпека й дані»
+  (`bezpeka`), «Закон і сайт школи» (`zakon`) are RolePage pages with `service: <slug>` in their hero: `ServiceNav` (the row of
+  the four, `SERVICE_PAGES` of `audience.mjs`, the role switcher's styles) instead of `RoleSwitcher`, the label «Про сервіс»,
+  «Перевірено {checkedAt.service}» (one date for the group, `offer.checkedAt`; `checkedOnFor(slug)` picks a page's date and
+  check-built holds it), `toc` as an explicit list of the spec's anchors (the H2s are `<h2 id="…">` in the MDX), and «Для кого»
+  (`RelatedRoles` with `service`) at the end. New components: `ServiceNav`, `ResponsibilitySplit` (`offer.responsibilities`),
+  `ChecklistTable` (screen: a `<details>` per group; print: one table of every group with ☐, the line «Заклад · Перевірив ·
+  Дата» and the empty «Відповідальний», «Дата розміщення»), `ChangeLog`, `RefText` (a string with `[n]`), `FirstRefs` (wraps
+  the RolePage article). `hero.print: 'checklist'` prints only that table and the stamp, on A4 landscape (`@page checklist`).
+  Sources are `src/data/sources.mjs`; `SourceList` titles are HTML (`<sup>`). Open owner decisions are `decisions.*` with
+  `text: null` (`terminationNotice`, `twoAdmins`, `whoIfIll`): no proposed wording is kept in this public repository.
+  check-built: on the four pages no «Станом на», «пілот», «Джерело:», „ as the outer quote, links to legalaid.wiki, kodeksy,
+  telegraf, ligazakon, yur-gazeta, or the names Anthropic, Resend, Cloudflare, Telegram, «ШІ-помічник» in <main>; every [n] has
+  its line in «Джерела» and back (`checkServicePage`). uCoz is allowed on `zakon-i-sait-shkoly` and `yak-tse-pratsiuie`
+  (`UCOZ_PAGES`); a page that names a law only to link `zakon-i-sait-shkoly/` needs no «станом на» (`LAW_PAGE_LINK`).
 - The Starlight chrome (S2 of story 80): Starlight is the documentation only. The header is Starlight's own (wordmark via
   `src/components/SiteTitle.astro`, search, theme switch) — no site navigation, no request button; the wordmark leads to
   the product home. `src/components/Footer.astro` keeps Starlight's default footer (edit link, pagination) and adds the link

@@ -48,5 +48,10 @@ import Step from '../../components/product/audience/Step.astro';
 <h2 id="vykhid">Що буде, якщо вирішите відмовитися</h2>
 
 <ol>
-{exitSteps.map((step) => <li>{step}</li>)}
+{exitSteps.map((step, i) => (
+	<li>
+		{step}
+		{i === 2 && <> Підготуйте новий сайт до кінця строку договору: документи за законом мають бути доступні весь час.</>}
+	</li>
+))}
 </ol>

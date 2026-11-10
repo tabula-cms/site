@@ -1,0 +1,38 @@
+---
+// Spec 84 §5: «Робимо ми» and «Робить заклад», two columns from 760 px (one under another on phones), from
+// offer.mjs `responsibilities`. A point may end with a link (href relative to the site's root).
+import { responsibilities } from '../../../config/offer.mjs';
+import { typo } from '../../../lib/typo.mjs';
+
+const base = import.meta.env.BASE_URL;
+const root = base.endsWith('/') ? base : `${base}/`;
+const columns = [
+	{ id: 'robymo-my', title: 'Робимо ми', items: responsibilities.ours },
+	{ id: 'robyt-zaklad', title: 'Робить заклад', items: responsibilities.school },
+];
+---
+
+<div class="duties">
+	{
+		columns.map((column) => (
+			<section class="duties__col" aria-labelledby={column.id}>
+				<h3 id={column.id} class="duties__title">{column.title}</h3>
+				<ul>
+					{column.items.map((item) => (
+						<li>
+							{typo(item.text)}
+							{item.link && (
+								<>
+									{' '}
+									<a class="more" href={`${root}${item.link.href}`}>
+										{typo(item.link.text)} →
+									</a>
+								</>
+							)}
+						</li>
+					))}
+				</ul>
+			</section>
+		))
+	}
+</div>

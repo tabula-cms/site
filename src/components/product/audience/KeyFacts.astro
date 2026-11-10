@@ -1,11 +1,16 @@
 ---
-// Spec 83 §4: «Коротко» — four fact cards: a bold first sentence and an optional second one.
-import { typo } from '../../../lib/typo.mjs';
+// Spec 83 §4: «Коротко» — four fact cards: a bold first sentence and an optional second one. Spec 84: either may cite
+// a source («[n]», RefText.astro), and a card may end with a link (`link: { text, href }`, href relative to the site's
+// root or a #anchor of the page).
+import RefText from './RefText.astro';
 
 interface Props {
-	items: { title: string; text?: string }[];
+	items: { title: string; text?: string; link?: { text: string; href: string } }[];
 }
 const { items } = Astro.props;
+const base = import.meta.env.BASE_URL;
+const root = base.endsWith('/') ? base : `${base}/`;
+const href = (h: string) => (h.startsWith('#') ? h : `${root}${h}`);
 ---
 
 {
@@ -15,8 +20,23 @@ const { items } = Astro.props;
 			<ul class="facts__list">
 				{items.map((item) => (
 					<li class="facts__item">
-						<strong>{typo(item.title)}</strong>
-						{item.text && <span> {typo(item.text)}</span>}
+						<strong>
+							<RefText text={item.title} />
+						</strong>
+						{item.text && (
+							<span>
+								{' '}
+								<RefText text={item.text} />
+							</span>
+						)}
+						{item.link && (
+							<>
+								{' '}
+								<a class="more" href={href(item.link.href)}>
+									<RefText text={item.link.text} /> →
+								</a>
+							</>
+						)}
 					</li>
 				))}
 			</ul>

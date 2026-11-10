@@ -1,0 +1,108 @@
+---
+// Spec 84 §7 and §9: the list «Що оприлюднити» of «Закон і сайт школи» (src/data/article30.mjs).
+//  - mode 'screen': the groups of article 30, each a <details> (the first open) with its table: Що оприлюднити (with
+//    the ☐ to tick) · Кого стосується · Коли оновлювати · Хто зазвичай готує документ · У Tabula.
+//  - mode 'print' (print-only, audience.css): one table of every group — article 30, the financial documents and the
+//    other laws — with a ☐ column, the line «Заклад ____ · Перевірив ____ · Дата ____» above it and two empty columns
+//    «Відповідальний» and «Дата розміщення» on the right; a group is not split across pages where it fits on one.
+import { checklistGroups, IN_TABULA_TEXT } from '../../../data/article30.mjs';
+import { typo } from '../../../lib/typo.mjs';
+
+interface Props {
+	mode: 'screen' | 'print';
+	title?: string;
+}
+const { mode, title } = Astro.props;
+const all = checklistGroups();
+const groups = mode === 'screen' ? all.filter((g) => g.section === 'stattia-30') : all;
+const inTabula = (value: string | null) => (value ? IN_TABULA_TEXT[value as keyof typeof IN_TABULA_TEXT] : '—');
+---
+
+{
+	mode === 'screen' ? (
+		<div class="checklist">
+			{groups.map((group, i) => (
+				<details class="checklist__group" open={i === 0}>
+					<summary>
+						<span class="checklist__name">{typo(group.title)}</span>
+						<span class="checklist__count">{group.rows.length}</span>
+					</summary>
+					<div class="reading-table" tabindex="0" role="region" aria-label={group.title}>
+						<table>
+							<thead>
+								<tr>
+									<th scope="col">Що оприлюднити</th>
+									<th scope="col">Кого стосується</th>
+									<th scope="col">Коли оновлювати</th>
+									<th scope="col">Хто зазвичай готує документ</th>
+									<th scope="col">У Tabula</th>
+								</tr>
+							</thead>
+							<tbody>
+								{group.rows.map((row) => (
+									<tr>
+										<th scope="row">
+											<span class="checklist__box" aria-hidden="true">
+												☐
+											</span>{' '}
+											{typo(row.item)}
+										</th>
+										<td>{typo(row.applies)}</td>
+										<td>{typo(row.deadline)}</td>
+										<td>{row.who ? typo(row.who) : '—'}</td>
+										<td>{inTabula(row.inTabula)}</td>
+									</tr>
+								))}
+							</tbody>
+						</table>
+					</div>
+				</details>
+			))}
+		</div>
+	) : (
+		<div class="checklist-print print-only">
+			{title && <p class="checklist-print__title">{typo(title)}</p>}
+			<p class="checklist-print__fill">
+				Заклад <span class="checklist-print__blank" /> · Перевірив <span class="checklist-print__blank" /> · Дата{' '}
+				<span class="checklist-print__blank checklist-print__blank--short" />
+			</p>
+			<table class="checklist-print__table">
+				<thead>
+					<tr>
+						<th scope="col" class="checklist-print__tick">
+							<span class="sr">Виконано</span>
+						</th>
+						<th scope="col">Що оприлюднити</th>
+						<th scope="col">Кого стосується</th>
+						<th scope="col">Коли оновлювати</th>
+						<th scope="col">Хто зазвичай готує документ</th>
+						<th scope="col">У Tabula</th>
+						<th scope="col">Відповідальний</th>
+						<th scope="col">Дата розміщення</th>
+					</tr>
+				</thead>
+				{groups.map((group) => (
+					<tbody class="checklist-print__group">
+						<tr>
+							<th scope="rowgroup" colspan="8" class="checklist-print__group-title">
+								{typo(group.title)}
+							</th>
+						</tr>
+						{group.rows.map((row) => (
+							<tr>
+								<td class="checklist-print__tick">☐</td>
+								<th scope="row">{typo(row.item)}</th>
+								<td>{typo(row.applies)}</td>
+								<td>{typo(row.deadline)}</td>
+								<td>{row.who ? typo(row.who) : ''}</td>
+								<td>{inTabula(row.inTabula)}</td>
+								<td />
+								<td />
+							</tr>
+						))}
+					</tbody>
+				))}
+			</table>
+		</div>
+	)
+}

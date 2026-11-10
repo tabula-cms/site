@@ -206,7 +206,8 @@ test('spec 83: every decision waits for the owner — decided() shows nothing un
 });
 
 test('spec 83: the decisions take their numbers from offer', () => {
-	assert.ok(decisions.terminationNotice.text.includes(`${offer.noticeDays} днів`));
+	assert.equal(decisions.terminationNotice.text, null); // spec 84: open, no wording in the public repo
+	assert.equal(decisions.twoAdmins.text, null);
 	assert.ok(decisions.latePayment.text.includes(`${offer.graceDays} календарних днів`));
 	assert.ok(decisions.januaryGrace.text.includes(`${offer.graceDays} календарних днів`));
 	assert.ok(decisions.pilotActValue.text.includes(formatGrn(offer.pilotValueUah)));

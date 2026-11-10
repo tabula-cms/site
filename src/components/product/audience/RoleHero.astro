@@ -1,9 +1,12 @@
 ---
 // Spec 83 §4 and §10: the top of a role page (and of «Ціна й оплата»): the role's label, the H1 (the reader's task),
 // the lead, «Коротко», the buttons and a small line with the note and «Перевірено {checkedOn}».
+// Spec 84 §9 (PageHero): the same hero serves the group «Про сервіс» — `checkedAt` picks the group's date of
+// offer.checkedAt (default 'roles', spec 83's checkedOn) and the lead may cite sources («[n]», RefText.astro).
 import KeyFacts from './KeyFacts.astro';
 import Actions from './Actions.astro';
 import { offer, formatDateLongYear } from '../../../config/offer.mjs';
+import RefText from './RefText.astro';
 import { typo } from '../../../lib/typo.mjs';
 
 interface Props {
@@ -16,10 +19,11 @@ interface Props {
 		note: (string | { text: string; href: string })[];
 		checked: boolean;
 		checkedFirst?: boolean;
+		checkedAt?: 'roles' | 'service';
 	};
 }
 const { hero } = Astro.props;
-const checked = hero.checked ? `Перевірено ${formatDateLongYear(offer.checkedOn)}.` : null;
+const checked = hero.checked ? `Перевірено ${formatDateLongYear(offer.checkedAt[hero.checkedAt ?? 'roles'])}.` : null;
 const note = hero.checkedFirst && checked ? [checked, ...hero.note] : hero.note;
 const tail = !hero.checkedFirst ? checked : null;
 ---
@@ -27,7 +31,7 @@ const tail = !hero.checkedFirst ? checked : null;
 <header class="role-hero">
 	{hero.label && <p class="role-hero__label">{hero.label}</p>}
 	<h1 data-print-summary>{typo(hero.heading)}</h1>
-	<p class="role-hero__lead">{typo(hero.lead)}</p>
+	<p class="role-hero__lead"><RefText text={hero.lead} /></p>
 	<KeyFacts items={hero.facts} />
 	<Actions actions={hero.actions} class="role-hero__actions" />
 	{

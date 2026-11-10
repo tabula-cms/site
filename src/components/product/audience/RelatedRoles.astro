@@ -3,21 +3,24 @@
 import { ROLES } from '../../../config/audience.mjs';
 
 interface Props {
-	current: string;
+	current?: string | null;
+	title?: string;
+	// Spec 84 §4: «Для кого» on the pages of «Про сервіс» — all three roles, each with its `service` line.
+	service?: boolean;
 }
-const { current } = Astro.props;
+const { current = null, title = 'Інші сторінки', service = false } = Astro.props;
 const base = import.meta.env.BASE_URL;
 const root = base.endsWith('/') ? base : `${base}/`;
 ---
 
 <section class="related" aria-labelledby="related-title">
-	<h2 id="related-title">Інші сторінки</h2>
+	<h2 id="related-title">{title}</h2>
 	<ul class="related__list">
 		{
 			ROLES.filter((role) => role.slug !== current).map((role) => (
 				<li class="related__card">
 					<a href={`${root}${role.slug}/`}>{role.title}</a>
-					<span>{role.about}</span>
+					<span>{service ? role.serviceAbout : role.about}</span>
 				</li>
 			))
 		}
