@@ -71,7 +71,7 @@ Exists now:
 | `test/smoke.test.mjs` | `node --test` check of `astro.config.mjs`'s `site`/`base` defaults and env overrides |
 | `test/docs-transform.test.mjs` | `node --test` fixture-based unit tests for `scripts/lib/docs-transform.mjs` (pure functions only, no network) |
 | `package.json`, `package-lock.json` | npm scripts and locked dependencies |
-| `.github/workflows/ci.yml` | CI: the `build` job that branch protection requires (issue #4); the `a11y` job also runs `npm run budget` (story 80) |
+| `.github/workflows/ci.yml` | CI: the `build` job that branch protection requires (issue #4); the `a11y` job also runs `npm run budget` (story 80); its «Install Chromium» falls back to `playwright install chromium` without `--with-deps` when apt fails or takes over 5 minutes |
 | `.github/workflows/deploy.yml` | Deploy: `main`/schedule/manual/`repository_dispatch` triggers, `build` + `deploy` jobs to GitHub Pages (issue #4) |
 | `.github/actions/build-site/action.yml` | Composite action shared by both workflows — setup-node, `npm ci`, docs import, `npm test`, `npm run build` (checkout stays in the calling workflow; issue #4) |
 
