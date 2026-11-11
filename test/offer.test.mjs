@@ -234,3 +234,10 @@ test('spec 83: documents, price lines and the exit steps', () => {
 		assert.doesNotMatch(text, /"/, text);
 	}
 });
+
+test('offer: story 82 phase 2 — the demo copy, the share look and the request cookie', () => {
+	assert.equal(offer.demoKeepDays, 14);
+	assert.ok(Number.isInteger(offer.demoReminderDays) && offer.demoReminderDays > 0 && offer.demoReminderDays < offer.demoKeepDays);
+	assert.equal(offer.demoViewMinutes, 30);
+	assert.equal(offer.demoRefHours, 24);
+});
