@@ -68,6 +68,15 @@ export const offer = Object.freeze({
 	// CP_DEMO_TURNSTILE_SECRET). The owner fills it in; TABULA_DEMO_TURNSTILE_SITEKEY overrides it. While it is empty
 	// the page «Спробувати» shows «Демо тимчасово закрите».
 	demoTurnstileSiteKey: process.env.TABULA_DEMO_TURNSTILE_SITEKEY || '',
+	// Story 82, phase 2 (decisions 3, 49): a demo copy is kept this many days from its last save (CP's
+	// `snapshot_saved_at`); the reminder goes this many days before the end. Consent 1 and the privacy section «Демо»
+	// quote them.
+	demoKeepDays: 14,
+	demoReminderDays: 2,
+	// Decision 38: a colleague's look through the share link lasts this many minutes, and their changes are never saved.
+	demoViewMinutes: 30,
+	// Decisions 23 and 34: the `demo_ref` cookie on the CP origin that links a request to the demo lives this long.
+	demoRefHours: 24,
 	// Decision 19: where the encrypted copies of the schools' sites are kept today.
 	// Footer-and-audience-pages spec (2026-11-09), answer 7: the copies are on Hetzner, not Backblaze.
 	copiesWhere: 'Hetzner, ЄС',

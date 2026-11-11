@@ -1,7 +1,7 @@
 ---
 // «Спробувати» (story 82, slice S1b): the sign-in to the public demo — the form, the code step on the same page, the
-// closed and full states and the no-JavaScript line. The texts are the spec's «Texts», phase-1 variants (nothing
-// promises saving), with ʼ as the apostrophe. The behaviour is src/scripts/demo-try.js, the only script of the page;
+// closed and full states and the no-JavaScript line. The texts are the spec's «Texts» (phase 2: Consent 1 says the
+// demo copy is kept {demoKeepDays} days), with ʼ as the apostrophe. The behaviour is src/scripts/demo-try.js, the only script of the page;
 // the styles are src/styles/try.css.
 //
 // While `offer.demoOpen` is false (phase 1, a closed test by invitation) the page is `noindex`, out of the sitemap
@@ -82,7 +82,7 @@ const demoStart = `${offer.demoUrl.replace(/\/+$/, '')}/__demo/start`;
 			<div class="try__consent">
 				<input id="try-consent-save" name="consent_save" type="checkbox" value="1" required />
 				<label for="try-consent-save">
-					Погоджуюся, щоб Tabula надіслала мені код для входу. Докладно — на сторінці <a
+					Погоджуюся, щоб Tabula надіслала мені код для входу і {offer.demoKeepDays} днів зберігала мою демо-копію. Докладно — на сторінці <a
 						href={`${root}personalni-dani/#demo`}>«Обробка персональних даних»</a
 					>.
 				</label>

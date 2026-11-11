@@ -381,11 +381,13 @@ test('checkNoBreakSpaces: month and year', () => {
 
 import { checkTryPage, checkTryLinks } from '../scripts/check-built.mjs';
 
-const tryPage = ({ referrer = 'strict-origin-when-cross-origin', robots = true, action = 'https://demo.example.org/__demo/start', extra = '' } = {}) =>
+const CONSENT_1 = 'Погоджуюся, щоб Tabula надіслала мені код для входу і 14 днів зберігала мою демо-копію. Докладно — на сторінці <a href="/site/personalni-dani/#demo">«Обробка персональних даних»</a>.';
+const tryPage = ({ referrer = 'strict-origin-when-cross-origin', robots = true, action = 'https://demo.example.org/__demo/start', consent = CONSENT_1, extra = '' } = {}) =>
 	`<html><head><meta name="referrer" content="${referrer}">${robots ? '<meta name="robots" content="noindex, nofollow">' : ''}</head><body><main>
 <p data-try-nojs>Демо працює лише з увімкненим JavaScript.</p>
 <input id="try-code" inputmode="numeric" autocomplete="one-time-code" data-try-code-input>
-<form data-try-pass method="post" action="${action}" hidden><input type="hidden" name="pass" value=""></form>${extra}
+<form data-try-pass method="post" action="${action}" hidden><input type="hidden" name="pass" value=""></form>
+<label>${consent}</label>${extra}
 </main></body></html>`;
 
 test('checkTryPage: the referrer policy, the pass form, the code field, noindex while closed', () => {
@@ -396,7 +398,11 @@ test('checkTryPage: the referrer policy, the pass form, the code field, noindex 
 	assert.ok(checkTryPage(tryPage({ robots: false }), opts).some((p) => p.includes('noindex')));
 	assert.ok(checkTryPage(tryPage(), { ...opts, demoOpen: true }).some((p) => p.includes('noindex although')));
 	assert.deepEqual(checkTryPage(tryPage({ robots: false }), { ...opts, demoOpen: true }), []);
-	assert.ok(checkTryPage(tryPage({ extra: '<p>Робота збережеться сама.</p>' }), opts).some((p) => p.includes('saving')));
+	assert.deepEqual(checkTryPage(tryPage({ extra: '<p>Робота збережеться сама.</p>' }), opts), []);
+	const phase1 = 'Погоджуюся, щоб Tabula надіслала мені код для входу. Докладно — на сторінці «Обробка персональних даних».';
+	assert.ok(checkTryPage(tryPage({ consent: phase1 }), opts).some((p) => p.includes('Consent 1')));
+	assert.ok(checkTryPage(tryPage(), { ...opts, keepDays: 7 }).some((p) => p.includes('Consent 1')));
+	assert.deepEqual(checkTryPage(tryPage({ consent: CONSENT_1.replace('14 днів', '14 днів') }), opts), []);
 	assert.ok(checkTryPage(tryPage().replace('one-time-code', 'off'), opts).some((p) => p.includes('one-time-code')));
 });
 

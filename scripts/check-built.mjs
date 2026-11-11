@@ -685,10 +685,10 @@ export const TRY_SLUG = 'sprobuvaty';
 /**
  * The page «Спробувати»: it never asks for `no-referrer` (the broker needs the site's Origin, decision 32) and sets
  * `strict-origin-when-cross-origin` itself; the pass goes in a hidden POST form to `{demoUrl}/__demo/start`; the
- * code field is numeric with `one-time-code`; the no-JavaScript line is there; phase 1 promises no saving; it is
- * `noindex` exactly while the demo is not public.
+ * code field is numeric with `one-time-code`; the no-JavaScript line is there; Consent 1 is the spec's phase-2 text
+ * (the code and the demo copy kept `offer.demoKeepDays` days); it is `noindex` exactly while the demo is not public.
  */
-export function checkTryPage(html, { demoOpen = offer.demoOpen, demoUrl = offer.demoUrl } = {}) {
+export function checkTryPage(html, { demoOpen = offer.demoOpen, demoUrl = offer.demoUrl, keepDays = offer.demoKeepDays } = {}) {
 	const problems = [];
 	if (/no-referrer(?!-)/i.test(html)) problems.push('asks for no-referrer: the broker would get no Origin (decision 32)');
 	if (!/<meta name="referrer" content="strict-origin-when-cross-origin"/.test(html)) {
@@ -708,7 +708,9 @@ export function checkTryPage(html, { demoOpen = offer.demoOpen, demoUrl = offer.
 	}
 	const text = htmlText(html);
 	if (!text.includes('Демо працює лише з увімкненим JavaScript.')) problems.push('no no-JavaScript line');
-	if (/збереж|зберіга/i.test(htmlText(extractMain(html)))) problems.push('phase 1 promises nothing about saving');
+	const consent = `Погоджуюся, щоб Tabula надіслала мені код для входу і ${keepDays} днів зберігала мою демо-копію. Докладно — на сторінці «Обробка персональних даних».`;
+	const mainText = htmlText(extractMain(html)).replace(/ /g, ' ').replace(/ ([.,])/g, '$1');
+	if (!mainText.includes(consent)) problems.push('Consent 1 is not the spec\'s phase-2 text');
 	const noindex = /<meta name="robots" content="noindex/.test(html);
 	if (!demoOpen && !noindex) problems.push('not noindex while offer.demoOpen is false');
 	if (demoOpen && noindex) problems.push('noindex although offer.demoOpen is true');
