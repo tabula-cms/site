@@ -71,10 +71,19 @@ test('footerLine: who made Tabula, verbatim from the spec, no operator details',
 	assert.doesNotMatch(footerLine, /ФОП|підприєм|ПДВ/);
 });
 
+test('exit (owner decision K1): no text promises that every copy is deleted; the locked copies go within copiesGoneDays', () => {
+	assert.equal(offer.copiesGoneDays, 370);
+	assert.ok(exitSteps[3].includes('на нашому сервері'));
+	assert.ok(exitSteps[4].includes('не може видалити ніхто, навіть ми'));
+	assert.ok(exitSteps[4].includes(`не пізніше ніж через ${offer.copiesGoneDays} днів після видалення`));
+	assert.ok(exitText.includes(`не пізніше ніж через ${offer.copiesGoneDays} днів після видалення`));
+	for (const text of [exitText, ...exitSteps]) assert.doesNotMatch(text, /усі (його )?резервні копії|сайт і його резервні копії|разом із копіями\./, text);
+});
+
 test('exit: copies on Hetzner for 30 days; the exit text takes its number from offer', () => {
 	assert.equal(offer.copiesWhere, 'Hetzner, ЄС');
 	assert.equal(offer.backupRetentionDays, 30);
-	assert.ok(exitText.includes(`через ${offer.exitClosedDays} днів видаляємо разом із копіями`));
+	assert.ok(exitText.includes(`через ${offer.exitClosedDays} днів видаляємо разом із копіями на нашому сервері`));
 	assert.doesNotMatch(exitText, /Backblaze|відкрит|власн\S* сервер/);
 });
 
@@ -225,9 +234,9 @@ test('spec 83: documents, price lines and the exit steps', () => {
 	for (const doc of documents) assert.ok(['ready', 'preparing', 'onRequest', 'off'].includes(doc.status), doc.name);
 	assert.equal(priceIncludes.length, 8);
 	assert.equal(priceIncludes.filter((i) => i.assistant).length, 1);
-	assert.equal(exitSteps.length, 5);
+	assert.equal(exitSteps.length, 6);
 	assert.ok(exitSteps[2].includes(`${offer.exitClosedDays} днів`));
-	assert.ok(exitSteps[4].includes(`${offer.addressHoldMonths} місяців`));
+	assert.ok(exitSteps[5].includes(`${offer.addressHoldMonths} місяців`));
 	const bad = /[А-ЯҐЄІЇа-яґєії]['’][А-ЯҐЄІЇа-яґєії]/;
 	for (const text of [...exitSteps, ...priceIncludes.map((i) => i.text), ...documents.flatMap((d) => [d.name, d.why])]) {
 		assert.doesNotMatch(text, bad, text);

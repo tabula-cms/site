@@ -83,8 +83,13 @@ export const offer = Object.freeze({
 	// The same spec, answer 7: how long the encrypted copies of a school's site are kept, in days.
 	backupRetentionDays: 30,
 	// The same spec, «Механізм виходу»: after the paid period the site stays closed this many days, then it
-	// is deleted (its copies disappear within backupRetentionDays more).
+	// is deleted with its data and the backups on our server.
 	exitClosedDays: 30,
+	// Owner decision K1 (2026-11-12): the site's encrypted copies in the off-site copy storage are
+	// compliance-locked (nightly 35 days, monthly 366) under one platform key, so nobody can delete them early;
+	// they are gone from the storage no later than this many days after the deletion. The control plane's
+	// letters say the same (cloud `MIRROR_GONE_DAYS`, `control/src/leavingDays.js`); keep the two equal.
+	copiesGoneDays: 370,
 
 	// ---- Spec 83 (audience pages, 2026-11-09) ------------------------------------------------------------
 	// The date the four pages «Для директора», «Для того, хто веде сайт», «Для бухгалтерії» and «Ціна й оплата»
@@ -181,9 +186,9 @@ export const authorsLine = 'Tabula зробили вчителі, які вмі�
 // spec): who made Tabula and why. check-built holds it on every page of the site (product pages and the documentation).
 export const footerLine = `${authorsLine} Ми хотіли, щоб сайт закладу вели його власні працівники, а не найнятий програміст.`;
 
-// «Механізм виходу» of the same spec: the text for the site (home FAQ, «Ціна й оплата», «Безпека й дані»,
-// «Для директора»), verbatim but for the number, which comes from exitClosedDays.
-export const exitText = `Документи, фото й новини заберете архівом — він відкривається в будь-якому браузері, а вміст можна перенести в будь-який сайт. Сайт працює до кінця оплаченого періоду, потім ми його закриваємо й через ${offer.exitClosedDays} днів видаляємо разом із копіями. Адреса на tabula.org.ua зникає разом із сайтом; власний домен лишається вашим.`;
+// «Механізм виходу» of the same spec: the exit text of the home FAQ, verbatim but for the numbers (exitClosedDays,
+// copiesGoneDays) and the copies sentence, which owner decision K1 (2026-11-12) changed.
+export const exitText = `Документи, фото й новини заберете архівом — він відкривається в будь-якому браузері, а вміст можна перенести в будь-який сайт. Сайт працює до кінця оплаченого періоду, потім ми його закриваємо й через ${offer.exitClosedDays} днів видаляємо разом із копіями на нашому сервері. Зашифровані копії в нашому сховищі копій зникнуть самі — не пізніше ніж через ${offer.copiesGoneDays} днів після видалення. Адреса на tabula.org.ua зникає разом із сайтом; власний домен лишається вашим.`;
 
 // Decision 17: what the institution gets, said once and the same everywhere (the home page and
 // «Ціна й оплата» render this list). The titles repeat the control plane's `plans.includes`
@@ -480,11 +485,14 @@ export const priceIncludes = Object.freeze([
 ]);
 
 // Spec 83 §8, «Що буде, якщо вирішите відмовитися» (`#vykhid` of «Ціна й оплата»): the exit, step by step.
+// Steps [3] and [4] (the deletion, the locked copies) are owner decision K1 (2026-11-12) and match the control
+// plane's letters; «Безпека й дані» (`#vykhid-dani`) renders the same two steps, so their wording lives only here.
 export const exitSteps = Object.freeze([
 	'Усі документи, фото й новини отримаєте одним архівом. Його можна відкрити в будь-якому браузері, а матеріали — перенести на будь-який інший сайт.',
 	'Сайт працює до кінця строку договору.',
 	`Ще ${offer.exitClosedDays} днів після цього сайт буде закритий для відвідувачів, але ви зможете увійти й завантажити архів. Якщо назвете адресу нового сайту, стара адреса вестиме туди.`,
-	'Потім ми видаляємо сайт і його резервні копії та надсилаємо лист-підтвердження.',
+	'Потім ми видаляємо сайт, усі його дані й резервні копії на нашому сервері та надсилаємо керівнику лист-підтвердження з датою.',
+	`Зашифровані копії сайту в нашому сховищі копій раніше строку не може видалити ніхто, навіть ми: так сховище захищає їх від помилкового чи зловмисного стирання. Прочитати їх можна лише нашим ключем, що зберігається офлайн, і ми цього не робимо. Файли копій зникнуть зі сховища самі — не пізніше ніж через ${offer.copiesGoneDays} днів після видалення; точну дату назве лист-підтвердження.`,
 	`Адреса на tabula.org.ua зникає разом із сайтом і щонайменше протягом ${offer.addressHoldMonths} місяців не передається іншому закладу. Власний домен лишається вашим.`,
 ]);
 
