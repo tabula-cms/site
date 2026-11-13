@@ -87,6 +87,10 @@ test('exit: copies on Hetzner for 30 days; the exit text takes its number from o
 	assert.doesNotMatch(exitText, /Backblaze|відкрит|власн\S* сервер/);
 });
 
+test('cpBackupDays: the control plane keeps 30 nightly copies off-site (cloud OFFSITE_KEEP)', () => {
+	assert.equal(offer.cpBackupDays, 30);
+});
+
 test('includes: nothing about open code or an own server', () => {
 	for (const item of includes) assert.doesNotMatch(`${item.title} ${item.text}`, /[Вв]ідкритий код|власний сервер/);
 });
