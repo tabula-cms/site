@@ -82,6 +82,11 @@ export const offer = Object.freeze({
 	copiesWhere: 'Hetzner, ЄС',
 	// The same spec, answer 7: how long the encrypted copies of a school's site are kept, in days.
 	backupRetentionDays: 30,
+	// The control plane's database (requests, demo leads): one copy a night, the newest this many kept on the
+	// Hetzner Storage Box (cloud `OFFSITE_KEEP`, `control/src/offsite.js`; the server itself keeps 14,
+	// `BACKUP_KEEP`). No Storage Box snapshots (owner, 2026-11-13). Erased data stays in those copies at most
+	// this many days; keep it equal to `OFFSITE_KEEP`.
+	cpBackupDays: 30,
 	// The same spec, «Механізм виходу»: after the paid period the site stays closed this many days, then it
 	// is deleted with its data and the backups on our server.
 	exitClosedDays: 30,
