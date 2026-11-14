@@ -131,6 +131,11 @@
 	gap: 12px;
 	margin: 0 0 16px;
 }
+/* A heading right after a row of buttons needs air: the buttons end one block, the heading starts the next. */
+.actions + h2,
+.actions + div > h2:first-child {
+	margin-top: 44px;
+}
 .actions .btn,
 .copy__actions .btn {
 	padding: 13px 22px;

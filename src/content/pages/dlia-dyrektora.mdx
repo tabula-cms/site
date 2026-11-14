@@ -20,7 +20,6 @@ import CardGrid from '../../components/product/audience/CardGrid.astro';
 import Card from '../../components/product/audience/Card.astro';
 import Faq from '../../components/product/audience/Faq.astro';
 import Callout from '../../components/product/audience/Callout.astro';
-import StatusBadge from '../../components/product/audience/StatusBadge.astro';
 import ShareButton from '../../components/product/audience/ShareButton.astro';
 
 export const pilotEnd = formatDateLongYear(offer.pilotUntil);
@@ -158,7 +157,7 @@ export const urgent = `mailto:${offer.supportEmail}?subject=${encodeURIComponent
 
 ## Що потрібно від закладу
 
-- **Призначити працівника, який вестиме сайт.** Це зручно оформити наказом. <StatusBadge status="preparing" /> Зразок наказу надішлемо разом із заявою.
+- **Призначити працівника, який вестиме сайт.** Це зручно оформити наказом: <a href="../dokumenty/nakaz-vidpovidalnyi-za-sait.pdf">зразок наказу (PDF)</a>.
 - **Вибрати адресу сайту:** *ваш-заклад*.tabula.org.ua або власний домен закладу.
 - **Підписати заяву про приєднання до договору на пробний період,** а далі щороку в січні — річну заяву. Підписує керівник закладу або уповноважена особа. Підписати можна так, як зручно закладу: у сервісі «Вчасно» чи іншому сервісі електронного документообігу, файлом із КЕП (заява у PDF, підписана на id.gov.ua) або на папері поштою. Можете запропонувати свій спосіб.
 - **Отримувати згоду батьків ще до того, як фотографувати дітей.** Освітній омбудсмен радить брати таку згоду окремо на кожну подію.
