@@ -448,7 +448,7 @@ test('checkFooterLinks: every own page is linked from the footer', () => {
 	assert.equal(checkFooterLinks('<a href="/site/b/">in the body</a>' + footer('a'), ['a', 'b'], '/site').length, 1);
 	assert.deepEqual(checkFooterLinks('<footer class="site-footer"><a href="/a/">x</a></footer>', ['a'], '/'), []);
 	// «Демо-сайт» and «Подати заявку» are not in the footer by design (main() checks they are linked elsewhere)
-	assert.deepEqual(FOOTER_EXEMPT, ['demo', 'zaiavka']);
+	assert.deepEqual(FOOTER_EXEMPT, ['demo', 'zaiavka', 'dohovir']);
 	assert.deepEqual(checkFooterLinks(footer('a'), ['a', 'demo', 'zaiavka'], '/site'), []);
 });
 
