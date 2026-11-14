@@ -1,0 +1,25 @@
+---
+// A slim «what to do next» row between two sections of the home, so a visitor who is already convinced does not
+// have to scroll to the price or the footer to find the button. Props: `text` (one sentence) and an optional second
+// link (`moreText`, `moreHref`). The main button is always «Подати заявку» (requestHref).
+import { requestHref } from '../../../config/offer.mjs';
+
+interface Props {
+	text: string;
+	moreText?: string;
+	moreHref?: string;
+}
+const { text, moreText, moreHref } = Astro.props;
+const base = import.meta.env.BASE_URL;
+const root = base.endsWith('/') ? base : `${base}/`;
+---
+
+<div class="wrap">
+	<div class="reveal nextstep">
+		<p class="nextstep__text">{text}</p>
+		<p class="nextstep__actions">
+			<a class="btn btn-main" href={requestHref(root, true)}>Подати заявку</a>
+			{moreText && moreHref && <a class="btn btn-line" href={moreHref}>{moreText}</a>}
+		</p>
+	</div>
+</div>
