@@ -2,7 +2,7 @@
 
 > Internal reference for Claude Code sessions working in this repository.
 >
-> **Last verified: 2026-11-14 (the contract is published as an edition; the documents of «Для бухгалтерії» are downloadable PDFs).**
+> **Last verified: 2026-11-14 (the guide in the site's look with a grouped sidebar; instant checks in the request form).**
 >
 > **How to keep this file honest:** every pull request that changes a convention, a command,
 > or the file layout updates the matching section of this file in the same PR.
@@ -62,7 +62,10 @@ Exists now:
 | `test/demo-try.test.mjs` | `node --test`: the pure helpers of `demo-try.js` (answers → states, plural, timer, referrer domain, stored attempt) |
 | `scripts/check-built.mjs` (`npm run check:built`; also runs after the build via `postbuild`) | Story 78/80: the product-page rules on all thirteen product pages (header, no Starlight chrome, no header/footer link into the docs, forbidden phrases, ʼ, no-break spaces, «станом на» on the own pages, `zaiavka` scripts), the doc-page chrome rules, `footerLine` on every page, `CLOSED_SERVICE_PATTERNS` on the product pages, the «Спробувати» rules (`checkTryPage`, `checkTryLinks`). Rules are exported and unit-tested in `test/check-built.test.mjs` |
 | `scripts/a11y.mjs` (`npm run a11y`) | Story 78/80: axe-core (WCAG 2.2 AA) over the home and every reading page at 1280 and 320 px (reduced motion) in headless Chromium, served from `dist/`; CI job `a11y` |
-| `src/styles/site.css` | `customCss` for the Starlight (documentation) config: the deep ink-blue accent palette and the light-mode header border — see Conventions |
+| `src/styles/site.css`, `src/styles/guide.css`, `src/styles/fonts.css` | `customCss` for the Starlight (documentation) config: the guide in the product's look (teal palette, Manrope and Unbounded) and the article typography (figures, steps, the «Де знайти» callout, tables); `fonts.css` holds the `@font-face` rules shared with `product.css` — see Conventions («The guide's look») |
+| `src/lib/guide-sidebar.mjs`, `src/lib/guide-markdown.mjs`, `src/components/Head.astro`, `src/components/SocialIcons.astro` | The guide's sidebar grouped by topic (`buildGuideSidebar`, pure, tested); the Sätteri hast plugin that restructures a guide page's HTML (never its text); the font preload on guide pages; the header link «← Сайт Tabula» — see Conventions |
+| `src/scripts/request-check.js`, `test/request-check.test.mjs` | The request form's instant checks (ЄДРПОУ check digit, whether the mail domain takes mail, a web address in a name) — see Conventions («The request form») |
+| `test/guide-sidebar.test.mjs`, `test/guide-markdown.test.mjs` | `node --test`: the sidebar grouping on fixtures; the hast plugin |
 | `src/components/EditLink.astro` | `EditLink` override that renders nothing (the docs' `editUrl` points into a private repository) |
 | `src/components/Footer.astro` | `Footer` override for the documentation: Starlight's default footer, then «На головну Tabula», «Підтримка», `footerLine` and «© 2026 Tabula» (no GitHub or licence links) |
 | `src/components/SiteTitle.astro` | `SiteTitle` override: the text default plus a small inline SVG wordmark mark |
@@ -172,10 +175,25 @@ happens in each workflow, not in the composite action. Both checkouts pass
   720 px column, Unbounded H1, Manrope 18 px; a table is wrapped in `<div class="reading-table" tabindex="0" role="region"
   aria-label="…">` so it scrolls on phones). They are not in Starlight's `docs` collection (no search index entry, no
   duplicate route). Internal links inside them are relative (`../zaiavka/`). Starlight `template: splash` is no longer used.
-- Accent palette (issue #5): `src/styles/site.css` overrides only `--sl-color-accent-low`, `--sl-color-accent` and
-  `--sl-color-accent-high` (dark mode in `:root`, light mode in `:root[data-theme='light']`), following Starlight's own
-  theme-colour convention. Light-mode accent ≈ `#1f3d63`, dark-mode ≈ `#8fb3e0` (≥ 5.7:1 contrast). The neutral gray scale
-  is untouched. That is all `site.css` holds since S2: the landing/about/W1 rules were removed with those pages.
+- The guide's look (owner's request, 2026-11-14: the guide must read as the same site). `src/styles/site.css` sets Starlight's
+  `--sl-*` scale to the product's tokens: the teal accent (#1f6f66 in light mode), the ink and line colours, a teal-tinted dark
+  scale (the product itself has no dark mode); Manrope for text, Unbounded for the page title and the sidebar group labels only
+  (it is wide: H2/H3 stay Manrope bold). The `@font-face` rules live once in `src/styles/fonts.css`, imported by `product.css`
+  and `site.css`; they are `font-display: optional`, so `src/components/Head.astro` preloads on guide pages the same five files
+  the product layout preloads. `src/styles/guide.css` is the article typography. The structure it styles is made by
+  `src/lib/guide-markdown.mjs`, a **Sätteri hast plugin** (Astro 7's Markdown engine is Sätteri, not unified:
+  `markdown.rehypePlugins` fails the build unless `@astrojs/markdown-remark` is installed), registered by a small integration in
+  `astro.config.mjs` that pushes it onto the processor's `hastPlugins`; it acts only on files under `src/content/docs/` and
+  never changes text: it drops HTML comments (`<!-- video: … -->`, `<!-- screenshot: … -->`, `<!-- hosted -->`: the CMS's
+  markers; the clips are not in any repository yet, showing them is a later change here), turns a paragraph that holds one image
+  into `<figure class="guide-shot">` with a `<figcaption>` of the alt text (the `<img>` then has `alt=""`, so a screen
+  reader hears the sentence once), marks the «Де знайти:» paragraph (`guide-where`) and the italic role note (`guide-role`),
+  makes top-level ordered lists steps (`guide-steps`; nested lists untouched) and wraps tables in a focusable scroll region.
+  Images of the guide (`docs/editor/img/<topic>/*.webp`) are copied by `fetch-docs.mjs` (its summary counts them and warns on a
+  missing one) and go through `astro:assets` (width, height, lazy). Tall phone screenshots are limited to 70vh.
+  `check-built`'s `checkDocGuide` holds the header link, no leaked comment and width/height on every guide image.
+  The live site imports the CMS's `main`, whose guide may be older than a local checkout: everything here must work with both
+  (test the old state with `git -C ../tabula archive origin/main docs | tar -x -C <dir>` and `TABULA_DOCS_DIR=<dir>/docs`).
 - The product footer (`src/components/product/Footer.astro`, spec 83 §9): the brand column (mark, «Сайти для шкіл, садочків і
   коледжів із готовими розділами за законом», «Про проєкт»), then «Для кого» (Для директора, Для того, хто веде сайт, Для
   бухгалтерії), «Про сервіс» (Як це працює, Ціна й оплата, Безпека й дані, Закон і сайт школи), «Допомога» (Часті запитання,
@@ -261,7 +279,9 @@ happens in each workflow, not in the composite action. Both checkouts pass
   (`UCOZ_PAGES`); a page that names a law only to link `zakon-i-sait-shkoly/` needs no «станом на» (`LAW_PAGE_LINK`).
 - The Starlight chrome (S2 of story 80): Starlight is the documentation only. The header is Starlight's own (wordmark via
   `src/components/SiteTitle.astro`, search, theme switch) — no site navigation, no request button; the wordmark leads to
-  the product home. `src/components/Footer.astro` keeps Starlight's default footer (edit link, pagination) and adds the link
+  the product home, and since 2026-11-14 the header also says so in words: «← Сайт Tabula» in its right group
+  (`src/components/SocialIcons.astro`, the slot the site has no other use for; the mobile menu shows it too) and a short
+  «← Сайт» beside the wordmark below 50rem, so the way back fits at 320 px. `src/components/Footer.astro` keeps Starlight's default footer (edit link, pagination) and adds the link
   «На головну Tabula» (base-aware), «Підтримка», `footerLine` and «© 2026 Tabula». The
   product pages never link into `editor/`, `install/`, `qa/`, `dev/` from their header or footer (`check-built`), except the
   footer's «Посібник редактора», exactly `{base}/editor/` (spec 83 §9, `GUIDE_SLUG`); a body
@@ -275,7 +295,7 @@ happens in each workflow, not in the composite action. Both checkouts pass
 - Product pages (story 80, S1): `src/layouts/Product.astro` is the layout of the site's own pages — `<html lang="uk" data-product-page>`,
   a skip link to `#main`, one `<h1>`, no Starlight; `src/styles/product.css` is its stylesheet (the mockup's values as classes;
   tokens as CSS custom properties on `:root[data-product-page]`, focus `3px #2F7FD6`, 44 px targets below 900 px). The home is
-  `src/pages/index.astro`, sections 1–13 (and the `start` and `kinds` bands after the four things) as components in `src/components/product/home/`; `Header.astro` (sticky; since 2026-11-14 the role pages are in it: from 1100 px the dropdown «Для кого» — a native `<details class="nav-for">`, first in the row, with «Директору», «Тому, хто веде сайт», «Бухгалтерії», «Як це працює» — then six anchors (ШІ-помічник … Запитання; «Контакти» left the row), then «Подати заявку» (`requestHref(root, home)`) and, only while `offer.demoOpen`, the secondary button «Спробувати» before it, from 1280 px up (`.btn-try`, hidden on narrower widths; measured air between the last link and the first button: 87 px at 1100 px without it, 96 px at 1280 px with it); `header.js`'s `initMenu` is shared by both disclosures: Escape (focus back to the summary), a click outside, focus leaving, a followed link; the page being shown has `aria-current="page"`; below 1100 px a `<details>` «Меню» whose panel lists the group heading «Для кого» with the same four links, then the seven anchors (with «Контакти»), then «Звʼязатися»; the panel scrolls inside itself (`max-height`) on short phones (every header item is `nowrap`; below 480 px «Меню» is the three-bar icon only, 44×44, the word stays as visually hidden text, and the header is tighter, so brand + button + icon fit on one line down to 320 px, checked at 320/360/390/430); links are `#…` on the home and `{BASE_URL}#…` elsewhere, prop `home`) and
+  `src/pages/index.astro`, sections 1–13 (and the `start` and `kinds` bands after the four things) as components in `src/components/product/home/`; `Header.astro` (sticky; since 2026-11-14 the role pages are in it: from 1100 px the dropdown «Для кого» — a native `<details class="nav-for">`, first in the row, with «Директору», «Тому, хто веде сайт», «Бухгалтерії», «Як це працює» — then six anchors (ШІ-помічник … Запитання; «Контакти» left the row), then «Подати заявку» (`requestHref(root, home)`) and, only while `offer.demoOpen`, the secondary button «Спробувати» before it, from 1280 px up (`.btn-try`, hidden on narrower widths; measured air between the last link and the first button: 87 px at 1100 px without it, 96 px at 1280 px with it); `header.js`'s `initMenu` is shared by both disclosures: Escape (focus back to the summary), a click outside, focus leaving, a followed link; the page being shown has `aria-current="page"`; below 1100 px a `<details>` «Меню» whose panel lists the group heading «Для кого» with the same four links, then the seven anchors (with «Контакти»; a second «Звʼязатися» link beside it was a duplicate and was removed); the panel scrolls inside itself (`max-height`) on short phones (every header item is `nowrap`; below 480 px «Меню» is the three-bar icon only, 44×44, the word stays as visually hidden text, and the header is tighter, so brand + button + icon fit on one line down to 320 px, checked at 320/360/390/430); links are `#…` on the home and `{BASE_URL}#…` elsewhere, prop `home`) and
   `Footer.astro` (four columns, a `help` slot «Довідка» that renders nothing until the docs story) are in `src/components/product/`.
   Fonts are self-hosted from `@fontsource/{unbounded,manrope,caveat}` — own `@font-face` rules with `unicode-range` in
   `product.css` (the packages' per-subset CSS has none), Cyrillic + Latin files of the used weights only, no Google Fonts.
@@ -372,9 +392,11 @@ happens in each workflow, not in the composite action. Both checkouts pass
   `requestsOpen`, so the text matches what the visitor sees. `requestHref(root, home)` is where every «Подати заявку» button of the
   body leads (`{root}zaiavka/` when open, else the home's `#request`; the header's and the hero's buttons use it too). Open: `zaiavka.mdx` shows a
   short intro, `RequestForm.astro`, «Що буде далі» and the privacy link; the home's section 13 shows «Заявка займе близько пʼяти хвилин.» and the button «Заповнити
-  заявку». Closed: the e-mail text, no form. The form is plain HTML (`method="post"`, `accept-charset="utf-8"`, no script of ours; only
-  Cloudflare's `api.js`, which `check-built` allows on `zaiavka` alone): groups «Заклад» (`school`, `edrpou`, `place`, `current_site`,
-  `wanted`), «Контактна особа» (`name`, `position`, `email`, `phone`), «Договір» (the `signer` radios), then `comment`, the required
+  заявку». Closed: the e-mail text, no form. The form is plain HTML (`method="post"`, `accept-charset="utf-8"`, posted by the browser itself; the scripts
+  `check-built` allows on `zaiavka` are Cloudflare's `api.js` and the form's own `src/scripts/request-check.js`, known by the marker
+  `data-request-check`): groups «Код закладу й пошта» (`edrpou`, `email`: the two things we cannot work without come first, owner,
+  2026-11-14), «Заклад» (`school`, `place`, `current_site`, `wanted`), «Хто подає заявку» (`name`, `position`, `phone`), «Договір»
+  (the `signer` radios), then `comment`, the required
   `consent` checkbox (`value="yes"`), the honeypot `website` (off-screen, `tabindex="-1"`, wrapper `aria-hidden`), the Turnstile div, the
   notice line and the always-enabled button. Names, `maxlength`s, `required` and the radio values are the spec's W2 table and equal
   `cloud/control/src/requestForm.js` (`REQUEST_FIELDS` in `check-built.mjs` repeats them: change both sides together). The control plane
@@ -383,6 +405,16 @@ happens in each workflow, not in the composite action. Both checkouts pass
   the form. `checkRequestPage` holds the form's state (open: one form with every field; closed: no `<form>`, the support address);
   `a11y.mjs` scans the result pages always and the form when the site is built open
   (`TABULA_REQUESTS_OPEN=1 TABULA_TURNSTILE_SITEKEY=1x00000000000000000000AA npm run build`, Cloudflare's published always-pass key).
+- The request form's instant checks (owner's request, 2026-11-14: «show the answer on the form at once»): `request-check.js` says
+  under the field, while the visitor is still on the page, that the ЄДРПОУ code cannot exist (eight digits and the check digit, the
+  server's own rule), that no mail service stands behind the address (the server's grammar, then the domain's MX or address record
+  asked from Cloudflare's DNS over HTTPS: only the domain goes out, never the address; `personalni-dani.mdx` says so), offers a
+  correction for a known slip (`gmail.con`), and refuses a web address in «Назва закладу» and «Громада»; a value known to be wrong
+  blocks the submit through the field's validity message and names the support address to write to. No answer from the DNS in 4 s is
+  no verdict and blocks nothing. Honest limits, do not word the lines past them: a right check digit does not prove the institution
+  exists (no registry is asked), and the mailbox itself is not checked. `EMAIL_RE` and `LINKISH` are copies of the control plane's
+  (`test/request-check.test.mjs` compares them when a `cloud` checkout stands beside this one). Without JavaScript the form works as
+  before. A real registry lookup and a shorter form need a change in the control plane (`cloud`), not here.
 - Story 78 pages (W1, now the reading pages of S2): the numbers, dates, reply times and contacts of the offer come only from
   `src/config/offer.mjs`. The operator's details are published only from `offer.operator` on «Для бухгалтерії» (spec 83 replaced decision 5); never typed anywhere else. The key messages
   of the spec are quoted verbatim, with ʼ (U+02BC) as the apostrophe. Every own page that names a law or a procurement rule
@@ -414,13 +446,15 @@ happens in each workflow, not in the composite action. Both checkouts pass
   the hand-written W1 pages (`src/content/docs/*.mdx`) are written
   without a leading slash (`editor/`, not `/editor/`) so they resolve under either base —
   Starlight does not rewrite frontmatter link fields for the configured `base` itself.
-- The sidebar's four groups (`editor`, `install`, `qa`, `dev`) are only added to
-  `astro.config.mjs`'s `sidebar` array when the matching `src/content/docs/<dir>` folder
-  exists (checked with `node:fs`'s `existsSync`). This is cosmetic, not a build requirement —
-  an autogenerated group whose directory doesn't exist still builds fine, it would just show
-  an empty group in the sidebar before that section has been imported. Those folders are
-  generated by `scripts/fetch-docs.mjs` (issue #3) and gitignored, so a fresh clone that
-  hasn't run `docs:fetch` yet has none of them.
+- The guide's sidebar (2026-11-14): `astro.config.mjs` reads the imported `src/content/docs/editor/` files and calls
+  `buildGuideSidebar` (`src/lib/guide-sidebar.mjs`): «Початок» (the index as «Зміст посібника», `pershi-kroky`, `yak-vlashtovana`,
+  `maister`, `yak-pysaty`; open), then one collapsed group per topic — the topic page under its own title first, then its
+  how-to articles (`novyny-*.md` …) in `sidebar.order` — and «Інше» for what no group claims. Groups come from file-name
+  prefixes with an explicit map for the prefixes whose topic page has another name (`liudy-*` with `kolektyv`, `holovna-*`,
+  `redaktor-*`, `kharchuvannia-kartky-*` with `tekhnolohichni-kartky` …; it already covers the prefixes of the guide branches
+  not merged yet); a group that finds fewer than two of its pages is not made. With the old guide (no how-tos) the result is the
+  single open flat group «Посібник редактора» in INDEX order. The folder is generated by `scripts/fetch-docs.mjs` and
+  gitignored; a fresh clone that has not run `docs:fetch` has no guide group at all, which still builds.
 - Per-page `<html lang>`: Starlight's `docsSchema()` (0.42.4) has no `lang` frontmatter field
   and no way to set `<html lang>` for one page differently from the site's locale, short of
   making that page's folder its own Starlight locale — which was tried and rejected, because
