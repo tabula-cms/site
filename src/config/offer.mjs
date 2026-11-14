@@ -61,7 +61,7 @@ export const offer = Object.freeze({
 	// manual check against a local control plane.
 	cpUrl: process.env.TABULA_CP_URL || 'https://cp.tabula.org.ua',
 	// Decision 24: Cloudflare Turnstile's public site key; TABULA_TURNSTILE_SITEKEY overrides it.
-	turnstileSiteKey: process.env.TABULA_TURNSTILE_SITEKEY || '',
+	turnstileSiteKey: process.env.TABULA_TURNSTILE_SITEKEY || '0x4AAAAAAGBJ8YojUNSgpj32',
 	// Decision 24: false until the control plane accepts requests (C1 live); W2 reads it. TABULA_REQUESTS_OPEN=1
 	// turns it on at build time for a manual check against a local control plane. The form is shown only when
 	// the Turnstile site key is set too: see requestFormOpen().
