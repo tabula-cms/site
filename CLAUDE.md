@@ -387,7 +387,7 @@ happens in each workflow, not in the composite action. Both checkouts pass
   checks `Origin`, decision 32). While `demoOpen` is false (phase 1, by invitation) the page is `noindex`, out of the sitemap and linked
   from nowhere; true adds the footer link «Спробувати демо» (column «Про сервіс»), the header button «Спробувати» and makes «Спробувати демо» the hero's first (primary) button, with «Подати заявку» secondary and «Подивитися приклад сайту» a quiet link below. `offer.demoOpen` is `process.env.TABULA_DEMO_OPEN === '1'` (false by default), so the open state can be built and checked (`TABULA_DEMO_OPEN=1 TABULA_REQUESTS_OPEN=1 TABULA_TURNSTILE_SITEKEY=… npm run build`). `check-built` holds all of it (`checkTryPage`, `checkTryLinks`, the page's
   own script allowed by `data-demo-try`); `npm run a11y` scans it with every hidden state shown. Its styles are `src/styles/try.css`, imported by that page only.
-- The request form (story 78 W2 / story 80 S3): `offer.requestsOpen` is `process.env.TABULA_REQUESTS_OPEN === '1'` (false by default) and
+- The request form (story 78 W2 / story 80 S3): `offer.requestsOpen` is `process.env.TABULA_REQUESTS_OPEN !== '0'` (true since 2026-11-14, when the control plane began to accept requests; `=0` closes the form at build time) and
   `requestFormOpen()` is that AND `turnstileSiteKey` (env `TABULA_TURNSTILE_SITEKEY`); pages read `requestFormOpen()`, never
   `requestsOpen`, so the text matches what the visitor sees. `requestHref(root, home)` is where every «Подати заявку» button of the
   body leads (`{root}zaiavka/` when open, else the home's `#request`; the header's and the hero's buttons use it too). Open: `zaiavka.mdx` shows a
@@ -404,7 +404,7 @@ happens in each workflow, not in the composite action. Both checkouts pass
   sitemap in `astro.config.mjs`, linked from nowhere (`checkResultPage`, `checkResultLinks`, `checkSitemapResults`); the error pages lead back to
   the form. `checkRequestPage` holds the form's state (open: one form with every field; closed: no `<form>`, the support address);
   `a11y.mjs` scans the result pages always and the form when the site is built open
-  (`TABULA_REQUESTS_OPEN=1 TABULA_TURNSTILE_SITEKEY=1x00000000000000000000AA npm run build`, Cloudflare's published always-pass key).
+  (the default build; `TABULA_REQUESTS_OPEN=0 npm run build` is the closed state, and both must stay green. `offer.turnstileSiteKey` is the public key of the owner's widget for tabula.org.ua; for a local control plane use `TABULA_TURNSTILE_SITEKEY=1x00000000000000000000AA`, Cloudflare's published always-pass key).
 - The request form's instant checks (owner's request, 2026-11-14: «show the answer on the form at once»): `request-check.js` says
   under the field, while the visitor is still on the page, that the ЄДРПОУ code cannot exist (eight digits and the check digit, the
   server's own rule), that no mail service stands behind the address (the server's grammar, then the domain's MX or address record
