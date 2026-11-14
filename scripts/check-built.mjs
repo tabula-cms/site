@@ -534,7 +534,10 @@ export function checkHomeRoles(html) {
 	return problems;
 }
 
-/** The assistant section's three blocks under the tabs, and the link to the guide's page on data (it must be imported). */
+/**
+ * The assistant section's three blocks under the tabs. The link to the guide's page on data is rendered only when that
+ * page was imported (the released guide may not have it yet), so it is check-links' to hold, not this rule's.
+ */
 export function checkAssistantMore(html) {
 	const section = sectionById(html, 'assistant');
 	if (section === null) return ['no <section id="assistant">'];
@@ -543,7 +546,6 @@ export function checkAssistantMore(html) {
 		if (!new RegExp(`<h3\\b[^>]*>${heading}</h3>`).test(section)) problems.push(`the assistant section has no H3 «${heading}»`);
 	}
 	if ((section.match(/class="assist-flow__step"/g) ?? []).length !== 3) problems.push('the assistant section does not have three numbered steps');
-	if (!/href="[^"]*\/editor\/pomichnyk-i-dani\/"/.test(section)) problems.push('the assistant section has no link to editor/pomichnyk-i-dani/');
 	return problems;
 }
 

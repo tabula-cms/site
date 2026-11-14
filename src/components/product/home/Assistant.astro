@@ -5,11 +5,16 @@
 import Shot from '../Shot.astro';
 import { shots } from '../shots';
 import Tick from '../Tick.astro';
+import { existsSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
 import { offer } from '../../../config/offer.mjs';
 
 const base = import.meta.env.BASE_URL;
 const root = base.endsWith('/') ? base : `${base}/`;
 const testing = offer.assistantStatus === 'testing';
+// The guide's page «Помічник і ваші дані» is imported from tabula at build time, and the released guide (tabula's
+// `main`) may not have it yet: the link is rendered only when the page was imported, like the sidebar's groups.
+const dataGuide = existsSync(fileURLToPath(new URL('../../../content/docs/editor/pomichnyk-i-dani.md', import.meta.url)));
 const tasks = [
 	{ id: 'news', name: 'Новина з фото' },
 	{ id: 'meals', name: 'Меню з фото аркуша' },
@@ -288,9 +293,13 @@ const thumb = { widths: [64, 128], sizes: '64px' };
 							))
 						}
 					</ul>
-					<p class="assist-data__more">
-						<a href={`${root}editor/pomichnyk-i-dani/`}>Докладно: „Помічник і ваші дані“ в посібнику</a>
-					</p>
+					{
+						dataGuide && (
+							<p class="assist-data__more">
+								<a href={`${root}editor/pomichnyk-i-dani/`}>Докладно: „Помічник і ваші дані“ в посібнику</a>
+							</p>
+						)
+					}
 				</div>
 			</div>
 		</div>

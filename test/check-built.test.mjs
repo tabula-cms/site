@@ -250,11 +250,11 @@ test('checkHomeRoles: four cards in order, the H2, before «kinds»', () => {
 	assert.ok(checkHomeRoles('<section id="kinds"></section>').length > 0);
 });
 
-test('checkAssistantMore: three H3, three steps, the link to the guide', () => {
+test('checkAssistantMore: three H3, three steps; the link to the guide is optional', () => {
 	const ok = `<section id="assistant"><h3>Як це виглядає в роботі</h3><ol><li class="assist-flow__step"></li><li class="assist-flow__step"></li><li class="assist-flow__step"></li></ol><h3>Ще помічник уміє</h3><h3>Що відбувається з даними</h3><a href="/site/editor/pomichnyk-i-dani/">x</a></section>`;
 	assert.deepEqual(checkAssistantMore(ok), []);
 	assert.ok(checkAssistantMore(ok.replace('Ще помічник уміє', 'Інше')).length > 0);
-	assert.ok(checkAssistantMore(ok.replace('/editor/pomichnyk-i-dani/', '/')).length > 0);
+	assert.deepEqual(checkAssistantMore(ok.replace('/editor/pomichnyk-i-dani/', '/')), []);
 	assert.ok(checkAssistantMore(ok.replace('<li class="assist-flow__step"></li>', '')).length > 0);
 });
 
