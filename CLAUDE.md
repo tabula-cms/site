@@ -206,8 +206,8 @@ happens in each workflow, not in the composite action. Both checkouts pass
   each quarter, ids `etap-…` and `shchokvartalu`), then «Довідка» as closed questions under H3 groups; the owner expects
   to see «an offer and one page to sign», so nothing long may stand open above the fold; the contract is an offer (договір приєднання, its text signed with the operator's КЕП) the institution
   joins by a one-page application its head signs, which the operator prepares and signs first and the head signs
-  and dates (that date is the contract's date and the start of the paid period; the trial runs until it; the last
-  settlement period of a year is 1 October – 15 December), a two-sided copy only if the Treasury office asks; the code is
+  and dates (that date is the contract's date and the start of the paid period; the trial runs until it; the year is
+  four ordinary quarters, the fourth act is dated 31 December and usually paid in January as accounts payable), a two-sided copy only if the Treasury office asks; the code is
   72260000-5, never 72410000-7 «Послуги провайдерів» (accountants read it as an internet provider). The page must keep
   the notification to Мінцифри (division 72 is informatization), Є-Data, ЄСВ and the year-end act. Its sources line
   says «Тексти норм звірено … {sourcesRead}» (a date in the MDX), not «Перевірено», which check-built ties to
