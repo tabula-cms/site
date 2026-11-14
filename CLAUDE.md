@@ -204,7 +204,9 @@ happens in each workflow, not in the composite action. Both checkouts pass
   it. Owner's decisions of that day: the page is exhaustive but plain — eight lines of «Коротко», the requisites, every
   step with who, document and deadline (trial, plan, January, each quarter), then «Довідка» as closed questions under
   H3 groups; the contract is an offer (договір приєднання, its text signed with the operator's КЕП) the institution
-  joins by a one-page application its head signs, a two-sided copy only if the Treasury office asks; the code is
+  joins by a one-page application its head signs, which the operator prepares and signs first and the head signs
+  and dates (that date is the contract's date and the start of the paid period; the trial runs until it; the last
+  settlement period of a year is 1 October – 15 December), a two-sided copy only if the Treasury office asks; the code is
   72260000-5, never 72410000-7 «Послуги провайдерів» (accountants read it as an internet provider). The page must keep
   the notification to Мінцифри (division 72 is informatization), Є-Data, ЄСВ and the year-end act. Its sources line
   says «Тексти норм звірено … {sourcesRead}» (a date in the MDX), not «Перевірено», which check-built ties to

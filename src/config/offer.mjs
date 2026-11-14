@@ -460,7 +460,7 @@ export const decisions = Object.freeze({
 	// Decision 3: the contract for the paid year (Для бухгалтерії, the timeline's step 7).
 	contract2027: Object.freeze({
 		confirmed: false,
-		text: `Ціна не змінюється протягом року, а договір діє до ${formatDateLongYear(offer.contractUntil)}. Заклад платить у межах бюджетних асигнувань протягом ${offer.paymentBankDays} банківських днів після підписання акта. Якщо асигнувань не виділили, заклад може розірвати договір. За неповний квартал оплата пропорційна дням. Штрафів за затримку бюджетного фінансування договір не містить.`,
+		text: `Ціна не змінюється протягом року, а договір діє до ${formatDateLongYear(offer.contractUntil)}. Заклад платить у межах бюджетних асигнувань протягом ${offer.paymentBankDays} робочих днів після підписання акта, за наявності бюджетного фінансування. Якщо асигнувань не виділили, заклад може розірвати договір. За неповний квартал оплата пропорційна дням. Штрафів за затримку бюджетного фінансування договір не містить.`,
 	}),
 	// Decision 4: free days from 1 January until the contract is made (Для директора, FAQ).
 	januaryGrace: Object.freeze({
