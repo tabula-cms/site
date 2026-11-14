@@ -2,7 +2,7 @@
 
 > Internal reference for Claude Code sessions working in this repository.
 >
-> **Last verified: 2026-11-12 (owner decision K1: the exit no longer promises that every backup is deleted).**
+> **Last verified: 2026-11-14 (the contract page «Договір»; the owner confirmed the contract's terms).**
 >
 > **How to keep this file honest:** every pull request that changes a convention, a command,
 > or the file layout updates the matching section of this file in the same PR.
@@ -47,7 +47,7 @@ Exists now:
 | `scripts/budget.mjs` (`npm run budget`), `scripts/lib/serve-dist.mjs` | Story 80: the home's performance budget (600 KB at 390 px, lazy images, LCP preload); the static server of `dist/` shared with `a11y.mjs` |
 | `THIRD_PARTY_LICENSES.md` | The fonts (SIL OFL 1.1, via Fontsource) and the CC0 photos |
 | `test/tabs.test.mjs`, `test/shots.test.mjs` | `node --test`: tabs keyboard logic (pure helper + a fake DOM); the `SHOTS` table (every file exists, starts `RIFF….WEBP`, `facts.json` valid) |
-| `src/content/pages/*.md(x)`, `src/pages/[slug].astro`, `src/layouts/ProductPage.astro` | Story 80 (S2): the thirteen reading pages of the site (the `pages` collection), at `/<slug>/` in the product layout; the `.mdx` ones import `offer.mjs` for the numbers and dates |
+| `src/content/pages/*.md(x)`, `src/pages/[slug].astro`, `src/layouts/ProductPage.astro` | Story 80 (S2): the fourteen reading pages of the site (the `pages` collection; the fourteenth is `dohovir`, the contract), at `/<slug>/` in the product layout; the `.mdx` ones import `offer.mjs` for the numbers and dates |
 | `src/config/offer.mjs` | Story 78 (W1): the **one source of the offer's numbers and dates** — `pilotUntil`, `priceYearUah`, `priceQuarterUah`, `asOf`, reply times, contacts, `cpUrl` / `turnstileSiteKey` (env `TABULA_CP_URL`, `TABULA_TURNSTILE_SITEKEY`), `requestsOpen`, `copiesWhere` (Hetzner), `backupRetentionDays`, `exitClosedDays`, `copiesGoneDays` (owner decision K1: the locked encrypted copies are gone no later than 370 days after deletion; equals cloud `MIRROR_GONE_DAYS`); plus `footerLine` (the footer bottom line), `exitText`, the "what the institution gets" list (`includes`) and formatters. No page types a price or a date of the offer by hand: such a page is `.mdx` and imports this module; story 80 added `assistantStatus`, `demoSiteUrl`, `supportEmail` (the one public address; `contactEmail` is gone), `includesShort` (the price card's lines, each with `coveredBy` indexes into `includes`) and the helpers `withinWorkingDays`, `formatDateLongYear`, `yearOf`, `formatUah`; story 82 (S1a) added `complaintEmail` (the owner fills it in; `complaintEmail()` falls back to `privacyEmail()` while it is null), used by the section «Демо» (`#demo`) of `personalni-dani.mdx`; story 82 (S1b) added `demoOpen` (false), `demoKinds` (`['school']`), `demoUrl` (env `TABULA_DEMO_URL`), `demoTurnstileSiteKey` (env `TABULA_DEMO_TURNSTILE_SITEKEY`), `DEMO_KINDS`, `DEMO_ROLES` and `demoHeading()`; story 82 phase 2 added `demoKeepDays` (14, a demo copy from its last save), `demoReminderDays`, `demoViewMinutes` (a colleague's look) and `demoRefHours` (the CP's `demo_ref` cookie), quoted by Consent 1 and the section «Демо», and `cpBackupDays` (30: the control plane's nightly copies kept on the Storage Box, equals cloud `OFFSITE_KEEP`; no Storage Box snapshots), the longest erased data stays in the CP's backups; spec 83 added `checkedOn` («Перевірено …»), `urgentSubject`, `documentsSubject`, `firstWeekHours`, `weeklyMinutes`, `trashDays`, `addressHoldMonths`, `contractUntil`, `paymentBankDays`, `graceDays`, `noticeDays`, `law` (procurement limits and working-day deadlines), the codes (`dk021*`, `kekv*`), `operator` and `lyceum` (null until the owner fills them in), `authorsLine` (and `footerLine` built from it), `decisions` + `decided()`, `documents`, `priceIncludes`, `exitSteps`; the 2026-11-14 round added `requestFormOpen()`, `requestHref()`, the env switches `TABULA_REQUESTS_OPEN` / `TABULA_DEMO_OPEN` (exactly `1`; no workflow sets them) and `assistantUndoDays` / `assistantProposalDays` (the assistant's numbers on the home, equal to tabula's `docs/editor/pomichnyk-i-dani.md`) |
 | `src/layouts/RolePage.astro`, `src/config/audience.mjs`, `src/components/product/audience/*`, `src/styles/audience.css`, `src/scripts/page-tools.js` | Spec 83: the role pages and «Ціна й оплата» (hero, «На цій сторінці», the components of spec §10, print, «Скопіювати»/«Роздрукувати») — see Conventions |
 | `src/data/article30.mjs`, `src/data/lawChanges.mjs`, `src/data/sources.mjs` | Spec 84: the list «Що оприлюднити» of «Закон і сайт школи» (article 30, finances, other laws; `panelKey` names the matching item of tabula's `src/config/transparency.js`), the law's changes (ChangeLog), the sources with full requisites and the numbered «Джерела» of each page (official texts only) |
@@ -161,10 +161,10 @@ happens in each workflow, not in the composite action. Both checkouts pass
   Astro `redirects` entry to `/khostynh-i-tsina/` (out of the sitemap). Only `docs/editor/` is imported (`PUBLISHED_FOLDERS`
   in `scripts/lib/docs-transform.mjs`); a link from it into `install/`, `qa/`, `dev/` or out of `docs/` keeps its text and loses
   the link. Starlight shows no GitHub icon and no edit link (`src/components/EditLink.astro` renders nothing).
-- The home (`/`) and the thirteen reading pages are not Starlight pages. The home is `src/pages/index.astro` (product layout,
+- The home (`/`) and the fourteen reading pages are not Starlight pages. The home is `src/pages/index.astro` (product layout,
   see the product-pages bullet below). The reading pages (`yak-tse-pratsiuie`, `khostynh-i-tsina` («Ціна й оплата»), `dlia-dyrektora`,
   `dlia-vidpovidalnoho`, `dlia-bukhhalterii`, `demo`, `zakon-i-sait-shkoly`, `bezpeka-i-dani`, `pidtrymka`, `dostupnist`,
-  `personalni-dani`, `zaiavka`, `pro-proiekt`) live in the `pages` content collection (`src/content/pages/*.md(x)`, frontmatter `title` and
+  `personalni-dani`, `zaiavka`, `pro-proiekt`, `dohovir`) live in the `pages` content collection (`src/content/pages/*.md(x)`, frontmatter `title` and
   `description`, no H1 in the body: `src/layouts/ProductPage.astro` renders the title as the page's one `<h1>`), are
   rendered by `src/pages/[slug].astro` at `/<slug>/`, and are styled by section 17 of `src/styles/product.css` (a narrow
   720 px column, Unbounded H1, Manrope 18 px; a table is wrapped in `<div class="reading-table" tabindex="0" role="region"
@@ -180,9 +180,21 @@ happens in each workflow, not in the composite action. Both checkouts pass
   Посібник редактора, Підтримка, the support address); a bottom row with Обробка персональних даних · Доступність · the privacy
   address, `footerLine` of `offer.mjs` (the authors line) and «© 2026 Tabula». The link to the current page has
   `aria-current="page"`. Below 900 px the brand and «Допомога» take whole rows and the other two columns sit side by side.
-  `check-built` fails an own page the footer does not link, except `FOOTER_EXEMPT` (`demo`, `zaiavka`), which must be linked
+  `check-built` fails an own page the footer does not link, except `FOOTER_EXEMPT` (`demo`, `zaiavka`, `dohovir`), which must be linked
   from some other product page. Above the footer every product page but `zaiavka` has the band `PreFooterCta.astro`
   («Безкоштовно до {pilotUntil}» · Подати заявку · Подивитися шаблони; `Product.astro` prop `cta`).
+- The contract (2026-11-14): `src/content/pages/dohovir.mdx` at `/dohovir/` is the договір приєднання with its three
+  appendices (the trial application, the yearly application, the data-processing terms), a plain reading page whose
+  numbers come from `offer.mjs` and whose section 12 is `Requisites.astro` (so the operator's details appear only when
+  `offer.operator` is filled in; never type them into the page). It is published as a draft (the callout at its top)
+  until the operator's details are in and a lawyer has read it. The owner accepted every term that day, so the
+  decisions `pilotActs`, `pilotActValue`, `contract2027`, `januaryGrace` and `latePayment` are `confirmed: true` and
+  render. The terms the pages must not contradict: the contract renews automatically each calendar year; each January
+  the institution signs a one-page yearly application for the whole year (`paymentBankDays` is 20 WORKING days, the
+  name is historical); no fines for either party; the service is best-efforts and cannot be paused for separate months;
+  no charge for an outage over 5 days that is not the institution's fault; the page says nothing specific about the
+  assistant («допоміжні засоби»). A change of a term is a change of this page, of «Для бухгалтерії» and of the
+  decisions together.
 - The role pages (spec 83, 2026-11-09): «Для директора», «Для того, хто веде сайт», «Для бухгалтерії» and «Ціна й оплата» are
   MDX pages of the `pages` collection with frontmatter `hero: <key>`; `[slug].astro` renders them with
   `src/layouts/RolePage.astro`: the switcher of the three role pages (`RoleSwitcher`, a sideways-scrolling row on phones), the
@@ -476,7 +488,7 @@ npm run dev
 npm run build         # runs check-links.mjs afterwards via postbuild; fails on a broken link
 npm run check:links   # same check, standalone, without rebuilding
 npm run check:built   # story 78 rules over dist/ (runs after the build too)
-npm run a11y          # axe over the home and the thirteen reading pages, needs a build and `npx playwright install chromium`
+npm run a11y          # axe over the home and the fourteen reading pages, needs a build and `npx playwright install chromium`
 npm run budget        # story 80: the home's size/lazy/LCP budget, needs a build and Chromium
 npm run shots -- --template panorama   # story 80: screenshots from a running tabula demo (see CONTRIBUTING.md)
 npm test

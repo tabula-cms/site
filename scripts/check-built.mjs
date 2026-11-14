@@ -351,7 +351,7 @@ export function checkNoDocsLinks(html, origin = SITE_ORIGIN, base = process.env.
  * Own pages the footer does not link (footer-and-audience-pages spec): «Демо-сайт» and «Подати заявку» are on the
  * home's first screen and in the header. Each must still be linked from some product page (checked in main()).
  */
-export const FOOTER_EXEMPT = ['demo', 'zaiavka'];
+export const FOOTER_EXEMPT = ['demo', 'zaiavka', 'dohovir'];
 
 /**
  * Every product page is linked from the product footer, so none can be orphaned: `slugs` are the own pages'

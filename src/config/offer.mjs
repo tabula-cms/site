@@ -128,7 +128,7 @@ export const offer = Object.freeze({
 	addressHoldMonths: 12,
 	// Spec 83, decisions 3 and 4 (not confirmed yet, see `decisions`): the numbers their texts use.
 	contractUntil: '2027-12-31',
-	paymentBankDays: 10,
+	paymentBankDays: 20,
 	graceDays: 45,
 	// Spec 84, decision 15: the pilot goes on (the same contract, the same monthly acts) until the contract for the paid
 	// year is made, but not past this day — graceDays calendar days from the day after pilotUntil (test/offer.test.mjs).
@@ -447,31 +447,32 @@ export const decisions = Object.freeze({
 		text: null,
 		todo: 'чи може бути два адміністратори',
 	}),
-	// Decision 2: one act for the whole pilot, not monthly ones — every free act costs the institution a Treasury
+	// Decision 2 (confirmed by the owner, 2026-11-14): one act for the whole pilot, not monthly ones — every free act costs
+	// the institution a Treasury statement and an estimate change (Для бухгалтерії, the trial stage).
 	// statement and an estimate change (Для бухгалтерії, the trial stage).
 	pilotActs: Object.freeze({
-		confirmed: false,
+		confirmed: true,
 		text: `Акт один — ${formatDateLongYear(offer.pilotUntil)}, за весь пробний період.`,
 	}),
 	// Decision 2: the value of the pilot's services in the act (Для бухгалтерії, «Коротко», «Пробний період»).
 	pilotActValue: Object.freeze({
-		confirmed: false,
+		confirmed: true,
 		text: `Вартість послуг в акті — ${formatGrn(offer.pilotValueUah)} за повний місяць, за неповний — пропорційно дням.`,
 	}),
 	// Decision 3: the contract for the paid year (Для бухгалтерії, the timeline's step 7).
 	contract2027: Object.freeze({
-		confirmed: false,
-		text: `Ціна не змінюється протягом року, а договір діє до ${formatDateLongYear(offer.contractUntil)}. Заклад платить у межах бюджетних асигнувань протягом ${offer.paymentBankDays} робочих днів після підписання акта, за наявності бюджетного фінансування. Якщо асигнувань не виділили, заклад може розірвати договір. За неповний квартал оплата пропорційна дням. Штрафів за затримку бюджетного фінансування договір не містить.`,
+		confirmed: true,
+		text: `Договір продовжується автоматично, а ціна не змінюється протягом року. Заклад платить у межах бюджетних асигнувань протягом ${offer.paymentBankDays} робочих днів після підписання акта. Якщо асигнувань не виділили, заклад може відмовитися від договору без строку попередження. Штрафів і пені договір не містить.`,
 	}),
 	// Decision 4: free days from 1 January until the contract is made (Для директора, FAQ).
 	januaryGrace: Object.freeze({
-		confirmed: false,
-		text: `Сайт працює безкоштовно, поки заклад укладає договір і реєструє зобовʼязання, — до ${offer.graceDays} календарних днів від ${formatDateLongYear(nextDay(offer.pilotUntil))}. Платити за ці дні не потрібно.`,
+		confirmed: true,
+		text: `Сайт працює далі: договір продовжується автоматично. Річну заяву заклад підписує в січні, після затвердження кошторису; ми чекаємо на неї ${offer.graceDays} календарних днів від ${formatDateLongYear(nextDay(offer.pilotUntil))}, тобто до ${formatDateLongYear(offer.graceUntil)}.`,
 	}),
 	// Decision 4: a late payment (Для бухгалтерії, «Довідка»; Ціна й оплата, its own section).
 	latePayment: Object.freeze({
-		confirmed: false,
-		text: `Публічний сайт ми не вимикаємо: у закладу обовʼязок за статтею 30. Якщо оплата за актом затримується понад ${offer.graceDays} календарних днів, ми напишемо керівникові закладу й домовимося.`,
+		confirmed: true,
+		text: `Публічний сайт ми не вимикаємо: у закладу обовʼязок за статтею 30. Якщо оплата за актом затримується понад ${offer.graceDays} календарних днів, ми напишемо керівникові закладу. Якщо ще через 30 календарних днів немає ні оплати, ні відповіді, ми можемо припинити договір; архів сайту лишається в закладу.`,
 	}),
 	// Decision 8 (spec 84: decision 19): who stands behind the service and who answers when the operator is ill
 	// (Для директора, «Хто ми»). No wording yet.
@@ -497,7 +498,7 @@ export const documents = Object.freeze([
 	{ name: 'Витяг із реєстру платників єдиного податку', why: 'щоб підтвердити групу єдиного податку й статус неплатника ПДВ', when: 'разом із заявою', status: 'ready', pdf: null },
 	{ name: 'Договір приєднання (оферта), підписаний КЕП виконавця', why: 'умови, однакові для всіх закладів', when: 'до підписання заяви', status: 'preparing', pdf: null },
 	{ name: 'Заява про приєднання на пробний період і зразок акта до неї', why: 'для пробного періоду', when: 'до підписання', status: 'preparing', pdf: null },
-	{ name: `Заява про приєднання на ${yearOf(nextDay(offer.pilotUntil))} рік`, why: 'для основної закупівлі й реєстрації зобовʼязання в Казначействі', when: 'до підписання', status: 'preparing', pdf: null },
+	{ name: `Річна заява на ${yearOf(nextDay(offer.pilotUntil))} рік`, why: 'для основної закупівлі й реєстрації зобовʼязання в Казначействі', when: 'до підписання', status: 'preparing', pdf: null },
 	{ name: 'Зразок наказу про прийняття безоплатно отриманих послуг', why: 'для обліку пробного періоду', when: 'разом із заявою', status: 'preparing', pdf: null },
 	{ name: 'Зразок протоколу уповноваженої особи', why: 'щоб внести закупівлю до річного плану', when: 'до січня', status: 'preparing', pdf: null },
 	{ name: 'Зразок акта й рахунку на оплату', why: 'для щоквартальної оплати', when: 'щокварталу', status: 'preparing', pdf: null },

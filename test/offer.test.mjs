@@ -226,7 +226,7 @@ test('spec 83: the decisions take their numbers from offer', () => {
 	assert.ok(decisions.latePayment.text.includes(`${offer.graceDays} календарних днів`));
 	assert.ok(decisions.januaryGrace.text.includes(`${offer.graceDays} календарних днів`));
 	assert.ok(decisions.pilotActValue.text.includes(formatGrn(offer.pilotValueUah)));
-	assert.ok(decisions.contract2027.text.includes(formatDateLongYear(offer.contractUntil)));
+	assert.ok(decisions.contract2027.text.includes('продовжується автоматично'));
 });
 
 test('spec 83: the operator and the lyceum are empty until the owner fills them in', () => {
