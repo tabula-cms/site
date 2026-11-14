@@ -196,7 +196,7 @@ happens in each workflow, not in the composite action. Both checkouts pass
   stays true); the paid period starts the day after the trial and its first quarter is paid pro rata; the contract renews automatically each calendar year; each January
   the institution signs a one-page yearly application for the whole year (`paymentBankDays` is 20 WORKING days, the
   name is historical); no fines for either party; the service is best-efforts and cannot be paused for separate months;
-  no charge for an outage over 5 days that is not the institution's fault; the page says nothing specific about the
+  no charge for an outage over 5 days that is not the institution's fault; the contract promises NO substitute person when the operator is unavailable (he has no staff): the site and the copies run without him, the acts are made when he is back, and after 30 days without support the institution may leave without notice; the page says nothing specific about the
   assistant («допоміжні засоби»). A change of a term is a change of this page, of «Для бухгалтерії», of the decisions
   and of the forms together. The documents table (`offer.documents`) links PDFs under `public/dokumenty/`:
   `scripts/lib/document-templates.mjs` holds the forms (the two applications, the acts and the invoice, the two
