@@ -4,7 +4,7 @@
 // mirrored next to the tablist by src/scripts/tabs.js (`data-tabs-note`).
 import Shot from '../Shot.astro';
 import { shots } from '../shots';
-import { demoHref } from '../../../config/offer.mjs';
+import { demoHref, exampleIsSeparate } from '../../../config/offer.mjs';
 
 const base = import.meta.env.BASE_URL;
 const root = base.endsWith('/') ? base : `${base}/`;
@@ -76,7 +76,7 @@ const templates = [
 				<h2 class="h2">Такий вигляд матиме ваш сайт</h2>
 				<p class="lead">Вісім шаблонів. Вигляд змінюєте одним клацанням — зміст залишається.</p>
 			</div>
-			<a class="btn btn-line btn-md" href={demoHref(root)}>Відкрити приклад сайту</a>
+			<a class="btn btn-line btn-md" href={demoHref(root)}>{exampleIsSeparate() ? 'Відкрити приклад сайту' : 'Спробувати демо'}</a>
 		</div>
 
 		<div class="tabs tabs--look" data-tabs>

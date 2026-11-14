@@ -26,6 +26,7 @@ import {
 	privacyEmail,
 	complaintEmail,
 	demoHref,
+	exampleIsSeparate,
 	requestFormOpen,
 	requestHref,
 	demoPageState,
@@ -184,17 +185,26 @@ test('formatGrn: no-break spaces inside the sum and before «грн»', () => {
 
 test('demoHref: the page «Демо-сайт» while demoSiteUrl is null, the demo site itself once it is set', () => {
 	assert.equal(offer.demoSiteUrl, null);
-	assert.equal(demoHref('/site/'), '/site/demo/');
-	assert.equal(demoHref('/'), '/demo/');
-	assert.equal(demoHref('/site/', null), '/site/demo/');
+	// the demo «Спробувати» not public: the page «Демо-сайт»; public: that demo itself
+	assert.equal(demoHref('/site/', null, false), '/site/demo/');
+	assert.equal(demoHref('/', null, false), '/demo/');
+	assert.equal(demoHref('/site/', null, true), '/site/sprobuvaty/');
+	assert.equal(demoHref('/', null, true), '/sprobuvaty/');
+	assert.equal(demoHref('/site/'), offer.demoOpen ? '/site/sprobuvaty/' : '/site/demo/');
+	assert.equal(demoHref('/site/', 'https://demo.example.org/', true), 'https://demo.example.org/');
+	// an example link of its own only for a demo site, or while the demo is not public
+	assert.equal(exampleIsSeparate(null, false), true);
+	assert.equal(exampleIsSeparate(null, true), false);
+	assert.equal(exampleIsSeparate('https://demo.example.org/', true), true);
 	assert.equal(demoHref('/site/', 'https://demo.example.org/'), 'https://demo.example.org/');
 	assert.equal(demoHref('/', 'https://demo.example.org/'), 'https://demo.example.org/');
 });
 
 test('demoPageState: the chip while demoSiteUrl is null, the button (and no chip) once it is set', () => {
-	assert.deepEqual(demoPageState(), { chip: true, buttonHref: null });
-	assert.deepEqual(demoPageState(null), { chip: true, buttonHref: null });
-	assert.deepEqual(demoPageState('https://demo.example.org/'), { chip: false, buttonHref: 'https://demo.example.org/' });
+	assert.deepEqual(demoPageState(null, false), { chip: true, buttonHref: null, tryDemo: false });
+	assert.deepEqual(demoPageState(null, true), { chip: false, buttonHref: null, tryDemo: true });
+	assert.deepEqual(demoPageState('https://demo.example.org/', true), { chip: false, buttonHref: 'https://demo.example.org/', tryDemo: false });
+	assert.deepEqual(demoPageState('https://demo.example.org/', false), { chip: false, buttonHref: 'https://demo.example.org/', tryDemo: false });
 });
 
 test('offer: story 82 demo fields', async () => {

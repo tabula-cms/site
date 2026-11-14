@@ -70,8 +70,10 @@ export const offer = Object.freeze({
 	// Story 82, decision 24: the public demo's button. While false (phase 1, a closed test by invitation) the page
 	// «Спробувати» (/sprobuvaty/) exists but nothing links to it, it is `noindex` and out of the sitemap; the owner hands
 	// out its address. True (after phase 2) adds it to the footer, the header, the hero, the sitemap and the search engines.
-	// TABULA_DEMO_OPEN=1 turns it on at build time, so the open state can be built and checked (never set it in CI's deploy).
-	demoOpen: process.env.TABULA_DEMO_OPEN === '1',
+	// Open since 2026-11-15 (owner: the demo works and is public; the control plane's `/v1/demo/signin` answers, the demo's
+	// own Turnstile key is set below). TABULA_DEMO_OPEN=0 closes it at build time, so the closed state can still be built
+	// and checked, and the button can be taken down quickly.
+	demoOpen: process.env.TABULA_DEMO_OPEN !== '0',
 	// Story 82, decision 30: the kinds whose golden copy exists, as tabula's `--seed` names (DEMO_KINDS below). With one
 	// kind the form's field is hidden and the page says «на прикладі ліцею». Must match the CP's `demo.kinds`.
 	demoKinds: Object.freeze(['school']),
@@ -362,16 +364,29 @@ export function requestHref(root, home = false, open = requestFormOpen()) {
 }
 
 // Story 80, round 3: where the home's «Подивитися приклад сайту» / «Відкрити приклад сайту» lead. `root` is the
-// site's base with a trailing slash; `url` defaults to offer.demoSiteUrl (a parameter so both states are testable).
-export function demoHref(root, url = offer.demoSiteUrl) {
-	return url ? url : `${root}demo/`;
+// site's base with a trailing slash; `url` defaults to offer.demoSiteUrl and `tryOpen` to offer.demoOpen (parameters so
+// every state is testable). A read-only demo site when one exists; else, once the demo «Спробувати» is public, that
+// page (owner, 2026-11-15: a link to an «У розробці» page beside a working demo was confusing); else the page «Демо-сайт».
+export function demoHref(root, url = offer.demoSiteUrl, tryOpen = offer.demoOpen) {
+	if (url) return url;
+	return tryOpen ? `${root}sprobuvaty/` : `${root}demo/`;
+}
+
+// Is there a separate example site to offer beside the demo? Only a read-only demo site (demoSiteUrl), or, while
+// the demo «Спробувати» is not public, the page «Демо-сайт». With the demo public and no demo site, the example
+// link would only repeat «Спробувати демо», so the hero drops it and «Такий вигляд» names the demo instead.
+export function exampleIsSeparate(url = offer.demoSiteUrl, tryOpen = offer.demoOpen) {
+	return Boolean(url) || !tryOpen;
 }
 
 // Story 80, round 3: what the page «Демо-сайт» shows. Without a demo site: the «У розробці» chip and the two sentences
 // (`buttonHref` is null); with one: the button «Відкрити демо-сайт» to `buttonHref`, no chip. src/content/pages/demo.mdx
 // reads this, so the branch is unit-tested (test/offer.test.mjs).
-export function demoPageState(url = offer.demoSiteUrl) {
-	return url ? { chip: false, buttonHref: url } : { chip: true, buttonHref: null };
+// With the demo «Спробувати» public and no demo site (`tryDemo`): no chip, a button to that page; nothing links to
+// «Демо-сайт» then, and it stays only for old links.
+export function demoPageState(url = offer.demoSiteUrl, tryOpen = offer.demoOpen) {
+	if (url) return { chip: false, buttonHref: url, tryDemo: false };
+	return tryOpen ? { chip: false, buttonHref: null, tryDemo: true } : { chip: true, buttonHref: null, tryDemo: false };
 }
 
 // ---------------------------------------------------------------------------------------------
