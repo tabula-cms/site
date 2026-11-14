@@ -129,6 +129,9 @@ export const offer = Object.freeze({
 	// Spec 83, decisions 3 and 4 (not confirmed yet, see `decisions`): the numbers their texts use.
 	contractUntil: '2027-12-31',
 	paymentBankDays: 20,
+	// The date of the contract's edition at /dohovir/ (ISO). The applications name it, so a change of the contract's
+	// text is a new edition with a new date here, and `npm run documents` again.
+	contractEdition: '2026-11-14',
 	graceDays: 45,
 	// Spec 84, decision 15: the pilot goes on (the same contract, the same monthly acts) until the contract for the paid
 	// year is made, but not past this day — graceDays calendar days from the day after pilotUntil (test/offer.test.mjs).
@@ -491,19 +494,19 @@ export function decided(key, all = decisions) {
 }
 
 // Spec 83 §7, «Які документи ми надаємо». `status`: 'ready' | 'preparing' | 'onRequest' | 'off' (StatusBadge.astro).
-// `pdf` is the address of the sample once it exists: the row then shows «Завантажити PDF» (and its status should be
-// 'ready'); a 'preparing' row offers «Надішлемо, щойно буде готово».
+// `pdf` is the file under public/ (written by `npm run documents`, relative to the site's root): the row then shows
+// «Завантажити PDF». The two extracts name the operator, so they are not on the site: they come with the application.
 export const documents = Object.freeze([
-	{ name: 'Витяг із ЄДР', why: 'щоб не утримувати ПДФО й військовий збір', when: 'разом із заявою', status: 'ready', pdf: null },
-	{ name: 'Витяг із реєстру платників єдиного податку', why: 'щоб підтвердити групу єдиного податку й статус неплатника ПДВ', when: 'разом із заявою', status: 'ready', pdf: null },
-	{ name: 'Договір приєднання (оферта), підписаний КЕП виконавця', why: 'умови, однакові для всіх закладів', when: 'до підписання заяви', status: 'preparing', pdf: null },
-	{ name: 'Заява про приєднання на пробний період і зразок акта до неї', why: 'для пробного періоду', when: 'до підписання', status: 'preparing', pdf: null },
-	{ name: `Річна заява на ${yearOf(nextDay(offer.pilotUntil))} рік`, why: 'для основної закупівлі й реєстрації зобовʼязання в Казначействі', when: 'до підписання', status: 'preparing', pdf: null },
-	{ name: 'Зразок наказу про прийняття безоплатно отриманих послуг', why: 'для обліку пробного періоду', when: 'разом із заявою', status: 'preparing', pdf: null },
-	{ name: 'Зразок протоколу уповноваженої особи', why: 'щоб внести закупівлю до річного плану', when: 'до січня', status: 'preparing', pdf: null },
-	{ name: 'Зразок акта й рахунку на оплату', why: 'для щоквартальної оплати', when: 'щокварталу', status: 'preparing', pdf: null },
-	{ name: 'Зразок наказу про призначення працівника, який веде сайт', why: 'щоб призначити відповідального', when: 'разом із заявою', status: 'preparing', pdf: null },
-	{ name: 'Зразок згоди батьків на фото й відео дітей', why: 'для публікації фото', when: 'до зйомки', status: 'preparing', pdf: null },
+	{ name: 'Договір приєднання (оферта)', why: 'умови, однакові для всіх закладів; примірник із КЕП виконавця надсилаємо разом із заявою', when: 'до підписання заяви', status: 'ready', pdf: 'dokumenty/dohovir.pdf' },
+	{ name: 'Заява про приєднання на пробний період і акт до неї', why: 'для пробного періоду; заповнену заяву з нашим підписом надсилаємо закладу', when: 'до підписання', status: 'ready', pdf: 'dokumenty/zaiava-probnyi-period.pdf' },
+	{ name: `Річна заява на ${yearOf(nextDay(offer.pilotUntil))} рік`, why: 'для основної закупівлі й реєстрації зобовʼязання в Казначействі', when: 'у січні, після затвердження кошторису', status: 'ready', pdf: 'dokumenty/richna-zaiava.pdf' },
+	{ name: 'Акт приймання-передачі наданих послуг і рахунок на оплату', why: 'для щоквартальної оплати', when: 'щокварталу', status: 'ready', pdf: 'dokumenty/akt-i-rakhunok.pdf' },
+	{ name: 'Зразок протоколу уповноваженої особи', why: 'щоб внести закупівлю до річного плану', when: 'до січня', status: 'ready', pdf: 'dokumenty/protokol-upovnovazhenoi-osoby.pdf' },
+	{ name: 'Зразок наказу про прийняття безоплатно отриманих послуг', why: 'для обліку пробного періоду', when: 'після акта пробного періоду', status: 'ready', pdf: 'dokumenty/nakaz-bezoplatni-posluhy.pdf' },
+	{ name: 'Зразок наказу про призначення працівника, який веде сайт', why: 'щоб призначити відповідального', when: 'на початку роботи', status: 'ready', pdf: 'dokumenty/nakaz-vidpovidalnyi-za-sait.pdf' },
+	{ name: 'Зразок згоди батьків на фото й відео дитини', why: 'для публікації фото', when: 'до зйомки', status: 'ready', pdf: 'dokumenty/zghoda-batkiv.pdf' },
+	{ name: 'Витяг із ЄДР', why: 'щоб не утримувати ПДФО й військовий збір і не нараховувати ЄСВ', when: 'разом із заявою', status: 'onRequest', pdf: null },
+	{ name: 'Витяг із реєстру платників єдиного податку', why: 'щоб підтвердити групу єдиного податку й статус неплатника ПДВ', when: 'разом із заявою', status: 'onRequest', pdf: null },
 ]);
 
 // Spec 83 §8, «Що входить у ціну» on «Ціна й оплата». `assistant: true` marks the line that carries the

@@ -18,7 +18,8 @@
     "check:built": "node scripts/check-built.mjs",
     "a11y": "node scripts/a11y.mjs",
     "shots": "node scripts/shots.mjs",
-    "budget": "node scripts/budget.mjs"
+    "budget": "node scripts/budget.mjs",
+    "documents": "node scripts/documents.mjs"
   },
   "dependencies": {
     "@astrojs/sitemap": "^3.7.4",

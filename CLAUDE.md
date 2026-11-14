@@ -2,7 +2,7 @@
 
 > Internal reference for Claude Code sessions working in this repository.
 >
-> **Last verified: 2026-11-14 (the contract page «Договір»; the owner confirmed the contract's terms).**
+> **Last verified: 2026-11-14 (the contract is published as an edition; the documents of «Для бухгалтерії» are downloadable PDFs).**
 >
 > **How to keep this file honest:** every pull request that changes a convention, a command,
 > or the file layout updates the matching section of this file in the same PR.
@@ -45,6 +45,7 @@ Exists now:
 | `src/assets/shots/` | Story 80: the home's screenshots (WebP) and `facts.json` (`lawFilled`/`lawTotal`), written by `scripts/shots.mjs`; committed |
 | `scripts/shots.mjs` (`npm run shots`), `scripts/lib/shot-kep-line.cjs` | Story 80: reproducible screenshots from a running tabula demo; the `SHOTS` table is exported and tested in `test/shots.test.mjs` |
 | `scripts/budget.mjs` (`npm run budget`), `scripts/lib/serve-dist.mjs` | Story 80: the home's performance budget (600 KB at 390 px, lazy images, LCP preload); the static server of `dist/` shared with `a11y.mjs` |
+| `scripts/documents.mjs` (`npm run documents`), `scripts/lib/document-templates.mjs`, `public/dokumenty/*.pdf` | The downloads of the documents table on «Для бухгалтерії» (`offer.documents[].pdf`): the forms and samples as HTML templates printed to PDF, and `dohovir.pdf` printed from the built contract page; committed — see Conventions («The contract») |
 | `THIRD_PARTY_LICENSES.md` | The fonts (SIL OFL 1.1, via Fontsource) and the CC0 photos |
 | `test/tabs.test.mjs`, `test/shots.test.mjs` | `node --test`: tabs keyboard logic (pure helper + a fake DOM); the `SHOTS` table (every file exists, starts `RIFF….WEBP`, `facts.json` valid) |
 | `src/content/pages/*.md(x)`, `src/pages/[slug].astro`, `src/layouts/ProductPage.astro` | Story 80 (S2): the fourteen reading pages of the site (the `pages` collection; the fourteenth is `dohovir`, the contract), at `/<slug>/` in the product layout; the `.mdx` ones import `offer.mjs` for the numbers and dates |
@@ -185,16 +186,23 @@ happens in each workflow, not in the composite action. Both checkouts pass
   («Безкоштовно до {pilotUntil}» · Подати заявку · Подивитися шаблони; `Product.astro` prop `cta`).
 - The contract (2026-11-14): `src/content/pages/dohovir.mdx` at `/dohovir/` is the договір приєднання with its three
   appendices (the trial application, the yearly application, the data-processing terms), a plain reading page whose
-  numbers come from `offer.mjs` and whose section 12 is `Requisites.astro` (so the operator's details appear only when
-  `offer.operator` is filled in; never type them into the page). It is published as a draft (the callout at its top)
-  until the operator's details are in and a lawyer has read it. The owner accepted every term that day, so the
+  numbers come from `offer.mjs`. It is a published edition, dated `offer.contractEdition`; a change of its text is a
+  new edition: move that date. **No operator details are on the site or in this repository** (owner's decision): the
+  contract says they stand in the application both parties sign and in the extracts sent with it, so `offer.operator`
+  stays empty and section 12 names only the tax status and the support address. The owner accepted every term, so the
   decisions `pilotActs`, `pilotActValue`, `contract2027`, `januaryGrace` and `latePayment` are `confirmed: true` and
   render. The terms the pages must not contradict: the contract renews automatically each calendar year; each January
   the institution signs a one-page yearly application for the whole year (`paymentBankDays` is 20 WORKING days, the
   name is historical); no fines for either party; the service is best-efforts and cannot be paused for separate months;
   no charge for an outage over 5 days that is not the institution's fault; the page says nothing specific about the
-  assistant («допоміжні засоби»). A change of a term is a change of this page, of «Для бухгалтерії» and of the
-  decisions together.
+  assistant («допоміжні засоби»). A change of a term is a change of this page, of «Для бухгалтерії», of the decisions
+  and of the forms together. The documents table (`offer.documents`) links PDFs under `public/dokumenty/`:
+  `scripts/lib/document-templates.mjs` holds the forms (the two applications, the acts and the invoice, the two
+  orders, the authorised person's protocol, the parents' consent) with blanks for every party's details, and
+  `npm run documents` prints them and the contract (`dohovir.pdf`, from `dist/dohovir/`) with Playwright. Order:
+  `npx astro build` → `npm run documents` → `npm run build` → commit the PDFs; `test/offer.test.mjs` fails when a
+  linked PDF is missing. The yearly application must stay on ONE A4 sheet (the pages promise «одна сторінка»). The
+  two extracts name the operator, so they are not downloads: they come with the application.
 - The role pages (spec 83, 2026-11-09): «Для директора», «Для того, хто веде сайт», «Для бухгалтерії» and «Ціна й оплата» are
   MDX pages of the `pages` collection with frontmatter `hero: <key>`; `[slug].astro` renders them with
   `src/layouts/RolePage.astro`: the switcher of the three role pages (`RoleSwitcher`, a sideways-scrolling row on phones), the
@@ -490,6 +498,7 @@ npm run check:links   # same check, standalone, without rebuilding
 npm run check:built   # story 78 rules over dist/ (runs after the build too)
 npm run a11y          # axe over the home and the fourteen reading pages, needs a build and `npx playwright install chromium`
 npm run budget        # story 80: the home's size/lazy/LCP budget, needs a build and Chromium
+npm run documents     # the PDFs of the documents table into public/dokumenty/; needs `npx astro build` first and Chromium
 npm run shots -- --template panorama   # story 80: screenshots from a running tabula demo (see CONTRIBUTING.md)
 npm test
 ```
