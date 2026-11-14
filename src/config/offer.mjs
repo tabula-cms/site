@@ -447,10 +447,11 @@ export const decisions = Object.freeze({
 		text: null,
 		todo: 'чи може бути два адміністратори',
 	}),
-	// Decision 2: the monthly acts of the pilot (Для бухгалтерії, the timeline's step 2).
+	// Decision 2: one act for the whole pilot, not monthly ones — every free act costs the institution a Treasury
+	// statement and an estimate change (Для бухгалтерії, the trial stage).
 	pilotActs: Object.freeze({
 		confirmed: false,
-		text: `наприкінці кожного місяця пробного періоду надсилає акт за цей місяць; останній — ${formatDateLongYear(offer.pilotUntil)}.`,
+		text: `Акт один — ${formatDateLongYear(offer.pilotUntil)}, за весь пробний період.`,
 	}),
 	// Decision 2: the value of the pilot's services in the act (Для бухгалтерії, «Коротко», «Пробний період»).
 	pilotActValue: Object.freeze({
