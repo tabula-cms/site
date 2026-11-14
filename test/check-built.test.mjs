@@ -159,6 +159,9 @@ import {
 	checkAssistantMore,
 } from '../scripts/check-built.mjs';
 
+// The state the site is built in (the rules' own defaults): the fixtures of whole pages follow it, so the tests pass
+// with the form open or closed (TABULA_REQUESTS_OPEN=0) and the demo open or closed. A test of one rule fixes its state.
+const NOW = { demoOpen: offerForRules.demoOpen, requestOpen: requestFormOpenNow() };
 function productHeader({ prefix = '', dropLink, button, demoOpen = false, requestOpen = false, tryHref } = {}) {
 	const links = PRODUCT_LINKS.filter(([text]) => text !== dropLink);
 	const a = ([text, id]) => `<a href="${prefix}#${id}">${text}</a>`;
@@ -171,7 +174,7 @@ function productHeader({ prefix = '', dropLink, button, demoOpen = false, reques
 <details class="nav-menu"><summary>Меню</summary><nav class="nav-menu__panel" aria-label="Меню сторінки"><p class="nav-menu__heading" id="menu-for">Для кого</p><ul>${FOR_LINKS.map((l) => `<li>${forA(l)}</li>`).join('')}</ul><ul>${[...links, CONTACT_LINK].map((l) => `<li>${a(l)}</li>`).join('')}</ul></nav></details></div>
 </div></header>`;
 }
-const productPage = (body = '', header = productHeader()) =>
+const productPage = (body = '', header = productHeader(NOW)) =>
 	`<!doctype html><html lang="uk" data-product-page><body>${header}<main><h1>Т</h1>${body}</main></body></html>`;
 
 test('isProductPage: only <html data-product-page>', () => {
@@ -181,7 +184,7 @@ test('isProductPage: only <html data-product-page>', () => {
 
 test('checkProductHeader: «Для кого», six anchors, the button, the «Меню» panel', () => {
 	const closed = { requestOpen: false, demoOpen: false };
-	assert.deepEqual(checkProductHeader(productPage(), closed), []);
+	assert.deepEqual(checkProductHeader(productPage('', productHeader()), closed), []);
 	assert.deepEqual(checkProductHeader(productPage('', productHeader({ prefix: '/site/' })), closed), []);
 	assert.ok(checkProductHeader(productPage('', productHeader({ dropLink: 'Ціна' })), closed).length > 0);
 	assert.ok(checkProductHeader(productPage('', productHeader({ button: '#price' })), closed).length > 0);
@@ -228,7 +231,7 @@ function hero({ demoOpen = false, requestOpen = false, swap = false } = {}) {
 }
 
 test('checkHeroButtons: demo closed — «Подати заявку» first, the example outlined, no link to «Спробувати»', () => {
-	assert.deepEqual(checkHeroButtons(hero(), { demoOpen: false, requestOpen: false }), []);
+	assert.deepEqual(checkHeroButtons(hero({ demoOpen: false, requestOpen: false }), { demoOpen: false, requestOpen: false }), []);
 	assert.deepEqual(checkHeroButtons(hero({ requestOpen: true }), { demoOpen: false, requestOpen: true }), []);
 	assert.ok(checkHeroButtons(hero({ requestOpen: true }), { demoOpen: false, requestOpen: false }).length > 0);
 	assert.ok(checkHeroButtons(hero({ demoOpen: true }), { demoOpen: false, requestOpen: false }).length > 0);
@@ -383,7 +386,7 @@ test('checkNoBreakSpaces: a plain space as the thousands separator, and day + mo
 
 test('checkProductPage: a clean home passes; each family of rule fails on its own', () => {
 	const assistantFull = ASSISTANT.replace('</section>', '<h3>Як це виглядає в роботі</h3><li class="assist-flow__step"></li><li class="assist-flow__step"></li><li class="assist-flow__step"></li><h3>Ще помічник уміє</h3><h3>Що відбувається з даними</h3><a href="/site/editor/pomichnyk-i-dani/">x</a></section>');
-	const clean = homeBody(hero({ demoOpen: offerForRules.demoOpen }), rolesSection(), assistantFull, CLAIM_SECTION, CLAIM_LI, '<p>4&#160;800&#160;₴ ШІ-помічник</p>');
+	const clean = homeBody(hero(NOW), rolesSection(), assistantFull, CLAIM_SECTION, CLAIM_LI, '<p>4&#160;800&#160;₴ ШІ-помічник</p>');
 	assert.deepEqual(checkProductPage(clean, { isHome: true, assistantStatus: 'testing' }), []);
 	const bad = (body) => checkProductPage(productPage(body), { isHome: false });
 	assert.ok(bad('<p>Ми гарантуємо відповідність закону.</p>').length > 0);
@@ -526,7 +529,7 @@ import {
 	checkCheckedDate,
 	visibleText,
 } from '../scripts/check-built.mjs';
-import { offer as offerForRules } from '../src/config/offer.mjs';
+import { offer as offerForRules, requestFormOpen as requestFormOpenNow } from '../src/config/offer.mjs';
 
 test('spec 83: a placeholder of the spec fails the page', () => {
 	assert.deepEqual(checkPlaceholders('<p>Готово</p>'), []);

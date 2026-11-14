@@ -61,11 +61,12 @@ export const offer = Object.freeze({
 	// manual check against a local control plane.
 	cpUrl: process.env.TABULA_CP_URL || 'https://cp.tabula.org.ua',
 	// Decision 24: Cloudflare Turnstile's public site key; TABULA_TURNSTILE_SITEKEY overrides it.
-	turnstileSiteKey: process.env.TABULA_TURNSTILE_SITEKEY || '',
-	// Decision 24: false until the control plane accepts requests (C1 live); W2 reads it. TABULA_REQUESTS_OPEN=1
-	// turns it on at build time for a manual check against a local control plane. The form is shown only when
-	// the Turnstile site key is set too: see requestFormOpen().
-	requestsOpen: process.env.TABULA_REQUESTS_OPEN === '1',
+	turnstileSiteKey: process.env.TABULA_TURNSTILE_SITEKEY || '0x4AAAAAAGBJ8YojUNSgpj32',
+	// Decision 24: true since 2026-11-14, when the control plane began to accept requests (its `CP_SITE_URL`,
+	// `CP_TURNSTILE_SECRET` and «Заявки з сайту» are set; an empty POST answers `…/pomylka/invalid/`, not `closed`).
+	// TABULA_REQUESTS_OPEN=0 closes the form at build time (the e-mail text instead), e.g. to check that state or to
+	// take the form down quickly. The form is shown only when the Turnstile site key is set too: see requestFormOpen().
+	requestsOpen: process.env.TABULA_REQUESTS_OPEN !== '0',
 	// Story 82, decision 24: the public demo's button. While false (phase 1, a closed test by invitation) the page
 	// «Спробувати» (/sprobuvaty/) exists but nothing links to it, it is `noindex` and out of the sitemap; the owner hands
 	// out its address. True (after phase 2) adds it to the footer, the header, the hero, the sitemap and the search engines.

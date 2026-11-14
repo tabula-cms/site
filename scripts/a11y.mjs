@@ -26,7 +26,7 @@ const PAGES = [
 		.sort(),
 	'sprobuvaty/',
 	// The request form's result pages (story 78, W2): always built, noindex. The form itself is /zaiavka/, scanned open
-	// when the site is built with TABULA_REQUESTS_OPEN=1 and a Turnstile site key.
+	// when the site is built with the form open (the default; TABULA_REQUESTS_OPEN=0 closes it).
 	'zaiavka/diakuiemo/',
 	...['invalid', 'bot', 'limit', 'server', 'closed'].map((code) => `zaiavka/pomylka/${code}/`),
 ];
