@@ -338,7 +338,8 @@ const CLOSING_HEADING_HASHES_RE = /[ \t]+#+$/;
  * before the heading are removed too, so the body starts cleanly at whatever followed it. A
  * closing run of `#` characters (CommonMark allows `# Title #` / `# Title ###`) is stripped from
  * the returned title, but only when preceded by whitespace, so a title that genuinely ends in a
- * word containing `#` (e.g. `C#`) is left alone.
+ * word containing `#` (e.g. `C#`) is left alone. An HTML comment in the heading (`# Title<!-- hosted -->`, the
+ * CMS's marker for a page that exists on hosted sites only) is not part of the title and is dropped from it.
  */
 export function extractTitle(markdown) {
 	const lines = markdown.split('\n');
@@ -347,7 +348,7 @@ export function extractTitle(markdown) {
 		if (line.trim() === '') continue;
 		const match = HEADING_RE.exec(line);
 		if (!match) return { title: null, body: markdown };
-		const title = match[1].replace(CLOSING_HEADING_HASHES_RE, '');
+		const title = match[1].replace(/<!--[\s\S]*?-->/g, '').trim().replace(CLOSING_HEADING_HASHES_RE, '');
 		const rest = lines.slice(i + 1).join('\n');
 		return { title, body: rest.replace(/^\n+/, '') };
 	}

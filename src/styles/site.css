@@ -1,39 +1,171 @@
-/* Tabula documentation styling (issue #5; trimmed in story 80, slice S2): the accent palette of the
- * Starlight pages, which since S2 are the documentation only (editor/, install/, qa/, dev/). The
- * product pages (the home and the reading pages) have their own design in src/styles/product.css and
- * never load this file. Registered via `customCss` in astro.config.mjs.
+/* Tabula documentation styling: the school guide (Starlight pages) in the same language as the product pages
+ * (src/styles/product.css): the teal brand, Manrope for text, Unbounded for the page title and the sidebar group
+ * labels, rounded surfaces on a quiet mint-grey ground, the 3 px blue focus ring. Registered via `customCss`
+ * in astro.config.mjs, followed by src/styles/guide.css (the article typography). Starlight's own hooks only:
+ * its `--sl-*` custom properties and, where a property has no variable, a rule outside Starlight's cascade
+ * layers (which wins over its layered rules). The product pages never load this file.
  */
 
+/* The brand fonts: the same @font-face rules the product pages use (a file of their own, imported by both). */
+@import './fonts.css';
+
 /* ---------------------------------------------------------------------------------------------
- * 1. Palette — deep ink-blue accent instead of Starlight's default violet/blue.
+ * 1. Palette. Dark mode is Starlight's default `data-theme` (a scale in `:root`); light mode overrides it in
+ * `:root[data-theme='light']`. The light values are the product tokens (--ink #17283a, --text #3e4e63, --line
+ * #e2e8e6, --bg #f7f9f8, --accent #1f6f66, --mint #ddf0ea). The product has no dark mode: the dark scale is the
+ * same teal-tinted ink, lighter step by step.
  *
- * Values follow Starlight's own theme-colour convention (see
- * https://starlight.astro.build/guides/css-and-tailwind/#theming): a dark-mode scale in
- * `:root` and a light-mode override in `:root[data-theme='light']`, `-low`/`-high` being
- * darker/lighter siblings of the base accent within the same hue. Only the accent scale is
- * overridden — Starlight's neutral gray scale already reads as a quiet cool gray.
- *
- * Target colours: light-mode accent ≈ #1f3d63 (hsl(213, 52%, 25%)), dark-mode accent ≈ #8fb3e0
- * (hsl(213, 57%, 72%)). Measured contrast: accent text against `--sl-color-bg` is 8.2:1 in dark
- * mode and 11.1:1 in light mode — both above the AA text minimum (4.5:1).
+ * Contrast (WCAG AA 4.5:1 for text): axe (wcag2aa, 2.2 AA) reports no colour-contrast violation on the guide's index, a how-to
+ * and a long page, light and dark, at 1280 and 320 px.
  * --------------------------------------------------------------------------------------------- */
 :root {
-	/* Dark mode (Starlight's default `data-theme`). */
-	--sl-color-accent-low: hsl(213, 45%, 21%);
-	--sl-color-accent: hsl(213, 57%, 72%); /* #8fb3e0 */
-	--sl-color-accent-high: hsl(213, 70%, 88%);
+	/* Dark mode. */
+	--sl-color-white: #ffffff;
+	--sl-color-gray-1: #e3ecec;
+	--sl-color-gray-2: #c0cecf;
+	--sl-color-gray-3: #92a5a8;
+	--sl-color-gray-4: #5c7175;
+	--sl-color-gray-5: #2c4045;
+	--sl-color-gray-6: #172529;
+	--sl-color-black: #0f1b1d;
+
+	--sl-color-accent-low: #123c38;
+	--sl-color-accent: #2f9a8b;
+	--sl-color-accent-high: #8fdccd;
+
+	--sl-color-hairline: #223439;
+	--sl-color-hairline-light: #2c4045;
+	--sl-color-hairline-shade: #0b1416;
+
+	/* The product's fonts. Manrope is Starlight's text font; Unbounded is wide, so it is used for the page title
+	 * and the sidebar group labels only (see below), never for H2 and H3. */
+	--sl-font: 'Manrope', 'Manrope Fallback', system-ui;
+	--guide-display: 'Unbounded', 'Unbounded Fallback', sans-serif;
+	--guide-focus: #2f7fd6;
+
+	/* Reading sizes: Starlight's default headings are too large for a how-to article. */
+	--sl-text-body: 1.0625rem;
+	--sl-text-h1: clamp(1.5rem, 1.15rem + 1.4vw, 1.875rem);
+	--sl-text-h2: 1.5rem;
+	--sl-text-h3: 1.1875rem;
+	--sl-text-h4: 1.0625rem;
+	--sl-line-height: 1.7;
+	--sl-content-width: 46rem;
 }
 
 :root[data-theme='light'] {
-	--sl-color-accent-high: hsl(213, 65%, 16%);
-	--sl-color-accent: hsl(213, 52%, 25%); /* #1f3d63 */
-	--sl-color-accent-low: hsl(213, 60%, 93%);
+	--sl-color-white: #17283a;
+	--sl-color-gray-1: #22344a;
+	--sl-color-gray-2: #3e4e63;
+	--sl-color-gray-3: #56677d;
+	--sl-color-gray-4: #8493a5;
+	--sl-color-gray-5: #c5d0cc;
+	--sl-color-gray-6: #e2e8e6;
+	--sl-color-gray-7: #eef3f1;
+	--sl-color-black: #f7f9f8;
+
+	--sl-color-accent-high: #14514b;
+	--sl-color-accent: #1f6f66;
+	--sl-color-accent-low: #ddf0ea;
+
+	--sl-color-text-accent: #1f6f66;
+	--sl-color-text-invert: #ffffff;
+	--sl-color-bg-nav: #f7f9f8;
+	--sl-color-bg-sidebar: #f7f9f8;
+	--sl-color-bg-inline-code: #e7eeeb;
+	--sl-color-hairline: #e2e8e6;
+	--sl-color-hairline-light: #e2e8e6;
+	--sl-color-hairline-shade: #e2e8e6;
 }
 
-/* The header's own border-bottom (PageFrame.astro, Starlight core) uses `--sl-color-hairline-shade`,
- * which resolves to the same gray-6 as `--sl-color-hairline` in light mode and is barely visible
- * there. `--sl-color-gray-5` is a step darker; dark mode is left as Starlight ships it. */
-:root[data-theme='light'] header.header {
-	border-bottom-color: var(--sl-color-gray-5);
-	box-shadow: 0 1px 0 var(--sl-color-gray-5);
+/* ---------------------------------------------------------------------------------------------
+ * 2. Header and focus.
+ * --------------------------------------------------------------------------------------------- */
+/* The header's border: the default `--sl-color-hairline-shade` is the page colour in dark mode and the same
+ * light gray as the hairline in light mode, so it is set once for both. */
+header.header {
+	border-bottom: 1px solid var(--sl-color-hairline);
 }
+
+:root[data-theme='light'] header.header {
+	box-shadow: none;
+}
+
+/* The product's focus ring. */
+a:focus-visible,
+button:focus-visible,
+summary:focus-visible,
+input:focus-visible,
+select:focus-visible,
+[tabindex]:focus-visible {
+	outline: 3px solid var(--guide-focus);
+	outline-offset: 2px;
+}
+
+/* ---------------------------------------------------------------------------------------------
+ * 3. Sidebar: group labels in Unbounded (small), a quiet hover, a teal pill for the current page.
+ * --------------------------------------------------------------------------------------------- */
+.sidebar-content summary .large {
+	font-family: var(--guide-display);
+	font-size: 0.8125rem;
+	font-weight: 600;
+	letter-spacing: -0.01em;
+	line-height: 1.35;
+}
+
+.sidebar-content summary {
+	border-radius: 0.5rem;
+	padding-block: 0.45rem;
+}
+
+.sidebar-content summary:hover {
+	background: var(--sl-color-accent-low);
+}
+
+.sidebar-content ul ul li {
+	border-inline-start-color: var(--sl-color-hairline-light);
+}
+
+.sidebar-content a {
+	border-radius: 0.5rem;
+}
+
+.sidebar-content a:not([aria-current='page']):hover {
+	background: var(--sl-color-accent-low);
+}
+
+@media (min-width: 50rem) {
+	.sidebar-content ul ul a {
+		font-size: 0.875rem;
+		line-height: 1.4;
+	}
+}
+
+/* ---------------------------------------------------------------------------------------------
+ * 4. Page title: Unbounded, as on the product pages. Headings below it stay in Manrope, bold.
+ * --------------------------------------------------------------------------------------------- */
+#_top {
+	font-family: var(--guide-display);
+	font-weight: 600;
+	letter-spacing: -0.02em;
+	line-height: 1.2;
+	text-wrap: balance;
+}
+
+.sl-markdown-content :is(h2, h3, h4) {
+	font-weight: 700;
+	letter-spacing: -0.01em;
+}
+
+/* Starlight scrolls an anchor under its fixed header; the room it leaves is generous already. */
+
+/* ---------------------------------------------------------------------------------------------
+ * 5. The way back to the product pages, in the footer's colours.
+ * --------------------------------------------------------------------------------------------- */
+.pagination-links a {
+	border-radius: 0.75rem;
+	border-color: var(--sl-color-hairline-light);
+}
+
+/* Starlight's scroll lock (search modal, mobile sidebar) relies on `<html>`'s `overflow` staying `visible`:
+ * never set `overflow` on `:root`/`html` in this file. */

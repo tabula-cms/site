@@ -114,6 +114,10 @@ test('checkScripts: only Turnstile\'s api.js, never inline', () => {
 	assert.deepEqual(checkScripts(`<script src="${TURNSTILE_SRC}" async></script>`), []);
 	assert.deepEqual(checkScripts('<script>alert(1)</script>'), ['an inline <script>']);
 	assert.equal(checkScripts('<script src="https://evil.example/x.js"></script>').length, 1);
+	// The form's own instant checks are known by their marker, inline or as a built file.
+	assert.deepEqual(checkScripts('<script type="module">document.querySelector("[data-request-check]")</script>'), []);
+	assert.deepEqual(checkScripts('<script type="module" src="/_astro/a.js"></script>', () => 'x[data-request-check]'), []);
+	assert.equal(checkScripts('<script type="module" src="/_astro/a.js"></script>', () => 'other').length, 1);
 });
 
 test('extractMain: the <main> content', () => {
@@ -140,6 +144,7 @@ import {
 	checkDemoAddress,
 	checkNoDocsLinks,
 	checkDocChrome,
+	checkDocGuide,
 	checkCtaName,
 	checkFooterLinks,
 	checkOneH1,
@@ -163,7 +168,7 @@ function productHeader({ prefix = '', dropLink, button, demoOpen = false, reques
 	return `<header class="site-header" data-site-header><div>
 <nav class="nav-links" aria-label="Головне меню"><details class="nav-for"><summary>Для кого</summary><ul class="nav-for__panel">${FOR_LINKS.map((l) => `<li>${forA(l)}</li>`).join('')}</ul></details>${links.map(a).join('')}</nav>
 <div class="site-header__actions">${tryButton}<a class="btn btn-main" href="${requestTo}">Подати заявку</a>
-<details class="nav-menu"><summary>Меню</summary><nav class="nav-menu__panel" aria-label="Меню сторінки"><p class="nav-menu__heading" id="menu-for">Для кого</p><ul>${FOR_LINKS.map((l) => `<li>${forA(l)}</li>`).join('')}</ul><ul>${[...links, CONTACT_LINK].map((l) => `<li>${a(l)}</li>`).join('')}<li><a href="mailto:support@tabula.org.ua">Звʼязатися</a></li></ul></nav></details></div>
+<details class="nav-menu"><summary>Меню</summary><nav class="nav-menu__panel" aria-label="Меню сторінки"><p class="nav-menu__heading" id="menu-for">Для кого</p><ul>${FOR_LINKS.map((l) => `<li>${forA(l)}</li>`).join('')}</ul><ul>${[...links, CONTACT_LINK].map((l) => `<li>${a(l)}</li>`).join('')}</ul></nav></details></div>
 </div></header>`;
 }
 const productPage = (body = '', header = productHeader()) =>
@@ -655,3 +660,15 @@ test('result pages: noindex, linked from nowhere, out of the sitemap', () => {
 	assert.ok(!isResultRel('zaiavka/index.html'.split('/').join(sep)));
 });
 
+
+test('checkDocGuide: the way back in the header, no leaked marker comment, sized images', () => {
+	const doc = (extra = '') =>
+		`<header><a class="guide-back" href="/site/">Сайт Tabula</a></header><main><img alt="" width="10" height="20" src="/a.webp">${extra}</main>`;
+	assert.deepEqual(checkDocGuide(doc(), '/site'), []);
+	assert.equal(checkDocGuide('<header></header><main></main>', '/site').length, 1);
+	assert.equal(checkDocGuide(doc().replace('/site/', '/site/editor/'), '/site').length, 1);
+	assert.equal(checkDocGuide(doc('<!-- video: novyny-napysaty -->'), '/site').length, 1);
+	assert.equal(checkDocGuide(doc('<!-- hosted -->'), '/site').length, 1);
+	assert.equal(checkDocGuide(doc('<img alt="" src="/b.webp">'), '/site').length, 1);
+	assert.deepEqual(checkDocGuide(doc().replace('/site/', '/'), '/'), []);
+});

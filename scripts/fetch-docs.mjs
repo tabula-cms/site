@@ -144,7 +144,7 @@ function run(docsDir, ref) {
 		console.warn(`fetch-docs: warning: ${indexMdPath} not found, ordering all pages alphabetically`);
 	}
 
-	const stats = { githubRewrites: 0, warnings: [] };
+	const stats = { githubRewrites: 0, warnings: [], images: new Set() };
 	const pagesPerFolder = {};
 
 	// A known folder that is no longer published (install/, qa/, dev/) must not linger from an earlier import.
@@ -240,9 +240,11 @@ function importPage({ sourceFolderDir, outDir, folder, fileName, ref, order, fil
 	writeFileSync(path.join(outDir, outputFileName(fileName)), frontmatter + rewrittenBody, 'utf8');
 }
 
-// No relative images exist in the real docs today (see issue #3, "Images"); this is best-effort
-// support for if one appears, copying it next to the imported page and leaving its path as
-// written, per the spec. Not exercised by the real content, since none exists today.
+// The school guide's how-to articles carry screenshots (docs/editor/img/<topic>/*.webp, relative paths like
+// `img/novyny/x.webp`). Each one is copied next to the imported page with its path left as written, so Astro's
+// image service (astro:assets, which handles relative images in Markdown) optimises it at build time and writes its
+// width and height into the <img> (no layout shift). A missing file is a warning, counted in the summary; the
+// build then fails on it in Astro, which is what should happen to a page with a broken picture.
 function copyLocalImages({ sourceFolderDir, outDir, images, folder, fileName, stats }) {
 	for (const rawTarget of images) {
 		const target = rawTarget.split('#')[0];
@@ -266,6 +268,7 @@ function copyLocalImages({ sourceFolderDir, outDir, images, folder, fileName, st
 		}
 		mkdirSync(path.dirname(destPath), { recursive: true });
 		writeFileSync(destPath, readFileSync(sourcePath));
+		stats.images.add(path.relative(contentDocsDir, destPath));
 	}
 }
 
@@ -278,6 +281,7 @@ function printSummary(pagesPerFolder, stats) {
 		console.log(`  ${folder}: ${count} page(s)`);
 	}
 	console.log(`  total: ${total} page(s)`);
+	console.log(`  images copied: ${stats.images.size}`);
 	console.log(`  links rewritten to GitHub: ${stats.githubRewrites}`);
 	console.log(`  links outside the published docs, kept as text: ${stats.unlinked ?? 0}`);
 	console.log(`  warnings: ${stats.warnings.length}`);

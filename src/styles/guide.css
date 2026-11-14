@@ -1,0 +1,233 @@
+/* The school guide's article typography: the how-to articles (numbered steps, screenshots, a «Де знайти:» line, a
+ * role note) and the long topic pages (tables). The classes are put on the HTML by src/lib/rehype-guide.mjs
+ * (`guide-shot`, `guide-where`, `guide-role`, `guide-steps`, `guide-table`); the palette, fonts and chrome are
+ * src/styles/site.css. Registered via `customCss` in astro.config.mjs. Rules sit outside Starlight's cascade
+ * layers on purpose: they win over its layered content rules without `!important`.
+ */
+
+:root {
+	--guide-surface: #ffffff;
+	--guide-shadow: 0 1px 2px rgba(23, 40, 58, 0.06), 0 8px 24px rgba(23, 40, 58, 0.08);
+	--guide-zebra: #f3f7f5;
+	--guide-step-bg: #3fb5a4;
+	--guide-step-fg: #0b1d1b;
+	--guide-image-filter: brightness(0.93);
+}
+/* Dark mode is Starlight's default (no `data-theme` in the CSS before the script runs), light overrides. */
+:root[data-theme='light'] {
+	--guide-surface: #ffffff;
+	--guide-zebra: #f3f7f5;
+	--guide-step-bg: #1f6f66;
+	--guide-step-fg: #ffffff;
+	--guide-image-filter: none;
+}
+:root:not([data-theme='light']) {
+	--guide-surface: #172529;
+	--guide-shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 24px rgba(0, 0, 0, 0.35);
+	--guide-zebra: #132125;
+}
+
+/* ---------------------------------------------------------------------------------------------
+ * 1. The role note under the title: a muted line, not an italic wall of text.
+ * --------------------------------------------------------------------------------------------- */
+.sl-markdown-content .guide-role {
+	margin-top: 0;
+	font-size: 0.9375rem;
+	line-height: 1.6;
+	color: var(--sl-color-gray-3);
+}
+.sl-markdown-content .guide-role em {
+	font-style: normal;
+}
+
+/* ---------------------------------------------------------------------------------------------
+ * 2. «Де знайти:» — a quiet callout: mint surface, a pin, the path in the guide's own words.
+ * --------------------------------------------------------------------------------------------- */
+.sl-markdown-content .guide-where {
+	position: relative;
+	margin-block: 1.25rem;
+	padding: 0.8rem 1rem 0.8rem 2.9rem;
+	border-radius: 0.75rem;
+	background: var(--sl-color-accent-low);
+	color: var(--sl-color-white);
+	font-size: 0.9688rem;
+	line-height: 1.55;
+}
+.sl-markdown-content .guide-where::before {
+	content: '';
+	position: absolute;
+	inset-inline-start: 1rem;
+	top: 0.95rem;
+	width: 1.15rem;
+	height: 1.15rem;
+	background: var(--sl-color-text-accent);
+	/* A map pin. */
+	-webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z'/%3E%3Ccircle cx='12' cy='9.5' r='2.5'/%3E%3C/svg%3E") center / contain no-repeat;
+	mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z'/%3E%3Ccircle cx='12' cy='9.5' r='2.5'/%3E%3C/svg%3E") center / contain no-repeat;
+}
+.sl-markdown-content .guide-where strong {
+	color: var(--sl-color-text-accent);
+	font-weight: 700;
+}
+:root[data-theme='light'] .sl-markdown-content .guide-where strong {
+	color: #14514b;
+}
+
+/* ---------------------------------------------------------------------------------------------
+ * 3. Steps: the top-level numbered list of a page. Numbers in small circles, room between the steps. Only the
+ * list's own items are numbered (`>`): a list nested in a step keeps its bullets.
+ * --------------------------------------------------------------------------------------------- */
+.sl-markdown-content ol.guide-steps {
+	list-style: none;
+	padding: 0;
+	margin-block: 1.25rem;
+	counter-reset: guide-step;
+}
+.sl-markdown-content ol.guide-steps > li {
+	position: relative;
+	margin-top: 0;
+	padding-inline-start: 2.75rem;
+	min-height: 1.9rem;
+	counter-increment: guide-step;
+	line-height: 1.65;
+}
+.sl-markdown-content ol.guide-steps > li + li {
+	margin-top: 1rem;
+}
+.sl-markdown-content ol.guide-steps > li::before {
+	content: counter(guide-step);
+	position: absolute;
+	inset-inline-start: 0;
+	top: 0.05rem;
+	display: grid;
+	place-items: center;
+	width: 1.9rem;
+	height: 1.9rem;
+	border-radius: 50%;
+	background: var(--guide-step-bg);
+	color: var(--guide-step-fg);
+	font-size: 0.875rem;
+	font-weight: 700;
+	line-height: 1;
+}
+.sl-markdown-content ol.guide-steps > li > :is(ul, ol) {
+	margin-top: 0.5rem;
+}
+
+/* ---------------------------------------------------------------------------------------------
+ * 4. Screenshots: a thin border, a radius and a soft shadow, centred, never wider than the column; tall phone
+ * screenshots are held to 70 % of the viewport so they do not fill three screens. The caption is the alt text
+ * (src/lib/rehype-guide.mjs) and is exactly as wide as the picture (`width: 0; min-width: 100%`).
+ * --------------------------------------------------------------------------------------------- */
+.sl-markdown-content figure.guide-shot {
+	width: fit-content;
+	max-width: 100%;
+	margin: 1.75rem auto;
+}
+.sl-markdown-content figure.guide-shot + figure.guide-shot {
+	margin-top: 1.25rem;
+}
+.sl-markdown-content figure.guide-shot img {
+	width: auto;
+	height: auto;
+	max-width: 100%;
+	max-height: min(70vh, 40rem);
+	margin-inline: auto;
+	border: 1px solid var(--sl-color-hairline-light);
+	border-radius: 0.75rem;
+	background: var(--guide-surface);
+	box-shadow: var(--guide-shadow);
+	filter: var(--guide-image-filter);
+}
+.sl-markdown-content figure.guide-shot figcaption {
+	width: 0;
+	min-width: 100%;
+	margin-top: 0.625rem;
+	padding-inline: 0.125rem;
+	font-size: 0.875rem;
+	line-height: 1.5;
+	color: var(--sl-color-gray-3);
+}
+
+/* ---------------------------------------------------------------------------------------------
+ * 5. Tables: a box that scrolls sideways on a phone (a focusable, labelled region), hairlines, a zebra, a tinted
+ * header row. A table of three or more columns keeps a readable width and scrolls instead of squeezing.
+ * --------------------------------------------------------------------------------------------- */
+.sl-markdown-content .guide-table {
+	overflow-x: auto;
+	margin-block: 1.25rem;
+	border: 1px solid var(--sl-color-hairline-light);
+	border-radius: 0.75rem;
+	background: var(--guide-surface);
+}
+.sl-markdown-content .guide-table table {
+	display: table;
+	width: 100%;
+	margin: 0;
+	border-collapse: collapse;
+	font-size: 0.9375rem;
+	line-height: 1.5;
+}
+.sl-markdown-content .guide-table table:has(th:nth-child(3)) {
+	min-width: 38rem;
+}
+.sl-markdown-content .guide-table :is(th, td) {
+	padding: 0.6rem 0.9rem;
+	border-bottom: 1px solid var(--sl-color-hairline-light);
+	vertical-align: top;
+}
+.sl-markdown-content .guide-table :is(th:first-child, td:first-child) {
+	padding-inline-start: 0.9rem;
+}
+.sl-markdown-content .guide-table :is(th:last-child, td:last-child) {
+	padding-inline-end: 0.9rem;
+}
+.sl-markdown-content .guide-table th {
+	background: var(--sl-color-accent-low);
+	color: var(--sl-color-white);
+	font-size: 0.8125rem;
+	font-weight: 700;
+	white-space: nowrap;
+}
+.sl-markdown-content .guide-table tbody tr:nth-child(even) td {
+	background: var(--guide-zebra);
+}
+.sl-markdown-content .guide-table tbody tr:last-child td {
+	border-bottom: 0;
+}
+.sl-markdown-content .guide-table:focus-visible {
+	outline-offset: -3px;
+}
+
+/* ---------------------------------------------------------------------------------------------
+ * 6. The rest of the prose: bullets in the brand colour, a calm blockquote, heading rhythm.
+ * --------------------------------------------------------------------------------------------- */
+.sl-markdown-content li::marker {
+	color: var(--sl-color-accent);
+}
+.sl-markdown-content blockquote {
+	border-inline-start: 3px solid var(--sl-color-accent);
+	padding-block: 0.1rem;
+	color: var(--sl-color-gray-2);
+}
+.sl-markdown-content :is(h2, h3, h4):not(:where(.not-content *)) {
+	scroll-margin-top: 5rem;
+}
+.sl-markdown-content :not(h1, h2, h3, h4, h5, h6) + h2:not(:where(.not-content *)) {
+	margin-top: 2.25rem;
+}
+.sl-markdown-content :not(h1, h2, h3, h4, h5, h6) + h3:not(:where(.not-content *)) {
+	margin-top: 1.75rem;
+}
+
+@media print {
+	.sl-markdown-content figure.guide-shot img {
+		box-shadow: none;
+		max-height: 22cm;
+	}
+	.sl-markdown-content ol.guide-steps > li::before {
+		border: 1px solid #000;
+		background: none;
+		color: #000;
+	}
+}
