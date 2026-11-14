@@ -45,7 +45,8 @@ Exists now:
 | `src/assets/shots/` | Story 80: the home's screenshots (WebP) and `facts.json` (`lawFilled`/`lawTotal`), written by `scripts/shots.mjs`; committed |
 | `scripts/shots.mjs` (`npm run shots`), `scripts/lib/shot-kep-line.cjs` | Story 80: reproducible screenshots from a running tabula demo; the `SHOTS` table is exported and tested in `test/shots.test.mjs` |
 | `scripts/budget.mjs` (`npm run budget`), `scripts/lib/serve-dist.mjs` | Story 80: the home's performance budget (600 KB at 390 px, lazy images, LCP preload); the static server of `dist/` shared with `a11y.mjs` |
-| `scripts/documents.mjs` (`npm run documents`), `scripts/lib/document-templates.mjs`, `public/dokumenty/*.pdf` | The downloads of the documents table on «Для бухгалтерії» (`offer.documents[].pdf`): the forms and samples as HTML templates printed to PDF, and `dohovir.pdf` printed from the built contract page; committed — see Conventions («The contract») |
+| `scripts/documents.mjs` (`npm run documents`), `scripts/lib/document-templates.mjs`, `public/dokumenty/*.pdf` | The downloads of the documents table on «Для бухгалтерії» (`offer.documents[].pdf`): `document-templates.mjs` joins the forms of `scripts/lib/documents/` for the current edition into the seven files, which are printed to PDF, and `dohovir.pdf` is printed from the built contract page; committed — see Conventions («The contract») |
+| `scripts/lib/documents/` (`forms.mjs`, `format.mjs`, `print.mjs`), `scripts/documents-edition.mjs` (`npm run documents:edition`), `test/forms.test.mjs`, `test/fixtures/forms-3613e9f.json` | The forms as pure functions: `renderForm(kind, terms, data)` (nine kinds; `FORMS[kind].fields` lists the data keys), the pure formatters (`offer.mjs` re-exports them) and the print frame with the embedded face (Tinos, `@fontsource/tinos`). The folder imports nothing outside itself; `documents:edition` copies it with `terms.json` and `manifest.json` (sha256 of every file) to `dist-documents/<contractEdition>/` (gitignored). The fixture holds the text of the forms as of 3613e9f: the wording must not drift |
 | `THIRD_PARTY_LICENSES.md` | The fonts (SIL OFL 1.1, via Fontsource) and the CC0 photos |
 | `test/tabs.test.mjs`, `test/shots.test.mjs` | `node --test`: tabs keyboard logic (pure helper + a fake DOM); the `SHOTS` table (every file exists, starts `RIFF….WEBP`, `facts.json` valid) |
 | `src/content/pages/*.md(x)`, `src/pages/[slug].astro`, `src/layouts/ProductPage.astro` | Story 80 (S2): the fourteen reading pages of the site (the `pages` collection; the fourteenth is `dohovir`, the contract), at `/<slug>/` in the product layout; the `.mdx` ones import `offer.mjs` for the numbers and dates |
@@ -202,9 +203,15 @@ happens in each workflow, not in the composite action. Both checkouts pass
   `scripts/lib/document-templates.mjs` holds the forms (the two applications, the acts and the invoice, the two
   orders, the authorised person's protocol, the parents' consent) with blanks for every party's details, and
   `npm run documents` prints them and the contract (`dohovir.pdf`, from `dist/dohovir/`) with Playwright. Order:
-  `npx astro build` → `npm run documents` → `npm run build` → commit the PDFs; `test/offer.test.mjs` fails when a
+  `npx astro build` → `npm run documents` → `npm run build` → commit the PDFs (the face is Tinos, embedded; `npx playwright install chromium` once); `test/offer.test.mjs` fails when a
   linked PDF is missing. The yearly application must stay on ONE A4 sheet (the pages promise «одна сторінка»). The
   two extracts name the operator, so they are not downloads: they come with the application.
+  **A form's wording changes only in `scripts/lib/documents/forms.mjs`** (numbers, dates and codes come in as `terms`
+  from `offer.mjs`; `data` is strings to print, escaped there, a missing key prints today's blank); a new blank is a
+  new key in `FORMS[kind].fields`. `dist-documents/<edition>/` (`npm run documents:edition`) is a frozen copy of the
+  folder for another program of the project: generated, never edited, and the folder must keep importing nothing
+  outside itself (`test/forms.test.mjs` holds it). A change of a form's text changes `test/fixtures/forms-3613e9f.json`
+  on purpose, with the new edition.
 - The role pages (spec 83, 2026-11-09): «Для директора», «Для того, хто веде сайт», «Для бухгалтерії» and «Ціна й оплата» are
   MDX pages of the `pages` collection with frontmatter `hero: <key>`; `[slug].astro` renders them with
   `src/layouts/RolePage.astro`: the switcher of the three role pages (`RoleSwitcher`, a sideways-scrolling row on phones), the

@@ -15,6 +15,11 @@ the licence text ships in each package's `LICENSE` file.
 | Unbounded | 600 | `@fontsource/unbounded` | SIL OFL 1.1 |
 | Manrope | 400, 500, 600, 700, 800 | `@fontsource/manrope` | SIL OFL 1.1 |
 | Caveat | 600 | `@fontsource/caveat` | SIL OFL 1.1 |
+| Tinos (Latin and Cyrillic) | 400, 700 | `@fontsource/tinos` | SIL OFL 1.1 (Apache-2.0 upstream) |
+
+Tinos is not served on the site's pages: it is embedded (as data URIs) in the PDF forms of `public/dokumenty/` and copied with
+each edition of the forms (`npm run documents:edition`, `fonts/` with the package's `LICENSE`); it is metric-compatible with
+Times New Roman, so a form prints the same on a machine that does not have that face.
 
 ## Photographs (CC0)
 
