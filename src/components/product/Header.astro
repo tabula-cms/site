@@ -1,14 +1,25 @@
 ---
-// The sticky header of the product pages (story 80). Seven links and the button «Подати заявку»
-// from 1100 px; below, the button and a native <details> «Меню» that lists the links and
-// «Звʼязатися» (no JavaScript). On the home the links are `#…` anchors; on other product pages
-// they go to `{BASE_URL}#…` (prop `home`).
-import { offer } from '../../config/offer.mjs';
+// The sticky header of the product pages (story 80; the role pages joined it on 2026-11-14). From 1100 px: the
+// dropdown «Для кого» (a native <details>: the three role pages and «Як це працює»), the six anchors and the button
+// «Подати заявку» (and, once the demo is public, the secondary button «Спробувати» before it, from 1280 px); below
+// 1100 px the button and a native <details> «Меню» that lists «Для кого» with its four links, the seven anchors and
+// «Звʼязатися» (no JavaScript). On the home the anchors are `#…`; on other product pages they go to `{BASE_URL}#…`
+// (prop `home`). The link to the page being shown carries aria-current="page".
+import { offer, requestHref } from '../../config/offer.mjs';
 
 const { home = false } = Astro.props;
 const base = import.meta.env.BASE_URL;
 const root = base.endsWith('/') ? base : `${base}/`;
 const prefix = home ? '' : root;
+const here = Astro.url.pathname.endsWith('/') ? Astro.url.pathname : `${Astro.url.pathname}/`;
+const current = (href) => (href === here ? 'page' : undefined);
+// «Для кого»: the four pages a visitor looks for first.
+const forWhom = [
+	['Директору', 'dlia-dyrektora'],
+	['Тому, хто веде сайт', 'dlia-vidpovidalnoho'],
+	['Бухгалтерії', 'dlia-bukhhalterii'],
+	['Як це працює', 'yak-tse-pratsiuie'],
+].map(([text, slug]) => ({ text, href: `${root}${slug}/` }));
 const links = [
 	['ШІ-помічник', 'assistant'],
 	['Харчування', 'meals'],
@@ -16,8 +27,10 @@ const links = [
 	['Шаблони', 'look'],
 	['Ціна', 'price'],
 	['Запитання', 'faq'],
-	['Контакти', 'contact'],
 ].map(([text, id]) => ({ text, href: `${prefix}#${id}` }));
+// «Контакти» is in the «Меню» panel only.
+const panelLinks = [...links, { text: 'Контакти', href: `${prefix}#contact` }];
+const chevron = 'M6 9l6 6 6-6';
 ---
 
 <header class="site-header" data-site-header>
@@ -33,10 +46,19 @@ const links = [
 			<span class="brand__name">Tabula</span>
 		</a>
 		<nav class="nav-links" aria-label="Головне меню">
+			<details class="nav-for">
+				<summary>
+					Для кого<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d={chevron}></path></svg>
+				</summary>
+				<ul class="nav-for__panel">
+					{forWhom.map((link) => <li><a href={link.href} aria-current={current(link.href)}>{link.text}</a></li>)}
+				</ul>
+			</details>
 			{links.map((link) => <a href={link.href}>{link.text}</a>)}
 		</nav>
 		<div class="site-header__actions">
-			<a class="btn btn-main" href={`${prefix}#request`}>Подати заявку</a>
+			{offer.demoOpen && <a class="btn btn-line btn-try" href={`${root}sprobuvaty/`} aria-current={current(`${root}sprobuvaty/`)}>Спробувати</a>}
+			<a class="btn btn-main" href={requestHref(root, home)}>Подати заявку</a>
 			<details class="nav-menu">
 				<summary>
 					<svg
@@ -51,8 +73,12 @@ const links = [
 					><span class="nav-menu__label">Меню</span>
 				</summary>
 				<nav class="nav-menu__panel" aria-label="Меню сторінки">
-					<ul>
-						{links.map((link) => <li><a href={link.href}>{link.text}</a></li>)}
+					<p class="nav-menu__heading" id="menu-for">Для кого</p>
+					<ul aria-labelledby="menu-for">
+						{forWhom.map((link) => <li><a href={link.href} aria-current={current(link.href)}>{link.text}</a></li>)}
+					</ul>
+					<ul class="nav-menu__main">
+						{panelLinks.map((link) => <li><a href={link.href}>{link.text}</a></li>)}
 						<li><a href={`mailto:${offer.supportEmail}`}>Звʼязатися</a></li>
 					</ul>
 				</nav>

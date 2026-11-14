@@ -4,9 +4,17 @@
 // While `offer.assistantStatus` is 'testing' the «Випробовуємо» chip stands over the heading.
 import Shot from '../Shot.astro';
 import { shots } from '../shots';
+import Tick from '../Tick.astro';
+import { existsSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
 import { offer } from '../../../config/offer.mjs';
 
+const base = import.meta.env.BASE_URL;
+const root = base.endsWith('/') ? base : `${base}/`;
 const testing = offer.assistantStatus === 'testing';
+// The guide's page «Помічник і ваші дані» is imported from tabula at build time, and the released guide (tabula's
+// `main`) may not have it yet: the link is rendered only when the page was imported, like the sidebar's groups.
+const dataGuide = existsSync(fileURLToPath(new URL('../../../content/docs/editor/pomichnyk-i-dani.md', import.meta.url)));
 const tasks = [
 	{ id: 'news', name: 'Новина з фото' },
 	{ id: 'meals', name: 'Меню з фото аркуша' },
@@ -14,6 +22,39 @@ const tasks = [
 	{ id: 'alt', name: 'Описи фото' },
 	{ id: 'edit', name: 'Простіше для батьків' },
 	{ id: 'site', name: '«Створи мій сайт»' },
+];
+// Under the tabs (2026-11-14): how the assistant's panel works, what else it does, what happens to the data. Every line is
+// written from docs/editor/pomichnyk.md and pomichnyk-i-dani.md of tabula (the editor's guide): change them together.
+const flow = [
+	{
+		title: 'Відповідаєте на запитання',
+		text: 'Два-три запитання: кнопками й кількома реченнями. Чого помічник не знає, він лишає вам: [уточніть: …].',
+	},
+	{
+		title: 'Дивитесь пропозицію',
+		text: 'Чернетка новини, таблиця документів, „було / стало“ по абзацах: усе видно до того, як щось зміниться.',
+	},
+	{
+		title: 'Підтверджуєте або відхиляєте',
+		text: `Нічого не публікується само. Зміну помічника можна повернути кнопкою „Повернути як було“ протягом ${offer.assistantUndoDays}\u00a0днів.`,
+	},
+];
+const alsoCan = [
+	'наповнити порожню сторінку з кількох ваших відповідей;',
+	'оновити сторінку, яку оновлюють щороку: „було / стало“ по абзацах;',
+	'знайти, куди на сайті додати нову інформацію;',
+	'упорядкувати меню сайту: видно „зараз“ і „після“;',
+	'назвати страви на фото порції;',
+	'перевірити, чи не видно людей на фото порцій;',
+	'пояснити простіше, як щось зробити в панелі;',
+	'виправити зауваження щодо доступності просто в редакторі.',
+];
+const data = [
+	'Телефони, пошту, прізвища й ідентифікаційні номери сайт прибирає з документа до того, як передати його помічникові.',
+	'Фото для новин і описів ідуть зменшеними копіями, без місця зйомки. Помічник описує сцену, а не людей: без імен і віку.',
+	'Запит іде через сервер Tabula в ЄС до постачальника мовної моделі, який може обробляти його поза ЄС, зокрема в США.',
+	`Сервер Tabula не зберігає вмісту запитів і відповідей: лише час, дію й обсяг. Пропозиція помічника лежить у базі вашого сайту до ${offer.assistantProposalDays}\u00a0днів, доки ви її переглянете.`,
+	'Помічником користуються лише повнолітні працівники; хто саме, вирішує адміністратор.',
 ];
 const thumb = { widths: [64, 128], sizes: '64px' };
 ---
@@ -213,6 +254,52 @@ const thumb = { widths: [64, 128], sizes: '64px' };
 						</div>
 						<p class="hint hint--out">План сайту й чернетки сторінок. Будь-яку зміну можна повернути одним натисканням.</p>
 					</div>
+				</div>
+			</div>
+		</div>
+
+		<div class="assist-more">
+			<div class="reveal">
+				<h3 class="assist-more__h">Як це виглядає в роботі</h3>
+				<p class="assist-more__lead">Кнопка „Помічник“ з позначкою ШІ відкриває панель праворуч. Сторінка, на якій ви працюєте, лишається на місці.</p>
+				<ol class="assist-flow">
+					{
+						flow.map((step, i) => (
+							<li class="assist-flow__step">
+								<span class="assist-flow__n" aria-hidden="true">{i + 1}</span>
+								<h4 class="assist-flow__title">{step.title}</h4>
+								<p class="assist-flow__text">{step.text}</p>
+							</li>
+						))
+					}
+				</ol>
+			</div>
+			<div class="assist-more__cols">
+				<div class="reveal">
+					<h3 class="assist-more__h">Ще помічник уміє</h3>
+					<ul class="assist-can">
+						{alsoCan.map((item) => <li>{item}</li>)}
+					</ul>
+				</div>
+				<div class="reveal">
+					<h3 class="assist-more__h">Що відбувається з даними</h3>
+					<ul class="ticks assist-data">
+						{
+							data.map((line) => (
+								<li>
+									<Tick size={20} />
+									<span>{line}</span>
+								</li>
+							))
+						}
+					</ul>
+					{
+						dataGuide && (
+							<p class="assist-data__more">
+								<a href={`${root}editor/pomichnyk-i-dani/`}>Докладно: „Помічник і ваші дані“ в посібнику</a>
+							</p>
+						)
+					}
 				</div>
 			</div>
 		</div>

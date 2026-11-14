@@ -1,5 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { sep } from 'node:path';
 import {
 	findForbidden,
 	checkOwnSource,
@@ -12,6 +13,13 @@ import {
 	checkScripts,
 	extractMain,
 	TURNSTILE_SRC,
+	checkRequestPage,
+	checkResultPage,
+	checkResultLinks,
+	checkSitemapResults,
+	isResultRel,
+	REQUEST_FIELDS,
+	REQUEST_SIGNERS,
 } from '../scripts/check-built.mjs';
 
 test('findForbidden: each phrase of decision 8, case-insensitively', () => {
@@ -139,15 +147,23 @@ import {
 	isDocsHref,
 	rawText,
 	PRODUCT_LINKS,
+	FOR_LINKS,
+	CONTACT_LINK,
+	checkHeroButtons,
+	checkHomeRoles,
+	checkAssistantMore,
 } from '../scripts/check-built.mjs';
 
-function productHeader({ prefix = '', dropLink, button = `${prefix}#request` } = {}) {
+function productHeader({ prefix = '', dropLink, button, demoOpen = false, requestOpen = false, tryHref } = {}) {
 	const links = PRODUCT_LINKS.filter(([text]) => text !== dropLink);
 	const a = ([text, id]) => `<a href="${prefix}#${id}">${text}</a>`;
+	const forA = ([text, slug]) => `<a href="${prefix || '/'}${slug}/">${text}</a>`;
+	const requestTo = button ?? (requestOpen ? `${prefix || '/'}zaiavka/` : `${prefix}#request`);
+	const tryButton = demoOpen ? `<a class="btn btn-line btn-try" href="${tryHref ?? `${prefix || '/'}sprobuvaty/`}">Спробувати</a>` : '';
 	return `<header class="site-header" data-site-header><div>
-<nav class="nav-links" aria-label="Головне меню">${links.map(a).join('')}</nav>
-<div class="site-header__actions"><a class="btn btn-main" href="${button}">Подати заявку</a>
-<details class="nav-menu"><summary>Меню</summary><nav class="nav-menu__panel" aria-label="Меню сторінки"><ul>${links.map((l) => `<li>${a(l)}</li>`).join('')}<li><a href="mailto:support@tabula.org.ua">Звʼязатися</a></li></ul></nav></details></div>
+<nav class="nav-links" aria-label="Головне меню"><details class="nav-for"><summary>Для кого</summary><ul class="nav-for__panel">${FOR_LINKS.map((l) => `<li>${forA(l)}</li>`).join('')}</ul></details>${links.map(a).join('')}</nav>
+<div class="site-header__actions">${tryButton}<a class="btn btn-main" href="${requestTo}">Подати заявку</a>
+<details class="nav-menu"><summary>Меню</summary><nav class="nav-menu__panel" aria-label="Меню сторінки"><p class="nav-menu__heading" id="menu-for">Для кого</p><ul>${FOR_LINKS.map((l) => `<li>${forA(l)}</li>`).join('')}</ul><ul>${[...links, CONTACT_LINK].map((l) => `<li>${a(l)}</li>`).join('')}<li><a href="mailto:support@tabula.org.ua">Звʼязатися</a></li></ul></nav></details></div>
 </div></header>`;
 }
 const productPage = (body = '', header = productHeader()) =>
@@ -158,14 +174,88 @@ test('isProductPage: only <html data-product-page>', () => {
 	assert.ok(!isProductPage('<html lang="uk" data-theme="dark"><body data-product-page>'));
 });
 
-test('checkProductHeader: seven links in order, the button, the «Меню» panel', () => {
-	assert.deepEqual(checkProductHeader(productPage()), []);
-	assert.deepEqual(checkProductHeader(productPage('', productHeader({ prefix: '/site/' }))), []);
-	assert.ok(checkProductHeader(productPage('', productHeader({ dropLink: 'Ціна' }))).length > 0);
-	assert.ok(checkProductHeader(productPage('', productHeader({ button: '#price' }))).length > 0);
-	assert.ok(checkProductHeader('<html data-product-page><body></body></html>').length > 0);
+test('checkProductHeader: «Для кого», six anchors, the button, the «Меню» panel', () => {
+	const closed = { requestOpen: false, demoOpen: false };
+	assert.deepEqual(checkProductHeader(productPage(), closed), []);
+	assert.deepEqual(checkProductHeader(productPage('', productHeader({ prefix: '/site/' })), closed), []);
+	assert.ok(checkProductHeader(productPage('', productHeader({ dropLink: 'Ціна' })), closed).length > 0);
+	assert.ok(checkProductHeader(productPage('', productHeader({ button: '#price' })), closed).length > 0);
+	assert.ok(checkProductHeader('<html data-product-page><body></body></html>', closed).length > 0);
 	const swapped = productHeader().replace('href="#price"', 'href="#faq"');
-	assert.ok(checkProductHeader(productPage('', swapped)).some((p) => p.includes('«Ціна» points at')));
+	assert.ok(checkProductHeader(productPage('', swapped), closed).some((p) => p.includes('«Ціна» points at')));
+});
+
+test('checkProductHeader: «Контакти» is in the panel only, and the dropdown links are held in order', () => {
+	const closed = { requestOpen: false, demoOpen: false };
+	const inRow = productHeader().replace('<a href="#faq">Запитання</a></nav>', '<a href="#faq">Запитання</a><a href="#contact">Контакти</a></nav>');
+	assert.ok(checkProductHeader(productPage('', inRow), closed).some((p) => p.startsWith('inline nav is')));
+	const noContact = productHeader().replace('<li><a href="#contact">Контакти</a></li>', '');
+	assert.ok(checkProductHeader(productPage('', noContact), closed).some((p) => p.includes('«Меню» panel is')));
+	const noDropdown = productHeader().replace('<details class="nav-for">', '<details class="x">');
+	assert.ok(checkProductHeader(productPage('', noDropdown), closed).some((p) => p.includes('nav-for')));
+	const wrongPage = productHeader().replace('href="/dlia-dyrektora/"', 'href="/dlia-bukhhalterii/"');
+	assert.ok(checkProductHeader(productPage('', wrongPage), closed).some((p) => p.includes('«Директору» points at')));
+	const noHeading = productHeader().replace('<p class="nav-menu__heading" id="menu-for">Для кого</p>', '');
+	assert.ok(checkProductHeader(productPage('', noHeading), closed).some((p) => p.includes('group heading')));
+});
+
+test('checkProductHeader: the button follows requestHref (the form open: zaiavka/, else #request)', () => {
+	assert.deepEqual(checkProductHeader(productPage('', productHeader({ requestOpen: true })), { requestOpen: true, demoOpen: false }), []);
+	assert.ok(checkProductHeader(productPage('', productHeader({ requestOpen: true })), { requestOpen: false, demoOpen: false }).length > 0);
+	assert.ok(checkProductHeader(productPage('', productHeader({ requestOpen: false })), { requestOpen: true, demoOpen: false }).length > 0);
+});
+
+test('checkProductHeader: «Спробувати» is in the header exactly while the demo is open, before «Подати заявку»', () => {
+	assert.deepEqual(checkProductHeader(productPage('', productHeader({ demoOpen: true })), { requestOpen: false, demoOpen: true }), []);
+	assert.ok(checkProductHeader(productPage('', productHeader({ demoOpen: false })), { requestOpen: false, demoOpen: true }).length > 0);
+	assert.ok(checkProductHeader(productPage('', productHeader({ demoOpen: true })), { requestOpen: false, demoOpen: false }).length > 0);
+	assert.ok(checkProductHeader(productPage('', productHeader({ demoOpen: true, tryHref: '/x/' })), { requestOpen: false, demoOpen: true }).length > 0);
+	const after = productHeader({ demoOpen: true }).replace(/(<a class="btn btn-line btn-try"[^>]*>Спробувати<\/a>)(<a class="btn btn-main"[^>]*>Подати заявку<\/a>)/, '$2$1');
+	assert.ok(checkProductHeader(productPage('', after), { requestOpen: false, demoOpen: true }).some((p) => p.includes('not before')));
+});
+
+function hero({ demoOpen = false, requestOpen = false, swap = false } = {}) {
+	const request = `<a class="btn ${demoOpen ? 'btn-line' : 'btn-main'} btn-lg" href="${requestOpen ? '/site/zaiavka/' : '#request'}">Подати заявку</a>`;
+	const demo = '<a class="btn btn-main btn-lg" href="/site/sprobuvaty/">Спробувати демо</a>';
+	const example = demoOpen ? '</div><p class="hero__kinds hero__example"><a href="/site/demo/">Подивитися приклад сайту</a></p>' : '<a class="btn btn-line btn-lg" href="/site/demo/">Подивитися приклад сайту</a></div>';
+	const buttons = demoOpen ? (swap ? request + demo : demo + request) : request;
+	return `<section id="top" class="hero"><div class="hero__buttons">${buttons}${example}</section>`;
+}
+
+test('checkHeroButtons: demo closed — «Подати заявку» first, the example outlined, no link to «Спробувати»', () => {
+	assert.deepEqual(checkHeroButtons(hero(), { demoOpen: false, requestOpen: false }), []);
+	assert.deepEqual(checkHeroButtons(hero({ requestOpen: true }), { demoOpen: false, requestOpen: true }), []);
+	assert.ok(checkHeroButtons(hero({ requestOpen: true }), { demoOpen: false, requestOpen: false }).length > 0);
+	assert.ok(checkHeroButtons(hero({ demoOpen: true }), { demoOpen: false, requestOpen: false }).length > 0);
+	assert.ok(checkHeroButtons('<section id="top"></section>', { demoOpen: false }).length > 0);
+});
+
+test('checkHeroButtons: demo open — «Спробувати демо» primary first, «Подати заявку» secondary, the example a quiet link', () => {
+	assert.deepEqual(checkHeroButtons(hero({ demoOpen: true }), { demoOpen: true, requestOpen: false }), []);
+	assert.deepEqual(checkHeroButtons(hero({ demoOpen: true, requestOpen: true }), { demoOpen: true, requestOpen: true }), []);
+	assert.ok(checkHeroButtons(hero({ demoOpen: true, swap: true }), { demoOpen: true, requestOpen: false }).length > 0);
+	assert.ok(checkHeroButtons(hero({ demoOpen: false }), { demoOpen: true, requestOpen: false }).length > 0);
+});
+
+function rolesSection({ order = true } = {}) {
+	const cards = FOR_LINKS.map(([text, slug]) => `<a class="kinds__tile roles__card" href="/site/${slug}/"><h3>${text}</h3><p>x</p><span>Читати <span aria-hidden="true">→</span></span></a>`).join('');
+	const roles = `<section id="start"><h2 class="h2" id="start-title">З чого почати</h2>${cards}</section>`;
+	return order ? `${roles}<section id="kinds"></section>` : `<section id="kinds"></section>${roles}`;
+}
+
+test('checkHomeRoles: four cards in order, the H2, before «kinds»', () => {
+	assert.deepEqual(checkHomeRoles(rolesSection()), []);
+	assert.ok(checkHomeRoles(rolesSection({ order: false })).some((p) => p.includes('not before')));
+	assert.ok(checkHomeRoles(rolesSection().replace('/site/dlia-bukhhalterii/', '/site/pidtrymka/')).length > 0);
+	assert.ok(checkHomeRoles('<section id="kinds"></section>').length > 0);
+});
+
+test('checkAssistantMore: three H3, three steps; the link to the guide is optional', () => {
+	const ok = `<section id="assistant"><h3>Як це виглядає в роботі</h3><ol><li class="assist-flow__step"></li><li class="assist-flow__step"></li><li class="assist-flow__step"></li></ol><h3>Ще помічник уміє</h3><h3>Що відбувається з даними</h3><a href="/site/editor/pomichnyk-i-dani/">x</a></section>`;
+	assert.deepEqual(checkAssistantMore(ok), []);
+	assert.ok(checkAssistantMore(ok.replace('Ще помічник уміє', 'Інше')).length > 0);
+	assert.deepEqual(checkAssistantMore(ok.replace('/editor/pomichnyk-i-dani/', '/')), []);
+	assert.ok(checkAssistantMore(ok.replace('<li class="assist-flow__step"></li>', '')).length > 0);
 });
 
 test('checkNoStarlight: sl- classes, the search box, the theme select', () => {
@@ -287,7 +377,8 @@ test('checkNoBreakSpaces: a plain space as the thousands separator, and day + mo
 });
 
 test('checkProductPage: a clean home passes; each family of rule fails on its own', () => {
-	const clean = homeBody(ASSISTANT, CLAIM_SECTION, CLAIM_LI, '<p>4&#160;800&#160;₴ ШІ-помічник</p>');
+	const assistantFull = ASSISTANT.replace('</section>', '<h3>Як це виглядає в роботі</h3><li class="assist-flow__step"></li><li class="assist-flow__step"></li><li class="assist-flow__step"></li><h3>Ще помічник уміє</h3><h3>Що відбувається з даними</h3><a href="/site/editor/pomichnyk-i-dani/">x</a></section>');
+	const clean = homeBody(hero({ demoOpen: offerForRules.demoOpen }), rolesSection(), assistantFull, CLAIM_SECTION, CLAIM_LI, '<p>4&#160;800&#160;₴ ШІ-помічник</p>');
 	assert.deepEqual(checkProductPage(clean, { isHome: true, assistantStatus: 'testing' }), []);
 	const bad = (body) => checkProductPage(productPage(body), { isHome: false });
 	assert.ok(bad('<p>Ми гарантуємо відповідність закону.</p>').length > 0);
@@ -473,3 +564,94 @@ test('spec 83: typography — no straight quotes, paired quotes, U+00A0 in digit
 	assert.equal(checkTypography(visibleText('<p>&quot;так&quot;</p>')).length, 1);
 	assert.equal(checkTypography(visibleText('<p>4&nbsp;800</p>')).length, 0);
 });
+
+// ---------------------------------------------------------------------------------------------
+// Story 78, W2: the request form.
+
+const CP = 'https://cp.example.test';
+const KEY = '1x00000000000000000000AA';
+const SUPPORT = 'support@tabula.example';
+
+// A minimal built page with a form that satisfies every rule; the tests break it one way at a time.
+function formPage({ drop = [], extra = '' } = {}) {
+	const field = (name, max, req) => (drop.includes(name) ? '' : `<input name="${name}" type="text" ${req ? 'required ' : ''}maxlength="${max}"${name === 'phone' ? ' pattern="[0-9 +\\(\\)\\-]*"' : ''}>`);
+	const fields = Object.entries(REQUEST_FIELDS)
+		.filter(([name]) => name !== 'comment' && name !== 'email')
+		.map(([name, [max, req]]) => field(name, max, req))
+		.join('');
+	return `<html><body><main>
+<form method="post" action="${CP}/v1/requests" accept-charset="utf-8">
+<noscript><p>Форма перевіряє, що ви не бот, за допомогою JavaScript. Якщо він вимкнений, напишіть нам на <a href="mailto:${SUPPORT}">${SUPPORT}</a>.</p></noscript>
+${fields}
+<input name="email" type="email" required maxlength="254">
+<textarea name="comment" maxlength="1000"></textarea>
+<input name="edrpou" type="text" required pattern="\\d{8}" inputmode="numeric">
+${REQUEST_SIGNERS.map((v) => `<input name="signer" type="radio" value="${v}" required>`).join('')}
+<input name="consent" type="checkbox" value="yes" required>
+<div aria-hidden="true"><input name="website" type="text" tabindex="-1" autocomplete="off"></div>
+<div class="cf-turnstile" data-sitekey="${KEY}"></div>
+<script async defer src="${TURNSTILE_SRC}"></script>
+<p>Дані з форми отримує фізична особа — підприємець, що надає послуги Tabula, щоб звʼязатися з вами.</p>
+<button class="btn" type="submit">Надіслати заявку</button>
+${extra}
+</form></main></body></html>`;
+}
+const check = (html) => checkRequestPage(html, { open: true, cpUrl: CP, siteKey: KEY, supportEmail: SUPPORT });
+
+test('checkRequestPage (open): a complete form passes', () => {
+	assert.deepEqual(check(formPage()), []);
+});
+
+test('checkRequestPage (open): every missing piece is reported', () => {
+	for (const name of Object.keys(REQUEST_FIELDS).filter((n) => n !== 'email' && n !== 'comment')) {
+		assert.ok(check(formPage({ drop: [name] })).some((p) => p.includes(`"${name}"`)), name);
+	}
+	assert.ok(check(formPage().replace('<input name="email"', '<input name="e"')).some((p) => p.includes('"email"')));
+	assert.ok(check(formPage().replace('<textarea name="comment"', '<textarea name="c"')).some((p) => p.includes('"comment"')));
+	assert.ok(check(formPage().replace('value="yes" ', '')).some((p) => p.includes('value="yes"')));
+	assert.ok(check(formPage().replace(/(name="consent" type="checkbox" value="yes") required/, '$1')).some((p) => p.includes('consent checkbox is not required')));
+	assert.ok(check(formPage().replace('maxlength="200"', 'maxlength="20"')).length > 0);
+	assert.ok(check(formPage().replace('value="unknown"', 'value="x"')).some((p) => p.includes('signer radios')));
+	assert.ok(check(formPage().replace('tabindex="-1" ', '')).some((p) => p.includes('honeypot')));
+	assert.ok(check(formPage().replace('<div aria-hidden="true">', '<div>')).some((p) => p.includes('wrapper')));
+	assert.ok(check(formPage().replace(KEY, 'other')).some((p) => p.includes('site key')));
+	assert.ok(check(formPage().replace('accept-charset="utf-8"', '')).some((p) => p.includes('accept-charset')));
+	assert.ok(check(formPage().replace(CP, 'https://elsewhere.example')).some((p) => p.includes('does not post')));
+	assert.ok(check(formPage().replace('method="post"', 'method="get"')).some((p) => p.includes('method')));
+	assert.ok(check(formPage().replace('напишіть нам на', 'пишіть')).some((p) => p.includes('noscript')));
+	assert.ok(check(formPage().replace('Дані з форми отримує', 'Дані отримує')).some((p) => p.includes('notice')));
+});
+
+test('checkRequestPage (open): one form only, no other script, a button that is enabled', () => {
+	assert.ok(check(formPage().replace('</main>', '<form action="x"></form></main>')).some((p) => p.includes('exactly one')));
+	assert.ok(check(formPage({ extra: '<script>alert(1)</script>' })).some((p) => p.includes('inline')));
+	assert.ok(check(formPage({ extra: '<script src="https://evil.example/a.js"></script>' })).length > 0);
+	assert.ok(check(formPage().replace('<button class="btn"', '<button disabled class="btn"')).length > 0);
+});
+
+test('checkRequestPage (closed): no form, no widget, the support address', () => {
+	const closed = (html) => checkRequestPage(html, { open: false, supportEmail: SUPPORT });
+	assert.deepEqual(closed(`<main><p><a href="mailto:${SUPPORT}">x</a></p></main>`), []);
+	assert.equal(closed('<main><p>no address</p></main>').length, 1);
+	assert.ok(closed(formPage()).some((p) => p.includes('<form>')));
+});
+
+test('checkProductScripts: Turnstile\'s script only where allowTurnstile', () => {
+	const html = `<script async defer src="${TURNSTILE_SRC}"></script>`;
+	assert.equal(checkProductScripts(html).length, 1);
+	assert.deepEqual(checkProductScripts(html, () => null, { allowTurnstile: true }), []);
+	assert.equal(checkProductScripts('<script src="https://evil.example/a.js"></script>', () => null, { allowTurnstile: true }).length, 1);
+});
+
+test('result pages: noindex, linked from nowhere, out of the sitemap', () => {
+	assert.deepEqual(checkResultPage('<meta name="robots" content="noindex, nofollow">'), []);
+	assert.equal(checkResultPage('<title>x</title>').length, 1);
+	assert.deepEqual(checkResultLinks('<a href="/site/zaiavka/">form</a>'), []);
+	assert.equal(checkResultLinks('<a href="/site/zaiavka/diakuiemo/">x</a>').length, 1);
+	assert.equal(checkResultLinks('<a href="../zaiavka/pomylka/bot/">x</a>').length, 1);
+	assert.deepEqual(checkSitemapResults('<loc>https://x.test/site/zaiavka/</loc>'), []);
+	assert.equal(checkSitemapResults('<loc>https://x.test/site/zaiavka/pomylka/bot/</loc>').length, 1);
+	assert.ok(isResultRel('zaiavka/diakuiemo/index.html'.split('/').join(sep)));
+	assert.ok(!isResultRel('zaiavka/index.html'.split('/').join(sep)));
+});
+

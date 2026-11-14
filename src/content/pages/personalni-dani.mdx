@@ -3,7 +3,7 @@ title: Обробка персональних даних
 description: Хто обробляє дані із заявки й демо, які саме, на якій підставі, як довго їх зберігають і як попросити їх стерти.
 ---
 
-import { offer, formatDate, privacyEmail, complaintEmail } from '../../config/offer.mjs';
+import { offer, formatDate, privacyEmail, complaintEmail, requestFormOpen } from '../../config/offer.mjs';
 
 Ця сторінка описує дані, які ви надсилаєте нам у заявці, листах і на демо-сайті. Про дані на сайтах закладів читайте на сторінці [«Безпека й дані»](../bezpeka-i-dani/).
 
@@ -13,7 +13,7 @@ import { offer, formatDate, privacyEmail, complaintEmail } from '../../config/of
 
 Володілець даних — фізична особа — підприємець. Повне найменування й реквізити надаємо на запит на <a href={`mailto:${privacyEmail()}`}>{privacyEmail()}</a>.
 
-{!offer.requestsOpen && <p>Зараз заявки приймаємо електронною поштою. Ті самі дані ми отримуємо з вашого листа й обробляємо так само.</p>}
+{!requestFormOpen() && <p>Зараз заявки приймаємо електронною поштою. Ті самі дані ми отримуємо з вашого листа й обробляємо так само.</p>}
 
 ## Які дані ми збираємо
 

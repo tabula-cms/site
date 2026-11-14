@@ -1,0 +1,48 @@
+---
+// The pages the control plane sends a visitor to when a request is not accepted (story 78, W2): `303` to
+// `{site}/zaiavka/pomylka/<code>/`, code one of invalid, bot, limit, server, closed. `noindex`, out of the sitemap
+// (astro.config.mjs) and linked from nowhere. The form's values are never round-tripped, so the button leads back
+// to an empty form.
+import ProductPage from '../../../layouts/ProductPage.astro';
+import Typo from '../../../components/product/Typo.astro';
+import { offer } from '../../../config/offer.mjs';
+import '../../../styles/request.css';
+
+export function getStaticPaths() {
+	const texts = {
+		invalid: 'Деякі поля заповнено неправильно. Поверніться й перевірте форму.',
+		bot: 'Не вдалося перевірити, що заявку надіслала людина. Спробуйте ще раз або напишіть нам.',
+		limit: 'Забагато заявок за короткий час. Спробуйте завтра або напишіть нам.',
+		server: 'Щось пішло не так з нашого боку. Спробуйте за кілька хвилин або напишіть нам.',
+		closed: 'Зараз заявки приймаємо електронною поштою.',
+	};
+	return Object.entries(texts).map(([code, text]) => ({ params: { code }, props: { text } }));
+}
+
+const { text } = Astro.props;
+// The server never says which field it refused, and the link back opens an empty form: name the usual causes and
+// the browser's own Back button, which keeps what was typed.
+const invalid = Astro.params.code === 'invalid';
+const base = import.meta.env.BASE_URL;
+const root = base.endsWith('/') ? base : `${base}/`;
+---
+
+<ProductPage title="Заявку не надіслано" description="Заявку не вдалося надіслати. Що робити далі." cta={false}>
+	<Fragment slot="head">
+		<meta name="robots" content="noindex, nofollow" />
+	</Fragment>
+	<Typo>
+		<div class="req-result">
+			<p>{text}</p>
+			{
+				invalid && (
+					<p>
+						Найчастіше причина — помилка в коді ЄДРПОУ, адреса сайту в назві закладу чи громади або неточна електронна пошта. Щоб не вводити все знову, поверніться кнопкою «Назад» у браузері: вона зберігає введене.
+					</p>
+				)
+			}
+			<p>Адреса для заявок: <a href={`mailto:${offer.supportEmail}`}>{offer.supportEmail}</a>.</p>
+			<p class="cta-row"><a class="btn btn-main" href={`${root}zaiavka/`}>Повернутися до форми</a></p>
+		</div>
+	</Typo>
+</ProductPage>

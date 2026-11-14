@@ -1,0 +1,26 @@
+---
+// The page the control plane sends a visitor to after an accepted request (story 78, W2): `303` to
+// `{site}/zaiavka/diakuiemo/`. `noindex`, out of the sitemap (astro.config.mjs) and linked from nowhere.
+import ProductPage from '../../layouts/ProductPage.astro';
+import Typo from '../../components/product/Typo.astro';
+import { offer, withinWorkingDays } from '../../config/offer.mjs';
+import '../../styles/request.css';
+
+const base = import.meta.env.BASE_URL;
+const root = base.endsWith('/') ? base : `${base}/`;
+---
+
+<ProductPage title="Дякуємо за заявку" description="Заявку отримано. Що робити до розмови з нами." cta={false}>
+	<Fragment slot="head">
+		<meta name="robots" content="noindex, nofollow" />
+	</Fragment>
+	<Typo>
+		<div class="req-result">
+			<p>
+				Зазвичай ми звʼязуємося {withinWorkingDays(offer.requestReplyDays)}. До розмови зʼясуйте, хто у вас підписує договори, чи є
+				рядок у кошторисі на 2027 рік, і підготуйте доступ до чинного сайту (якщо є).
+			</p>
+			<p class="cta-row"><a class="btn btn-main" href={root}>На головну</a></p>
+		</div>
+	</Typo>
+</ProductPage>

@@ -442,6 +442,11 @@
 	display: none;
 }
 .nav-menu__panel {
+	/* Twelve links no longer fit a short phone: the panel scrolls inside itself. */
+	max-height: calc(100vh - 76px);
+	max-height: calc(100dvh - 76px);
+	overflow-y: auto;
+	overscroll-behavior: contain;
 	position: absolute;
 	left: 0;
 	right: 0;
@@ -467,6 +472,92 @@
 }
 .nav-menu__panel li:last-child a {
 	border-bottom: 0;
+}
+/* «Для кого» in the desktop row: a native <details> (works without JavaScript; header.js adds Escape, a click outside
+ * and closing on a followed link). */
+.nav-links {
+	align-items: center;
+}
+.nav-for {
+	position: relative;
+}
+.nav-for > summary {
+	cursor: pointer;
+	list-style: none;
+	display: inline-flex;
+	align-items: center;
+	gap: 5px;
+	padding: 10px 0;
+	font-weight: 600;
+	font-size: 15px;
+	color: var(--ink);
+	white-space: nowrap;
+	border-radius: 6px;
+}
+.nav-for > summary::-webkit-details-marker {
+	display: none;
+}
+@media (prefers-reduced-motion: no-preference) {
+	.nav-for > summary svg {
+		transition: transform 0.15s ease-out;
+	}
+}
+.nav-for[open] > summary svg {
+	transform: rotate(180deg);
+}
+[data-product-page] .nav-for > summary:hover,
+.nav-for[open] > summary {
+	color: var(--accent);
+}
+.nav-for__panel {
+	position: absolute;
+	top: calc(100% + 4px);
+	left: -14px;
+	z-index: 2;
+	min-width: 250px;
+	margin: 0;
+	padding: 8px;
+	list-style: none;
+	background: var(--surface);
+	border: 1px solid var(--line);
+	border-radius: 14px;
+	box-shadow: 0 18px 30px rgba(23, 40, 58, 0.12);
+}
+.nav-for__panel a {
+	display: block;
+	padding: 12px 14px;
+	border-radius: 10px;
+	font-weight: 700;
+}
+[data-product-page] .nav-for__panel a:hover {
+	background: #eef4f2;
+}
+.nav-for__panel a[aria-current='page'],
+.nav-menu__panel a[aria-current='page'] {
+	color: var(--accent);
+}
+/* The «Меню» panel's group heading and its second list. */
+.nav-menu__heading {
+	margin: 12px 0 0;
+	font-size: 13px;
+	font-weight: 800;
+	letter-spacing: 0.02em;
+	color: #5f6e83;
+}
+.nav-menu__panel .nav-menu__main {
+	margin-top: 6px;
+	border-top: 1px solid #eef1f0;
+}
+/* «Спробувати» (only while the demo is public): a secondary button from desktop widths, never on phones. */
+.site-header .btn-try {
+	display: none;
+	font-size: 15px;
+	padding: 9.5px 18.5px;
+}
+@media (min-width: 1280px) {
+	.site-header .btn-try {
+		display: inline-flex;
+	}
 }
 /* The seven links and the button fit on one line, with comfortable gaps, from 1100 px (the row needs 1025 px, so at least 75 px of air is left; measured); below it the links
  * move into «Меню». The button never wraps at any width (below 480 px the header is tighter and «Меню» is icon-only, see below). */
@@ -833,6 +924,46 @@
 	line-height: 1.55;
 	color: var(--text);
 }
+/* «З чого почати» (section 2c): four whole-card links, the kinds tiles' grid made compact. */
+.roles__inner {
+	padding-top: 48px;
+	padding-bottom: 8px;
+}
+.roles__head .lead {
+	max-width: 760px;
+	margin-top: 10px;
+}
+.roles__grid {
+	margin-top: 24px;
+}
+.roles__card {
+	display: flex;
+	flex-direction: column;
+	padding: 18px 20px;
+	text-decoration: none;
+	color: inherit;
+}
+.roles__card .kinds__title {
+	margin-top: 0;
+}
+.roles__card .kinds__text {
+	margin-top: 8px;
+	flex: 1 1 auto;
+}
+.roles__more {
+	margin-top: 12px;
+	font-size: 15px;
+	font-weight: 800;
+	color: var(--accent);
+}
+[data-product-page] a.roles__card:hover {
+	color: inherit;
+	border-color: #b9c5c1;
+}
+[data-product-page] a.roles__card:hover .roles__more {
+	text-decoration: underline;
+	text-underline-offset: 4px;
+}
 @media (max-width: 1000px) {
 	.kinds__grid {
 		grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -925,6 +1056,128 @@
 	padding: 3px 8px;
 	border-radius: 6px;
 	background: var(--amber-bg);
+}
+/* Under the assistant's tabs (2026-11-14): the panel's three steps, what else the assistant does, the data lines. A is a
+ * strip of three numbered cards; B and C sit side by side from 900 px and stack below it. Static, light, `.reveal` only. */
+.assist-more {
+	margin-top: 56px;
+	display: grid;
+	gap: 44px;
+}
+.assist-more__h {
+	margin: 0;
+	font-family: var(--display);
+	font-weight: 600;
+	font-size: 20px;
+	line-height: 1.25;
+	letter-spacing: -0.01em;
+	color: var(--ink);
+}
+.assist-more__lead {
+	margin: 10px 0 0;
+	max-width: 760px;
+	font-size: 17px;
+	line-height: 1.55;
+	color: var(--text);
+}
+.assist-flow {
+	list-style: none;
+	margin: 20px 0 0;
+	padding: 0;
+	display: grid;
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+	gap: 16px;
+}
+.assist-flow__step {
+	background: var(--surface);
+	border: 1px solid #dce5e2;
+	border-radius: 16px;
+	padding: 18px 20px 20px;
+}
+.assist-flow__n {
+	display: grid;
+	place-items: center;
+	width: 30px;
+	height: 30px;
+	border-radius: 50%;
+	background: var(--mint);
+	color: var(--ink);
+	font-weight: 800;
+	font-size: 15px;
+}
+.assist-flow__title {
+	margin: 12px 0 0;
+	font-family: var(--display);
+	font-weight: 600;
+	font-size: 16px;
+	line-height: 1.3;
+	color: var(--ink);
+}
+.assist-flow__text {
+	margin: 8px 0 0;
+	font-size: 15px;
+	line-height: 1.55;
+	color: var(--text);
+}
+.assist-more__cols {
+	display: grid;
+	grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
+	gap: 44px;
+	align-items: start;
+}
+.assist-can {
+	margin: 16px 0 0;
+	padding-left: 20px;
+	columns: 2;
+	column-gap: 28px;
+	font-size: 15px;
+	line-height: 1.5;
+	color: var(--text);
+}
+.assist-can li {
+	break-inside: avoid;
+	padding: 0 0 10px 2px;
+}
+.assist-can li::marker {
+	color: var(--accent);
+}
+.ticks.assist-data {
+	margin-top: 16px;
+	gap: 12px;
+	font-size: 15px;
+	line-height: 1.5;
+}
+.assist-data__more {
+	margin: 16px 0 0;
+	font-size: 15px;
+	line-height: 1.5;
+}
+.assist-data__more a {
+	display: inline-block;
+	padding: 6px 0;
+	font-weight: 700;
+	color: var(--accent);
+	text-underline-offset: 4px;
+}
+@media (max-width: 899px) {
+	.assist-flow {
+		grid-template-columns: minmax(0, 1fr);
+	}
+	.assist-more__cols {
+		grid-template-columns: minmax(0, 1fr);
+		gap: 40px;
+	}
+	.assist-more__lead {
+		font-size: 16px;
+	}
+}
+@media (max-width: 559px) {
+	.assist-can {
+		columns: 1;
+	}
+	.assist-data__more a {
+		padding: 11px 0;
+	}
 }
 .assistant-panel {
 	margin-top: 20px;

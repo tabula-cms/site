@@ -1,7 +1,8 @@
 // The sticky header's behaviour (story 80, decision 10). The header is always visible.
 //  - A soft shadow (and compact padding, in CSS) once the page has scrolled: a 1 px sentinel at the
 //    very top watched with an IntersectionObserver, no scroll listener.
-//  - The «Меню» disclosure closes when a link in it is followed and on Escape.
+//  - The «Меню» disclosure and the «Для кого» dropdown close when a link in them is followed, on Escape (focus returns
+//    to the summary), on a click outside and when focus leaves them.
 // Without JavaScript the header is a plain sticky bar.
 
 /** The compact state: on once the sentinel at the top of the page has left the screen. */
@@ -9,7 +10,10 @@ export function isScrolled(sentinelIntersecting) {
 	return !sentinelIntersecting;
 }
 
-/** The «Меню» disclosure: closes when a link in it is followed, and on Escape (focus returns to its summary). */
+/**
+ * A header disclosure (<details>: «Меню» or «Для кого»): closes when a link in it is followed, on Escape (focus returns
+ * to its summary), on a click outside it and when focus moves outside it.
+ */
 export function initMenu(menu, doc) {
 	menu.addEventListener('click', (event) => {
 		if (event.target instanceof Element && event.target.closest('a')) menu.removeAttribute('open');
@@ -19,6 +23,13 @@ export function initMenu(menu, doc) {
 			menu.removeAttribute('open');
 			menu.querySelector('summary')?.focus();
 		}
+	});
+	doc.addEventListener('click', (event) => {
+		if (menu.hasAttribute('open') && !menu.contains(event.target)) menu.removeAttribute('open');
+	});
+	menu.addEventListener('focusout', (event) => {
+		const next = event.relatedTarget;
+		if (menu.hasAttribute('open') && next && !menu.contains(next)) menu.removeAttribute('open');
 	});
 }
 
@@ -33,6 +44,5 @@ if (typeof document !== 'undefined') {
 			header.classList.toggle('is-scrolled', isScrolled(entry.isIntersecting));
 		}).observe(sentinel);
 	}
-	const menu = document.querySelector('.nav-menu');
-	if (menu) initMenu(menu, document);
+	for (const menu of document.querySelectorAll('.nav-menu, .nav-for')) initMenu(menu, document);
 }
