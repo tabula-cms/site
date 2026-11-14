@@ -63,7 +63,12 @@ export default defineConfig({
 	integrations: [
 		// Story 82, decision 24: «Спробувати» joins the sitemap only once the demo is public (`offer.demoOpen`).
 		sitemap({
-			filter: (page) => page !== slashless && !redirected.includes(page) && (offer.demoOpen || !/\/sprobuvaty\/$/.test(page)),
+			// The request form's result pages (/zaiavka/diakuiemo/, /zaiavka/pomylka/<code>/) are noindex and never listed.
+			filter: (page) =>
+				page !== slashless &&
+				!redirected.includes(page) &&
+				(offer.demoOpen || !/\/sprobuvaty\/$/.test(page)) &&
+				!/\/zaiavka\/(?:diakuiemo|pomylka)\//.test(page),
 		}),
 		starlight({
 			title: 'Tabula',

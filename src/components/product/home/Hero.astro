@@ -3,12 +3,15 @@
 // preloaded in the <head> by src/pages/index.astro with the same widths/sizes.
 import Shot from '../Shot.astro';
 import { shots, HERO } from '../shots';
-import { offer, formatDateLongYear, demoHref } from '../../../config/offer.mjs';
+import { offer, formatDateLongYear, demoHref, requestHref } from '../../../config/offer.mjs';
 
 const base = import.meta.env.BASE_URL;
 const root = base.endsWith('/') ? base : `${base}/`;
 // The demo site when it exists, else its «У розробці» page.
 const exampleHref = demoHref(root);
+// Once the demo is public (offer.demoOpen) «Спробувати демо» is the primary button, «Подати заявку» the secondary one and
+// the example site a quiet link under them; until then the demo is linked from nowhere.
+const tryOpen = offer.demoOpen;
 ---
 
 <section id="top" class="hero">
@@ -21,10 +24,24 @@ const exampleHref = demoHref(root);
 			<p class="hero__kinds">
 				<a href="#kinds">Для шкіл, садочків, коледжів і закладів професійної <span class="nw">освіти&#160;<span aria-hidden="true">→</span></span></a>
 			</p>
-			<div class="hero__buttons">
-				<a class="btn btn-main btn-lg" href="#request">Подати заявку</a>
-				<a class="btn btn-line btn-lg" href={exampleHref}>Подивитися приклад сайту</a>
-			</div>
+			{
+				tryOpen ? (
+					<>
+						<div class="hero__buttons">
+							<a class="btn btn-main btn-lg" href={`${root}sprobuvaty/`}>Спробувати демо</a>
+							<a class="btn btn-line btn-lg" href={requestHref(root, true)}>Подати заявку</a>
+						</div>
+						<p class="hero__kinds hero__example">
+							<a href={exampleHref}>Подивитися приклад сайту</a>
+						</p>
+					</>
+				) : (
+					<div class="hero__buttons">
+						<a class="btn btn-main btn-lg" href={requestHref(root, true)}>Подати заявку</a>
+						<a class="btn btn-line btn-lg" href={exampleHref}>Подивитися приклад сайту</a>
+					</div>
+				)
+			}
 		</div>
 		<div class="hero__visual">
 			<div class="laptop">

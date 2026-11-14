@@ -32,3 +32,32 @@ test('initMenu: Escape closes the open menu and returns focus to the summary; ot
 	assert.equal(f.menu.open, false);
 	assert.equal(f.wasFocused(), true);
 });
+
+// A disclosure that knows which nodes are inside it, for the click-outside and focus-out rules.
+function fakeDisclosure(inside) {
+	const f = fakeMenu();
+	f.menu.contains = (node) => inside.includes(node);
+	return f;
+}
+
+test('initMenu: a click outside closes the open disclosure; a click inside does not', () => {
+	const inside = {};
+	const f = fakeDisclosure([inside]);
+	initMenu(f.menu, f.doc);
+	f.listeners.doc.click({ target: inside });
+	assert.equal(f.menu.open, true);
+	f.listeners.doc.click({ target: {} });
+	assert.equal(f.menu.open, false);
+});
+
+test('initMenu: focus moving outside closes it; focus moving within, or to nowhere, does not', () => {
+	const inside = {};
+	const f = fakeDisclosure([inside]);
+	initMenu(f.menu, f.doc);
+	f.listeners.menu.focusout({ relatedTarget: inside });
+	assert.equal(f.menu.open, true);
+	f.listeners.menu.focusout({ relatedTarget: null });
+	assert.equal(f.menu.open, true);
+	f.listeners.menu.focusout({ relatedTarget: {} });
+	assert.equal(f.menu.open, false);
+});

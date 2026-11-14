@@ -25,6 +25,10 @@ const PAGES = [
 		.map((name) => `${name.replace(/\.mdx?$/, '')}/`)
 		.sort(),
 	'sprobuvaty/',
+	// The request form's result pages (story 78, W2): always built, noindex. The form itself is /zaiavka/, scanned open
+	// when the site is built with TABULA_REQUESTS_OPEN=1 and a Turnstile site key.
+	'zaiavka/diakuiemo/',
+	...['invalid', 'bot', 'limit', 'server', 'closed'].map((code) => `zaiavka/pomylka/${code}/`),
 ];
 const WIDTHS = [1280, 320];
 const TAGS = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'];

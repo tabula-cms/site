@@ -1,0 +1,143 @@
+---
+// The pilot request form (story 78, W2 / story 80, S3): a plain HTML form posted to the control plane
+// (`{cpUrl}/v1/requests`), no script of ours. The control plane always answers 303 to /zaiavka/diakuiemo/ or
+// /zaiavka/pomylka/<code>/. Field names, limits and values are the spec's W2 table (cloud docs/specs/78-…) and agree
+// with the server's cloud/control/src/requestForm.js; check-built's checkRequestPage holds both.
+import { offer, privacyEmail } from '../../config/offer.mjs';
+import '../../styles/request.css';
+
+const base = import.meta.env.BASE_URL;
+const root = base.endsWith('/') ? base : `${base}/`;
+
+// The `phone` pattern escapes ( ) and - so it is valid with and without the browser's `v` flag.
+const school = { name: 'school', label: 'Назва закладу', max: 200, autocomplete: 'organization', hint: 'Повна назва, без адреси сайту.' };
+const edrpou = {
+	name: 'edrpou',
+	label: 'Код ЄДРПОУ',
+	max: 8,
+	pattern: '\\d{8}',
+	inputmode: 'numeric',
+	autocomplete: 'off',
+	hint: 'Вісім цифр, як у виписці з ЄДР. Перевірте кожну: з помилкою в коді заявку не буде прийнято.',
+};
+const place = { name: 'place', label: 'Громада або населений пункт', max: 120, hint: 'Без адреси сайту.' };
+const currentSite = { name: 'current_site', label: 'Адреса чинного сайту (якщо є)', max: 200, optional: true, type: 'text' };
+const wanted = { name: 'wanted', label: 'Бажана адреса сайту', max: 40, optional: true, hint: 'назва.tabula.org.ua або власний домен' };
+const person = { name: 'name', label: 'Ваше імʼя', max: 120, autocomplete: 'name' };
+const position = { name: 'position', label: 'Посада', max: 120, autocomplete: 'organization-title' };
+const email = { name: 'email', label: 'Електронна пошта', max: 254, type: 'email', autocomplete: 'email', spellcheck: 'false' };
+const phone = {
+	name: 'phone',
+	label: 'Телефон',
+	max: 30,
+	type: 'tel',
+	optional: true,
+	autocomplete: 'tel',
+	pattern: '[0-9 +\\(\\)\\-]*',
+	hint: 'Щоб домовитися про дзвінок',
+};
+
+const groups = [
+	{ legend: 'Заклад', fields: [school, edrpou, place, currentSite, wanted] },
+	{ legend: 'Контактна особа', fields: [person, position, email, phone] },
+];
+
+const signers = [
+	['school', 'Заклад'],
+	['department', 'Відділ (управління) освіти'],
+	['accounting', 'Централізована бухгалтерія'],
+	['founder', 'Засновник (рада громади)'],
+	['unknown', 'Не знаю'],
+];
+const privacy = privacyEmail();
+---
+
+<div class="req">
+	<form method="post" action={`${offer.cpUrl}/v1/requests`} accept-charset="utf-8">
+		<p class="req__legend-note"><span class="req__star" aria-hidden="true">*</span> — обовʼязкове поле. Решта — необовʼязкові.</p>
+
+		<noscript>
+			<p class="req__noscript">
+				Форма перевіряє, що ви не бот, за допомогою JavaScript. Якщо він вимкнений, напишіть нам на <a href={`mailto:${offer.supportEmail}`}>{offer.supportEmail}</a>.
+			</p>
+		</noscript>
+
+		{
+			groups.map((group) => (
+				<fieldset class="req__group">
+					<legend>{group.legend}</legend>
+					{group.fields.map((f) => (
+						<div class="req__field">
+							<label for={`req-${f.name}`}>
+								{f.label}
+								{f.optional ? <span class="req__opt"> (необовʼязково)</span> : <span class="req__star" aria-hidden="true"> *</span>}
+							</label>
+							<input
+								id={`req-${f.name}`}
+								name={f.name}
+								type={f.type ?? 'text'}
+								required={!f.optional}
+								maxlength={f.max}
+								pattern={f.pattern}
+								inputmode={f.inputmode}
+								autocomplete={f.autocomplete}
+								spellcheck={f.spellcheck}
+								aria-describedby={f.hint ? `req-${f.name}-hint` : undefined}
+							/>
+							{f.hint && (
+								<p class="req__hint" id={`req-${f.name}-hint`}>
+									{f.hint}
+								</p>
+							)}
+						</div>
+					))}
+				</fieldset>
+			))
+		}
+
+		<fieldset class="req__group">
+			<legend>Договір</legend>
+			<fieldset class="req__field">
+				<legend>Хто у вас укладає договори? <span class="req__star" aria-hidden="true">*</span></legend>
+				{
+					signers.map(([value, label]) => (
+						<div class="req__choice">
+							<input id={`req-signer-${value}`} name="signer" type="radio" value={value} required />
+							<label for={`req-signer-${value}`}>{label}</label>
+						</div>
+					))
+				}
+			</fieldset>
+		</fieldset>
+
+		<div class="req__field">
+			<label for="req-comment">Коментар <span class="req__opt">(необовʼязково)</span></label>
+			<textarea id="req-comment" name="comment" rows="4" maxlength="1000"></textarea>
+		</div>
+
+		<div class="req__consent">
+			<input id="req-consent" name="consent" type="checkbox" value="yes" required />
+			<label for="req-consent">
+				Погоджуюся на обробку даних з цієї форми, щоб зі мною звʼязалися щодо сайту закладу. Хто їх обробляє, хто ще їх отримує, як довго їх зберігають і які в мене права — на сторінці <a
+					href={`${root}personalni-dani/`}>„Обробка персональних даних“</a
+				>.
+				<span class="req__star" aria-hidden="true">*</span>
+			</label>
+		</div>
+
+		<div class="req__trap" aria-hidden="true">
+			<label for="req-website">Сайт</label>
+			<input id="req-website" name="website" type="text" tabindex="-1" autocomplete="off" />
+		</div>
+
+		<div class="req__turnstile">
+			<div class="cf-turnstile" data-sitekey={offer.turnstileSiteKey} data-language="uk"></div>
+		</div>
+		<script is:inline async defer src="https://challenges.cloudflare.com/turnstile/v0/api.js"></script>
+
+		<p class="req__notice">
+			Дані з форми отримує фізична особа — підприємець, що надає послуги Tabula, щоб звʼязатися з вами щодо сайту. Повне найменування повідомимо в першому листі або на запит на <a href={`mailto:${privacy}`}>{privacy}</a>.
+		</p>
+		<p><button class="btn btn-main req__button" type="submit">Надіслати заявку</button></p>
+	</form>
+</div>

@@ -1,0 +1,50 @@
+---
+// Section 2c (owner's request, 2026-11-14): «З чого почати», right after the four things. Four whole-card links to the
+// role pages and «Як це працює», so a visitor does not have to find them in the footer. Compact: it reuses the kinds
+// tiles' grid (four in a row, 2×2 on tablets, one column on phones) and their staggered reveal. The sentences are
+// written from the pages they lead to (src/content/pages/*.mdx) — change them together.
+const base = import.meta.env.BASE_URL;
+const root = base.endsWith('/') ? base : `${base}/`;
+const roles = [
+	{
+		title: 'Директору',
+		text: 'Що отримує заклад, скільки це коштує і як відмовитися, якщо сайт не підійде.',
+		slug: 'dlia-dyrektora',
+	},
+	{
+		title: 'Тому, хто веде сайт',
+		text: 'Перший тиждень крок за кроком і скільки часу сайт забирає потім.',
+		slug: 'dlia-vidpovidalnoho',
+	},
+	{
+		title: 'Бухгалтерії',
+		text: 'Ціна, коди, документи й порядок оплати.',
+		slug: 'dlia-bukhhalterii',
+	},
+	{
+		title: 'Як це працює',
+		text: 'Від заявки до готового сайту: що робимо ми, а що заклад.',
+		slug: 'yak-tse-pratsiuie',
+	},
+];
+---
+
+<section id="start" class="anchor" aria-labelledby="start-title">
+	<div class="wrap roles__inner">
+		<div class="reveal roles__head">
+			<h2 class="h2" id="start-title">З чого почати</h2>
+			<p class="lead">Оберіть свою роль: там лише те, що потрібно саме вам.</p>
+		</div>
+		<div class="kinds__grid roles__grid">
+			{
+				roles.map((role) => (
+					<a class="kinds__tile roles__card card-hover" href={`${root}${role.slug}/`}>
+						<h3 class="kinds__title">{role.title}</h3>
+						<p class="kinds__text">{role.text}</p>
+						<span class="roles__more">Читати <span aria-hidden="true">→</span></span>
+					</a>
+				))
+			}
+		</div>
+	</div>
+</section>

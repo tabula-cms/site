@@ -34,6 +34,10 @@ export const offer = Object.freeze({
 	// shows it carries the «Випробовуємо» chip); 'on' drops the chips and the FAQ entry
 	// «Коли запрацює ШІ-помічник?».
 	assistantStatus: 'testing',
+	// The assistant, as tabula's editor guide states it (docs/editor/pomichnyk-i-dani.md): a change it made can be
+	// undone for this many days, and its proposal stays in the site's database at most this many days.
+	assistantUndoDays: 30,
+	assistantProposalDays: 14,
 	// Story 80, decision 12: the public demo site; null until one exists. The home's «Подивитися
 	// приклад сайту» and «Відкрити приклад сайту» go there when set, else to the page «Демо-сайт»
 	// (demoHref below), which then shows the «У розробці» chip; once set, that page shows a button instead.
@@ -52,12 +56,15 @@ export const offer = Object.freeze({
 	cpUrl: process.env.TABULA_CP_URL || 'https://cp.tabula.org.ua',
 	// Decision 24: Cloudflare Turnstile's public site key; TABULA_TURNSTILE_SITEKEY overrides it.
 	turnstileSiteKey: process.env.TABULA_TURNSTILE_SITEKEY || '',
-	// Decision 24: false until the control plane accepts requests (C1 live); W2 reads it.
-	requestsOpen: false,
+	// Decision 24: false until the control plane accepts requests (C1 live); W2 reads it. TABULA_REQUESTS_OPEN=1
+	// turns it on at build time for a manual check against a local control plane. The form is shown only when
+	// the Turnstile site key is set too: see requestFormOpen().
+	requestsOpen: process.env.TABULA_REQUESTS_OPEN === '1',
 	// Story 82, decision 24: the public demo's button. While false (phase 1, a closed test by invitation) the page
 	// «Спробувати» (/sprobuvaty/) exists but nothing links to it, it is `noindex` and out of the sitemap; the owner hands
-	// out its address. True (after phase 2) adds it to the footer, the sitemap and the search engines.
-	demoOpen: false,
+	// out its address. True (after phase 2) adds it to the footer, the header, the hero, the sitemap and the search engines.
+	// TABULA_DEMO_OPEN=1 turns it on at build time, so the open state can be built and checked (never set it in CI's deploy).
+	demoOpen: process.env.TABULA_DEMO_OPEN === '1',
 	// Story 82, decision 30: the kinds whose golden copy exists, as tabula's `--seed` names (DEMO_KINDS below). With one
 	// kind the form's field is hidden and the page says «на прикладі ліцею». Must match the CP's `demo.kinds`.
 	demoKinds: Object.freeze(['school']),
@@ -149,9 +156,11 @@ export const offer = Object.freeze({
 		prepayMonths: 3,
 	}),
 	// The codes of the purchase.
-	dk021: '72410000-7',
-	dk021Name: 'Послуги провайдерів',
-	dk021Class: '7241',
+	// Owner's decision, 2026-11-14: 72260000-5, the code schools use most for a site with hosting and support, not
+	// 72410000-7 «Послуги провайдерів» (accountants read it as an internet provider, who cannot be on the single tax).
+	dk021: '72260000-5',
+	dk021Name: 'Послуги, повʼязані з програмним забезпеченням',
+	dk021Class: '7226',
 	kekv: '2240',
 	kekvName: 'Оплата послуг (крім комунальних)',
 
@@ -166,7 +175,9 @@ export const offer = Object.freeze({
 		address: null,
 		iban: null,
 		bank: null,
-		// КВЕДи from the extract, e.g. ['62.01 …', '63.11 …']; the accountant advises 63.11 among them.
+		// КВЕДи exactly as the ЄДР extract lists them, the main one first. 63.11 («Оброблення даних, розміщення
+		// інформації на веб-вузлах…») is the code whose note names web hosting, so a school accountant looks for it;
+		// 63.12 «Веб-портали» is search and media portals. No 61.x (telecoms) code: the single tax forbids those.
 		kved: null,
 		// From the spec's text: the 3rd group of the single tax at 5 %, not a VAT payer.
 		taxGroup: 3,
@@ -387,6 +398,20 @@ export function demoHeading(kinds = offer.demoKinds) {
 	return kinds.length === 1 && kinds[0] === 'school' ? 'Спробуйте Tabula на прикладі ліцею' : 'Спробуйте Tabula';
 }
 
+// The request form (story 78, W2) is on the page only when requests are open AND the Turnstile site key is set:
+// the control plane refuses a request without a token, so a form without the widget could never be sent.
+export function requestFormOpen(o = offer) {
+	return Boolean(o.requestsOpen && o.turnstileSiteKey);
+}
+
+// Where every «Подати заявку» button leads. `root` is the site's base with a trailing slash. With the form open:
+// the page «Подати заявку» itself (one click to the form). Without it: the home's section #request, which shows
+// the address to write to (`#request` on the home, `{root}#request` elsewhere).
+export function requestHref(root, home = false, open = requestFormOpen()) {
+	if (open) return `${root}zaiavka/`;
+	return home ? '#request' : `${root}#request`;
+}
+
 // Story 80, round 3: where the home's «Подивитися приклад сайту» / «Відкрити приклад сайту» lead. `root` is the
 // site's base with a trailing slash; `url` defaults to offer.demoSiteUrl (a parameter so both states are testable).
 export function demoHref(root, url = offer.demoSiteUrl) {
@@ -469,8 +494,11 @@ export function decided(key, all = decisions) {
 export const documents = Object.freeze([
 	{ name: 'Витяг із ЄДР', why: 'щоб не утримувати ПДФО й військовий збір', when: 'разом із договором', status: 'ready', pdf: null },
 	{ name: 'Витяг із реєстру платників єдиного податку', why: 'щоб підтвердити групу єдиного податку й статус неплатника ПДВ', when: 'разом із договором', status: 'ready', pdf: null },
-	{ name: 'Зразок договору про безоплатне надання послуг і акта до нього', why: 'для пробного періоду', when: 'до підписання', status: 'preparing', pdf: null },
-	{ name: `Зразок договору на ${yearOf(nextDay(offer.pilotUntil))} рік`, why: 'для основної закупівлі', when: 'до підписання', status: 'preparing', pdf: null },
+	{ name: 'Договір приєднання (оферта), підписаний КЕП виконавця', why: 'умови, однакові для всіх закладів', when: 'до підписання заяви', status: 'preparing', pdf: null },
+	{ name: 'Заява про приєднання на пробний період і зразок акта до неї', why: 'для пробного періоду', when: 'до підписання', status: 'preparing', pdf: null },
+	{ name: `Заява про приєднання на ${yearOf(nextDay(offer.pilotUntil))} рік`, why: 'для основної закупівлі й реєстрації зобовʼязання в Казначействі', when: 'до підписання', status: 'preparing', pdf: null },
+	{ name: 'Зразок наказу про прийняття безоплатно отриманих послуг', why: 'для обліку пробного періоду', when: 'разом із заявою', status: 'preparing', pdf: null },
+	{ name: 'Зразок протоколу уповноваженої особи', why: 'щоб внести закупівлю до річного плану', when: 'до січня', status: 'preparing', pdf: null },
 	{ name: 'Зразок акта й рахунку на оплату', why: 'для щоквартальної оплати', when: 'щокварталу', status: 'preparing', pdf: null },
 	{ name: 'Зразок наказу про призначення працівника, який веде сайт', why: 'щоб призначити відповідального', when: 'разом із договором', status: 'preparing', pdf: null },
 	{ name: 'Зразок згоди батьків на фото й відео дітей', why: 'для публікації фото', when: 'до зйомки', status: 'preparing', pdf: null },

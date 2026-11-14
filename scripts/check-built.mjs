@@ -41,7 +41,7 @@
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
-import { offer, footerLine, formatDate, formatDateLongYear, formatGrn, checkedOnFor, SERVICE_SLUGS } from '../src/config/offer.mjs';
+import { offer, requestFormOpen, footerLine, formatDate, formatDateLongYear, formatGrn, checkedOnFor, SERVICE_SLUGS } from '../src/config/offer.mjs';
 import { refNumbers } from '../src/lib/refs.mjs';
 
 export const LAW_PAGE_SLUG = 'zakon-i-sait-shkoly';
@@ -202,7 +202,10 @@ export function isProductPage(html) {
 	return /<html\b[^>]*\bdata-product-page\b/i.test(html);
 }
 
-/** The header's links of a product page, in order: text and the anchor id each one must point at. */
+/**
+ * The header's anchors of a product page, in order: text and the anchor id each one must point at. «Контакти» is only in
+ * the «Меню» panel (CONTACT_LINK), not in the desktop row.
+ */
 export const PRODUCT_LINKS = [
 	['ШІ-помічник', 'assistant'],
 	['Харчування', 'meals'],
@@ -210,7 +213,14 @@ export const PRODUCT_LINKS = [
 	['Шаблони', 'look'],
 	['Ціна', 'price'],
 	['Запитання', 'faq'],
-	['Контакти', 'contact'],
+];
+export const CONTACT_LINK = ['Контакти', 'contact'];
+/** The «Для кого» dropdown (and the first group of the «Меню» panel): text and the page slug, in order. */
+export const FOR_LINKS = [
+	['Директору', 'dlia-dyrektora'],
+	['Тому, хто веде сайт', 'dlia-vidpovidalnoho'],
+	['Бухгалтерії', 'dlia-bukhhalterii'],
+	['Як це працює', 'yak-tse-pratsiuie'],
 ];
 
 function anchorsOf(fragment) {
@@ -226,38 +236,68 @@ function anchorsOf(fragment) {
 
 /** `#id` on the home, `{base}#id` on other product pages: the href ends with the anchor. */
 const pointsAt = (href, id) => href === `#${id}` || href.endsWith(`/#${id}`);
+/** A page link: `{base}{slug}/`. */
+const pointsAtPage = (href, slug) => href === `/${slug}/` || href.endsWith(`/${slug}/`);
 
-/** Problems with a product page's header: seven links in order, the button, the «Меню» panel. */
-export function checkProductHeader(html) {
+/**
+ * Problems with a product page's header: the «Для кого» dropdown (four pages), the six anchors, «Спробувати» (only while
+ * `offer.demoOpen`), the button «Подати заявку» (`requestHref`: #request, or the page `zaiavka/` while the form is open)
+ * and the «Меню» panel («Для кого» with its four links, the seven anchors, «Звʼязатися»).
+ */
+export function checkProductHeader(html, { requestOpen = requestFormOpen(), demoOpen = offer.demoOpen } = {}) {
 	const header = html.match(/<header\b[^>]*data-site-header[^>]*>([\s\S]*?)<\/header>/i);
 	if (!header) return ['no <header data-site-header>'];
 	const problems = [];
 	const inline = header[1].match(/<nav\b[^>]*class="[^"]*nav-links[^"]*"[^>]*>([\s\S]*?)<\/nav>/i);
 	if (!inline) problems.push('no inline nav (.nav-links)');
 	else {
+		if (!/<details\b[^>]*class="[^"]*nav-for[^"]*"/i.test(inline[1])) problems.push('no <details class="nav-for"> dropdown «Для кого»');
 		const got = anchorsOf(inline[1]);
-		const wantText = PRODUCT_LINKS.map(([text]) => text).join(' | ');
+		const want = [...FOR_LINKS, ...PRODUCT_LINKS];
+		const wantText = want.map(([text]) => text).join(' | ');
 		if (got.map((a) => a.text).join(' | ') !== wantText) {
 			problems.push(`inline nav is "${got.map((a) => a.text).join(' | ')}", expected "${wantText}"`);
 		}
+		FOR_LINKS.forEach(([text, slug], i) => {
+			if (got[i] && !pointsAtPage(got[i].href, slug)) problems.push(`«${text}» points at "${got[i].href}", expected …/${slug}/`);
+		});
 		PRODUCT_LINKS.forEach(([text, id], i) => {
-			if (got[i] && !pointsAt(got[i].href, id)) problems.push(`«${text}» points at "${got[i].href}", expected #${id}`);
+			const link = got[FOR_LINKS.length + i];
+			if (link && !pointsAt(link.href, id)) problems.push(`«${text}» points at "${link.href}", expected #${id}`);
 		});
 	}
-	const button = header[1].match(/<a\b[^>]*class="[^"]*btn-main[^"]*"[^>]*>[\s\S]*?<\/a>/i);
-	const buttonAnchor = button ? anchorsOf(button[0])[0] : null;
-	if (!buttonAnchor || buttonAnchor.text !== 'Подати заявку' || !pointsAt(buttonAnchor.href, 'request')) {
-		problems.push('the button «Подати заявку» -> #request is missing');
-	}
+	const actions = header[1].match(/<div\b[^>]*class="[^"]*site-header__actions[^"]*"[^>]*>([\s\S]*)/i);
+	const buttons = [...(actions ? actions[1] : '').matchAll(/<a\b[^>]*class="[^"]*\bbtn\b[^"]*"[^>]*>[\s\S]*?<\/a>/gi)].map((m) => ({
+		cls: m[0].match(/class="([^"]*)"/i)[1],
+		...anchorsOf(m[0])[0],
+	}));
+	const tryButton = buttons.find((b) => /\bbtn-try\b/.test(b.cls));
+	if (demoOpen) {
+		if (!tryButton || tryButton.text !== 'Спробувати' || !pointsAtPage(tryButton.href, TRY_SLUG)) {
+			problems.push('the secondary button «Спробувати» -> sprobuvaty/ is missing while offer.demoOpen is true');
+		} else if (buttons.indexOf(tryButton) !== 0) problems.push('«Спробувати» is not before «Подати заявку»');
+	} else if (tryButton) problems.push('the button «Спробувати» is in the header while offer.demoOpen is false');
+	const main = buttons.find((b) => /\bbtn-main\b/.test(b.cls));
+	const mainOk = main && main.text === 'Подати заявку' && (requestOpen ? pointsAtPage(main.href, REQUEST_SLUG) : pointsAt(main.href, 'request'));
+	if (!mainOk) problems.push(`the button «Подати заявку» -> ${requestOpen ? `${REQUEST_SLUG}/` : '#request'} is missing`);
 	const panel = header[1].match(/<nav\b[^>]*class="[^"]*nav-menu__panel[^"]*"[^>]*>([\s\S]*?)<\/nav>/i);
 	if (!/<details\b[^>]*class="[^"]*nav-menu/i.test(header[1]) || !panel) {
 		problems.push('no <details class="nav-menu"> panel');
 	} else {
+		if (!/<p\b[^>]*class="[^"]*nav-menu__heading[^"]*"[^>]*>\s*Для кого\s*<\/p>/i.test(panel[1])) problems.push('the «Меню» panel has no «Для кого» group heading');
 		const got = anchorsOf(panel[1]);
-		const wantText = [...PRODUCT_LINKS.map(([text]) => text), 'Звʼязатися'].join(' | ');
+		const want = [...FOR_LINKS, ...PRODUCT_LINKS, CONTACT_LINK];
+		const wantText = [...want.map(([text]) => text), 'Звʼязатися'].join(' | ');
 		if (got.map((a) => a.text).join(' | ') !== wantText) {
 			problems.push(`«Меню» panel is "${got.map((a) => a.text).join(' | ')}", expected "${wantText}"`);
 		}
+		FOR_LINKS.forEach(([text, slug], i) => {
+			if (got[i] && !pointsAtPage(got[i].href, slug)) problems.push(`«Меню» panel: «${text}» points at "${got[i].href}", expected …/${slug}/`);
+		});
+		[...PRODUCT_LINKS, CONTACT_LINK].forEach(([text, id], i) => {
+			const link = got[FOR_LINKS.length + i];
+			if (link && !pointsAt(link.href, id)) problems.push(`«Меню» panel: «${text}» points at "${link.href}", expected #${id}`);
+		});
 		const last = got[got.length - 1];
 		if (last && !last.href.startsWith('mailto:')) problems.push('«Звʼязатися» is not a mailto: link');
 	}
@@ -448,6 +488,66 @@ export function checkAssistantChip(html, status) {
 }
 
 /**
+ * The home's first screen (2026-11-14). While `offer.demoOpen` is false: «Подати заявку» (the primary button) and the
+ * outlined «Подивитися приклад сайту», and no link to «Спробувати». Once it is true: «Спробувати демо» -> sprobuvaty/
+ * first, «Подати заявку» second, «Подивитися приклад сайту» a quiet link under them. «Подати заявку» is `requestHref`.
+ */
+export function checkHeroButtons(html, { demoOpen = offer.demoOpen, requestOpen = requestFormOpen() } = {}) {
+	const hero = sectionById(html, 'top');
+	if (hero === null) return ['no <section id="top"> (the hero)'];
+	const problems = [];
+	const links = [...hero.matchAll(/<a\b[^>]*>[\s\S]*?<\/a>/gi)].map((m) => ({ cls: m[0].match(/\bclass="([^"]*)"/i)?.[1] ?? '', ...anchorsOf(m[0])[0] }));
+	const buttons = links.filter((l) => /(^|\s)btn(\s|$)/.test(l.cls));
+	const request = (b) => b && b.text === 'Подати заявку' && (requestOpen ? pointsAtPage(b.href, REQUEST_SLUG) : pointsAt(b.href, 'request'));
+	const example = links.find((l) => l.text === 'Подивитися приклад сайту');
+	if (!example) problems.push('the hero has no «Подивитися приклад сайту»');
+	if (demoOpen) {
+		const [first, second] = buttons;
+		if (!first || first.text !== 'Спробувати демо' || !/\bbtn-main\b/.test(first.cls) || !pointsAtPage(first.href, TRY_SLUG)) {
+			problems.push('the first (primary) hero button is not «Спробувати демо» -> sprobuvaty/ while offer.demoOpen is true');
+		}
+		if (!request(second) || !/\bbtn-line\b/.test(second.cls)) problems.push('the second hero button is not the secondary «Подати заявку»');
+		if (buttons.length !== 2) problems.push(`the hero has ${buttons.length} buttons, expected 2 (the example site is a quiet link)`);
+		if (example && /(^|\s)btn(\s|$)/.test(example.cls)) problems.push('«Подивитися приклад сайту» is a button, expected a quiet link');
+	} else {
+		const [first, second] = buttons;
+		if (!request(first) || !/\bbtn-main\b/.test(first.cls)) problems.push('the first (primary) hero button is not «Подати заявку»');
+		if (!second || second.text !== 'Подивитися приклад сайту') problems.push('the second hero button is not «Подивитися приклад сайту»');
+		if (links.some((l) => pointsAtPage(l.href, TRY_SLUG))) problems.push('the hero links to sprobuvaty/ while offer.demoOpen is false');
+	}
+	return problems;
+}
+
+/** The home's «З чого почати» (id `start`): the four cards, each a link to its page, right after the four things. */
+export function checkHomeRoles(html) {
+	const section = sectionById(html, 'start');
+	if (section === null) return ['no <section id="start"> («З чого почати»)'];
+	const want = [...FOR_LINKS];
+	const got = anchorsOf(section).map((a) => ({ ...a, text: a.text.replace(/\s*→$/, '').replace(/Читати$/, '').trim() }));
+	const problems = [];
+	if (got.length !== want.length) problems.push(`«З чого почати» has ${got.length} links, expected ${want.length}`);
+	want.forEach(([text, slug], i) => {
+		if (!got[i] || !got[i].text.startsWith(text) || !pointsAtPage(got[i].href, slug)) problems.push(`«З чого почати»: card ${i + 1} is not «${text}» -> ${slug}/`);
+	});
+	if (!/<h2\b[^>]*>З чого почати<\/h2>/.test(section)) problems.push('«З чого почати» has no such H2');
+	if (html.indexOf('id="start"') > html.indexOf('id="kinds"')) problems.push('«З чого почати» is not before «Для шкіл, садочків і коледжів»');
+	return problems;
+}
+
+/** The assistant section's three blocks under the tabs, and the link to the guide's page on data (it must be imported). */
+export function checkAssistantMore(html) {
+	const section = sectionById(html, 'assistant');
+	if (section === null) return ['no <section id="assistant">'];
+	const problems = [];
+	for (const heading of ['Як це виглядає в роботі', 'Ще помічник уміє', 'Що відбувається з даними']) {
+		if (!new RegExp(`<h3\\b[^>]*>${heading}</h3>`).test(section)) problems.push(`the assistant section has no H3 «${heading}»`);
+	}
+	if ((section.match(/class="assist-flow__step"/g) ?? []).length !== 3) problems.push('the assistant section does not have three numbered steps');
+	if (!/href="[^"]*\/editor\/pomichnyk-i-dani\/"/.test(section)) problems.push('the assistant section has no link to editor/pomichnyk-i-dani/');
+	return problems;
+}
+
+/**
  * The two law claims of the home (spec decision 14). Each lives in its own block and must carry its own
  * link to «Закон і сайт школи» inside that block:
  *  - «Розділи за статтею 30 уже створені» -> the enclosing <section>;
@@ -494,7 +594,7 @@ export function checkLawClaims(html, { requireClaims = false } = {}) {
  * `data-tabs` or `data-site-header`. `readSrc(src)` returns the file's text or null. The page «Спробувати»
  * (story 82, S1b; `allowTry`) also loads its own script, the one that contains `data-demo-try`.
  */
-export function checkProductScripts(html, readSrc = () => null, { allowTry = false, allowTools = false } = {}) {
+export function checkProductScripts(html, readSrc = () => null, { allowTry = false, allowTools = false, allowTurnstile = false } = {}) {
 	const marks = ['data-tabs', 'data-site-header', ...(allowTry ? ['data-demo-try'] : []), ...(allowTools ? ['data-page-tools'] : [])];
 	const ours = new RegExp(marks.join('|'));
 	const problems = [];
@@ -502,6 +602,8 @@ export function checkProductScripts(html, readSrc = () => null, { allowTry = fal
 	let m;
 	while ((m = re.exec(html))) {
 		const src = m[1].match(/\bsrc="([^"]*)"/i);
+		// The request form's widget (story 78, W2): Cloudflare's script, on the page «Подати заявку» only.
+		if (allowTurnstile && src && src[1] === TURNSTILE_SRC) continue;
 		const code = src ? readSrc(src[1]) : m[2];
 		if (code === null || code === undefined) problems.push(`a script (${src[1]}) that cannot be identified`);
 		else if (!ours.test(code)) {
@@ -524,6 +626,7 @@ export function checkProductPage(
 		base = '/site',
 		checkedIso = offer.checkedOn,
 		service = false,
+		isRequest = false,
 	} = {},
 ) {
 	const problems = [];
@@ -541,10 +644,11 @@ export function checkProductPage(
 	problems.push(...checkClosedService(text));
 	problems.push(...checkClosedService(metaDescription(html) ?? '').map((p) => `meta description: ${p}`));
 	if (isHome) problems.push(...checkAssistantChip(html, assistantStatus));
+	if (isHome) problems.push(...checkHeroButtons(html), ...checkHomeRoles(html), ...checkAssistantMore(html));
 	// Spec decision 14 exempts the home only (two cited claims); the other pages name their sources and say «станом на».
 	if (isHome) problems.push(...checkLawClaims(html, { requireClaims: true }));
 	// Spec 83: a role page (RolePage.astro, `data-role-page`) also loads src/scripts/page-tools.js (copy, print).
-	problems.push(...checkProductScripts(html, readSrc, { allowTry: isTry, allowTools: /\bdata-role-page\b/.test(html) }));
+	problems.push(...checkProductScripts(html, readSrc, { allowTry: isTry, allowTools: /\bdata-role-page\b/.test(html), allowTurnstile: isRequest }));
 	problems.push(...checkOfferNumbers(text, offer, checkedIso));
 	if (service) problems.push(...checkServicePage(html));
 	problems.push(...checkTypography(visibleText(extractMain(html))).map((p) => `<main>: ${p}`));
@@ -727,6 +831,121 @@ export function checkTryLinks(html, { demoOpen = offer.demoOpen, base = '/site',
 	return [];
 }
 
+// ---------------------------------------------------------------------------------------------
+// Story 78, W2 / story 80, S3: the request form and its result pages.
+
+export const REQUEST_SLUG = 'zaiavka';
+export const REQUEST_ERROR_CODES = ['invalid', 'bot', 'limit', 'server', 'closed'];
+export const REQUEST_SIGNERS = ['school', 'department', 'accounting', 'founder', 'unknown'];
+// name -> [maxlength, required]: the spec's W2 table, the same numbers as cloud/control/src/requestForm.js FIELDS.
+// `edrpou`, `signer` and `consent` have their own rules below.
+export const REQUEST_FIELDS = Object.freeze({
+	school: [200, true],
+	place: [120, true],
+	name: [120, true],
+	position: [120, true],
+	email: [254, true],
+	phone: [30, false],
+	current_site: [200, false],
+	wanted: [40, false],
+	comment: [1000, false],
+});
+
+const controlTag = (html, name) =>
+	html.match(new RegExp(`<(?:input|textarea)\\b[^>]*\\bname="${name}"[^>]*>`, 'i'))?.[0] ?? null;
+
+/**
+ * The page «Подати заявку». Open (`open`: requests open and the Turnstile key set): exactly one form, posting to
+ * `{cpUrl}/v1/requests` (urlencoded, utf-8), with every field of the spec's W2 table at the server's limits, the
+ * required consent checkbox with value="yes", the honeypot, the Turnstile widget with the site key, the notice line and the
+ * noscript line, and no script but Cloudflare's. Closed: no form, no widget, the support address.
+ */
+export function checkRequestPage(html, { open, cpUrl = offer.cpUrl, siteKey = offer.turnstileSiteKey, supportEmail = offer.supportEmail } = {}) {
+	const main = extractMain(html);
+	const problems = [];
+	if (!open) {
+		if (/<form\b/i.test(main)) problems.push('a <form> while the request form is closed');
+		if (/cf-turnstile|challenges\.cloudflare\.com/i.test(main)) problems.push('the Turnstile widget while the request form is closed');
+		if (!main.includes(`mailto:${supportEmail}`)) problems.push(`no mailto: link to ${supportEmail} while the request form is closed`);
+		return problems;
+	}
+	const forms = main.match(/<form\b[^>]*>/gi) ?? [];
+	if (forms.length !== 1) return [`${forms.length} <form> elements, expected exactly one`];
+	const form = forms[0];
+	if (!form.includes(`action="${cpUrl.replace(/\/+$/, '')}/v1/requests"`)) problems.push(`the form does not post to ${cpUrl}/v1/requests`);
+	if (!/\bmethod="post"/i.test(form)) problems.push('the form is not method="post"');
+	if (!/\baccept-charset="utf-8"/i.test(form)) problems.push('the form has no accept-charset="utf-8"');
+	for (const [name, [max, required]] of Object.entries(REQUEST_FIELDS)) {
+		const tag = controlTag(main, name);
+		if (!tag) problems.push(`no field "${name}"`);
+		else {
+			if (!tag.includes(`maxlength="${max}"`)) problems.push(`field "${name}" has no maxlength="${max}"`);
+			if (/\brequired\b/.test(tag) !== required) problems.push(`field "${name}" is${required ? ' not' : ''} required, the server says it is${required ? '' : ' not'}`);
+		}
+	}
+	const email = controlTag(main, 'email');
+	if (email && !/\btype="email"/.test(email)) problems.push('field "email" is not type="email"');
+	const edrpou = controlTag(main, 'edrpou');
+	if (!edrpou) problems.push('no field "edrpou"');
+	else {
+		if (!/\brequired\b/.test(edrpou)) problems.push('field "edrpou" is not required');
+		if (!edrpou.includes('pattern="\\d{8}"')) problems.push('field "edrpou" has no pattern="\\d{8}"');
+		if (!/\binputmode="numeric"/.test(edrpou)) problems.push('field "edrpou" is not inputmode="numeric"');
+	}
+	const phone = controlTag(main, 'phone');
+	if (phone && !/\bpattern="/.test(phone)) problems.push('field "phone" has no pattern');
+	const radios = main.match(/<input\b[^>]*\bname="signer"[^>]*>/gi) ?? [];
+	const values = radios.map((tag) => tag.match(/\bvalue="([^"]*)"/)?.[1]);
+	if (values.join(',') !== REQUEST_SIGNERS.join(',')) problems.push(`the signer radios are "${values.join(',')}", expected "${REQUEST_SIGNERS.join(',')}"`);
+	if (radios.some((tag) => !/\btype="radio"/.test(tag) || !/\brequired\b/.test(tag))) problems.push('a signer radio is not required');
+	const consent = controlTag(main, 'consent');
+	if (!consent) problems.push('no consent checkbox');
+	else {
+		if (!/\btype="checkbox"/.test(consent)) problems.push('"consent" is not a checkbox');
+		if (!/\brequired\b/.test(consent)) problems.push('the consent checkbox is not required');
+		if (!/\bvalue="yes"/.test(consent)) problems.push('the consent checkbox has no value="yes"');
+	}
+	const trap = controlTag(main, 'website');
+	if (!trap) problems.push('no honeypot "website"');
+	else {
+		if (!/\btabindex="-1"/.test(trap) || !/\bautocomplete="off"/.test(trap)) problems.push('the honeypot needs tabindex="-1" and autocomplete="off"');
+		if (/\brequired\b/.test(trap)) problems.push('the honeypot is required');
+		if (!/aria-hidden="true"[^>]*>(?:(?!<\/div>)[\s\S])*name="website"/.test(main)) problems.push("the honeypot's wrapper has no aria-hidden=\"true\"");
+	}
+	const widget = main.match(/<div\b[^>]*class="[^"]*\bcf-turnstile\b[^"]*"[^>]*>/i)?.[0];
+	if (!widget) problems.push('no Turnstile widget (div.cf-turnstile)');
+	else if (!widget.includes(`data-sitekey="${siteKey}"`)) problems.push('the Turnstile widget has not the site key of offer.mjs');
+	if (!main.includes(`src="${TURNSTILE_SRC}"`)) problems.push("Cloudflare's Turnstile script is missing");
+	problems.push(...checkScripts(main));
+	const text = fold(htmlText(main));
+	if (!/<button\b[^>]*type="submit"[^>]*>\s*Надіслати заявку\s*<\/button>/.test(main)) problems.push('no submit button «Надіслати заявку»');
+	if (/<button\b[^>]*\bdisabled\b/.test(main)) problems.push('the submit button is disabled');
+	if (!text.includes('Дані з форми отримує фізична особа — підприємець, що надає послуги Tabula')) problems.push('no notice line above the button');
+	if (!text.includes(`напишіть нам на ${supportEmail}`)) problems.push('the noscript line does not name the support address');
+	return problems;
+}
+
+/** A result page of the form (`/zaiavka/diakuiemo/`, `/zaiavka/pomylka/<code>/`) is `noindex`. */
+export function checkResultPage(html) {
+	return /<meta name="robots" content="noindex/.test(html) ? [] : ['a result page of the request form that is not noindex'];
+}
+
+/** No page but the result pages themselves links to them (the control plane's redirect is the only way in). */
+export function checkResultLinks(html) {
+	return /href="[^"]*\/zaiavka\/(?:diakuiemo|pomylka)\//.test(html) ? ['links to a result page of the request form'] : [];
+}
+
+/** The sitemap lists no result page of the form. */
+export function checkSitemapResults(xml) {
+	return /\/zaiavka\/(?:diakuiemo|pomylka)\//.test(xml) ? ['the sitemap lists a result page of the request form'] : [];
+}
+
+/** True for the built file of a result page of the request form (`rel` is relative to dist/). */
+export function isResultRel(rel) {
+	const parts = rel.split(path.sep);
+	return parts[0] === REQUEST_SLUG && (parts[1] === 'diakuiemo' || parts[1] === 'pomylka');
+}
+
 /** Problems every built page can have: an <img> without `alt`, a request to Google Fonts. */
 export function checkEveryPage(html) {
 	const problems = [];
@@ -863,6 +1082,7 @@ function main() {
 			for (const problem of checkProductPage(html, {
 					isHome: rel === 'index.html',
 					isTry: rel === path.join(TRY_SLUG, 'index.html'),
+					isRequest: rel === path.join(REQUEST_SLUG, 'index.html'),
 					allowUcoz: UCOZ_PAGES.some((slug) => rel === path.join(slug, 'index.html')),
 					checkedIso: checkedOnFor(first),
 					service: SERVICE_SLUGS.includes(first) && rel === path.join(first, 'index.html'),
@@ -872,6 +1092,14 @@ function main() {
 				})) fail(`dist/${rel}`, problem);
 		} else {
 			for (const problem of checkDocChrome(html, base)) fail(`dist/${rel} header/footer`, problem);
+		}
+		if (rel === path.join(REQUEST_SLUG, 'index.html')) {
+			for (const problem of checkRequestPage(html, { open: requestFormOpen() })) fail(`dist/${rel}`, problem);
+		}
+		if (isResultRel(rel)) {
+			for (const problem of checkResultPage(html)) fail(`dist/${rel}`, problem);
+		} else {
+			for (const problem of checkResultLinks(html)) fail(`dist/${rel}`, problem);
 		}
 		if (rel === path.join(TRY_SLUG, 'index.html')) {
 			for (const problem of checkTryPage(html)) fail(`dist/${rel}`, problem);
@@ -889,6 +1117,16 @@ function main() {
 		if (/fonts\.googleapis\.com|fonts\.gstatic\.com/i.test(readFileSync(css, 'utf8'))) {
 			fail(`dist/${path.relative(distDir, css)}`, 'the built CSS refers to Google Fonts');
 		}
+	}
+
+	// Every result page of the request form is built, and the sitemap lists none of them.
+	for (const rel of ['diakuiemo', ...REQUEST_ERROR_CODES.map((code) => path.join('pomylka', code))]) {
+		if (!existsSync(path.join(distDir, REQUEST_SLUG, rel, 'index.html'))) {
+			fail(`dist/${REQUEST_SLUG}/${rel}/index.html`, 'the result page is not built');
+		}
+	}
+	for (const file of readdirSync(distDir).filter((name) => /^sitemap.*\.xml$/.test(name))) {
+		for (const problem of checkSitemapResults(readFileSync(path.join(distDir, file), 'utf8'))) fail(`dist/${file}`, problem);
 	}
 
 	// The own pages the footer does not link must still be linked from some product page.

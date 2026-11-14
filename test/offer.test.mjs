@@ -25,6 +25,8 @@ import {
 	privacyEmail,
 	complaintEmail,
 	demoHref,
+	requestFormOpen,
+	requestHref,
 	demoPageState,
 } from '../src/config/offer.mjs';
 
@@ -253,4 +255,19 @@ test('offer: story 82 phase 2 — the demo copy, the share look and the request 
 	assert.ok(Number.isInteger(offer.demoReminderDays) && offer.demoReminderDays > 0 && offer.demoReminderDays < offer.demoKeepDays);
 	assert.equal(offer.demoViewMinutes, 30);
 	assert.equal(offer.demoRefHours, 24);
+});
+
+test('requestFormOpen: requests open AND the Turnstile site key set', () => {
+	assert.equal(requestFormOpen({ requestsOpen: true, turnstileSiteKey: 'key' }), true);
+	assert.equal(requestFormOpen({ requestsOpen: true, turnstileSiteKey: '' }), false);
+	assert.equal(requestFormOpen({ requestsOpen: false, turnstileSiteKey: 'key' }), false);
+	assert.equal(typeof requestFormOpen(), 'boolean');
+});
+
+test('requestHref: the form page when open, else the home\'s #request', () => {
+	assert.equal(requestHref('/site/', false, true), '/site/zaiavka/');
+	assert.equal(requestHref('/site/', true, true), '/site/zaiavka/');
+	assert.equal(requestHref('/site/', true, false), '#request');
+	assert.equal(requestHref('/site/', false, false), '/site/#request');
+	assert.equal(requestHref('/', false, false), '/#request');
 });

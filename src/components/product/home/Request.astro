@@ -1,9 +1,12 @@
 ---
-// Section 13: Подати заявку на пілот. Three steps; then, by `offer.requestsOpen`:
-//  - false (now): no form — «Заявки з сайту відкриємо найближчим часом. Поки напишіть нам:» and
-//    the support address as a `mailto:` button (its label is the address);
-//  - true (slice S3 of story 80): the two-step form of the mockup.
-import { offer, withinWorkingDays, formatDateLongYear } from '../../../config/offer.mjs';
+// Section 13: Подати заявку на пілот. Three steps; then, by requestFormOpen() (requests open and the Turnstile key set):
+//  - true: a short line and the button «Заповнити заявку» to the page «Подати заявку», which holds the form;
+//  - false: no form — «Заявки з сайту відкриємо найближчим часом. Поки напишіть нам:» and the support address as a
+//    `mailto:` button (its label is the address).
+import { offer, withinWorkingDays, formatDateLongYear, requestFormOpen, requestHref } from '../../../config/offer.mjs';
+const base = import.meta.env.BASE_URL;
+const root = base.endsWith('/') ? base : `${base}/`;
+const open = requestFormOpen();
 ---
 
 <section id="request" class="anchor">
@@ -20,14 +23,21 @@ import { offer, withinWorkingDays, formatDateLongYear } from '../../../config/of
 			</div>
 			<div class="request__side">
 				{
-					!offer.requestsOpen && (
+					!open && (
 						<>
 							<p>Заявки з сайту відкриємо найближчим часом. Поки напишіть нам:</p>
 							<a class="btn btn-main" href={`mailto:${offer.supportEmail}`}>{offer.supportEmail}</a>
 						</>
 					)
 				}
-				{/* TODO(S3): offer.requestsOpen === true renders the two-step form here (posting to {cpUrl}/v1/requests). */}
+				{
+					open && (
+						<>
+							<p>Заявка займе близько пʼяти хвилин.</p>
+							<a class="btn btn-main" href={requestHref(root)}>Заповнити заявку</a>
+						</>
+					)
+				}
 			</div>
 		</div>
 	</div>
