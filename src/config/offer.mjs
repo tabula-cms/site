@@ -14,6 +14,10 @@ export const offer = Object.freeze({
 	pilotUntil: '2026-12-31',
 	// Decision 3: the public price per site, without VAT, in hryvnias.
 	priceYearUah: 4800,
+	// Owner's decision, 2026-11-14: every new institution gets this many free calendar days from the day it joins, so
+	// the head can start the site while the papers are being arranged. An institution that joins before `pilotUntil`
+	// keeps the longer of the two (the pilot's promise «безкоштовно до …» stays true).
+	trialDays: 30,
 	// Decision 3: the quarterly instalment; must equal priceYearUah / 4 (test/offer.test.mjs).
 	priceQuarterUah: 1200,
 	// Decision 24: the value of the pilot's free services for the institution's books, per MONTH
@@ -455,12 +459,12 @@ export const decisions = Object.freeze({
 	// statement and an estimate change (Для бухгалтерії, the trial stage).
 	pilotActs: Object.freeze({
 		confirmed: true,
-		text: `Акт один — ${formatDateLongYear(offer.pilotUntil)}, за весь пробний період.`,
+		text: `Акт один — в останній день пробного періоду.`,
 	}),
 	// Decision 2: the value of the pilot's services in the act (Для бухгалтерії, «Коротко», «Пробний період»).
 	pilotActValue: Object.freeze({
 		confirmed: true,
-		text: `Вартість послуг в акті — ${formatGrn(offer.pilotValueUah)} за повний місяць, за неповний — пропорційно дням.`,
+		text: `Вартість послуг в акті — ${formatGrn(offer.pilotValueUah)} за кожні ${offer.trialDays} днів, за менший строк — пропорційно дням.`,
 	}),
 	// Decision 3: the contract for the paid year (Для бухгалтерії, the timeline's step 7).
 	contract2027: Object.freeze({

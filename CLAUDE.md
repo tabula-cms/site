@@ -191,7 +191,9 @@ happens in each workflow, not in the composite action. Both checkouts pass
   contract says they stand in the application both parties sign and in the extracts sent with it, so `offer.operator`
   stays empty and section 12 names only the tax status and the support address. The owner accepted every term, so the
   decisions `pilotActs`, `pilotActValue`, `contract2027`, `januaryGrace` and `latePayment` are `confirmed: true` and
-  render. The terms the pages must not contradict: the contract renews automatically each calendar year; each January
+  render. The terms the pages must not contradict: every new institution gets `offer.trialDays` (30) free calendar days from the
+  day it joins, and one that joins before `pilotUntil` keeps the longer of the two (so «безкоштовно до {pilotUntil}»
+  stays true); the paid period starts the day after the trial and its first quarter is paid pro rata; the contract renews automatically each calendar year; each January
   the institution signs a one-page yearly application for the whole year (`paymentBankDays` is 20 WORKING days, the
   name is historical); no fines for either party; the service is best-efforts and cannot be paused for separate months;
   no charge for an outage over 5 days that is not the institution's fault; the page says nothing specific about the
