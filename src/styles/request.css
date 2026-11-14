@@ -151,3 +151,45 @@
 		padding: 14px 14px 2px;
 	}
 }
+
+/* The instant checks (src/scripts/request-check.js): one line under the field. Shown only by the script. */
+.req__check,
+.req__fix {
+	margin: 6px 0 0;
+	font-size: 16px;
+	line-height: 1.4;
+}
+.req__check[data-state='ok'] {
+	color: #17594f;
+}
+.req__check[data-state='bad'] {
+	color: #9a2f1a;
+	font-weight: 600;
+}
+.req__check[data-state='wait'] {
+	color: var(--text);
+}
+.req__check[data-state='ok']::before {
+	content: '✓ ';
+	font-weight: 700;
+}
+.req__check[data-state='bad']::before {
+	content: '✕ ';
+	font-weight: 700;
+}
+.req__fix-btn {
+	min-height: 44px;
+	margin-left: 6px;
+	padding: 6px 14px;
+	border: 1.5px solid var(--accent);
+	border-radius: 999px;
+	background: var(--surface);
+	color: var(--accent);
+	font: inherit;
+	font-weight: 700;
+	cursor: pointer;
+}
+[data-product-page] .req__fix-btn:focus-visible {
+	outline: 3px solid var(--focus);
+	outline-offset: 2px;
+}

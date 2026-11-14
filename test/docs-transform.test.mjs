@@ -450,3 +450,7 @@ test('PUBLISHED_FOLDERS: only the editor guide is published', () => {
 	assert.deepEqual(PUBLISHED_FOLDERS, ['editor']);
 	assert.ok(PUBLISHED_FOLDERS.every((folder) => IMPORTED_FOLDERS.includes(folder)));
 });
+
+test('extractTitle: an HTML comment marker in the heading is not part of the title', () => {
+	assert.equal(extractTitle('# Сайт на хостингу<!-- hosted -->\n\nBody.\n').title, 'Сайт на хостингу');
+});

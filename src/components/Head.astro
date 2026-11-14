@@ -1,0 +1,17 @@
+---
+// Override of Starlight's Head (registered in astro.config.mjs): Starlight's own tags, plus a preload of the five
+// font files a documentation page paints first (the page title and the wordmark in Unbounded, the text and the
+// headings in Manrope), the same set as src/layouts/Product.astro. The shared @font-face rules
+// (src/styles/fonts.css) are `font-display: optional`, which only works when the files are preloaded: used from
+// the first paint or not at all, so the text never jumps when a font arrives.
+import Default from '@astrojs/starlight/components/Head.astro';
+import unboundedCyrillic600 from '@fontsource/unbounded/files/unbounded-cyrillic-600-normal.woff2?url';
+import unboundedLatin600 from '@fontsource/unbounded/files/unbounded-latin-600-normal.woff2?url';
+import manropeCyrillic400 from '@fontsource/manrope/files/manrope-cyrillic-400-normal.woff2?url';
+import manropeCyrillic600 from '@fontsource/manrope/files/manrope-cyrillic-600-normal.woff2?url';
+import manropeCyrillic700 from '@fontsource/manrope/files/manrope-cyrillic-700-normal.woff2?url';
+const preloadFonts = [unboundedCyrillic600, unboundedLatin600, manropeCyrillic400, manropeCyrillic600, manropeCyrillic700];
+---
+
+<Default {...Astro.props}><slot /></Default>
+{preloadFonts.map((href) => <link rel="preload" as="font" type="font/woff2" href={href} crossorigin />)}

@@ -2,8 +2,8 @@
 // The sticky header of the product pages (story 80; the role pages joined it on 2026-11-14). From 1100 px: the
 // dropdown «Для кого» (a native <details>: the three role pages and «Як це працює»), the six anchors and the button
 // «Подати заявку» (and, once the demo is public, the secondary button «Спробувати» before it, from 1280 px); below
-// 1100 px the button and a native <details> «Меню» that lists «Для кого» with its four links, the seven anchors and
-// «Звʼязатися» (no JavaScript). On the home the anchors are `#…`; on other product pages they go to `{BASE_URL}#…`
+// 1100 px the button and a native <details> «Меню» that lists «Для кого» with its four links and the seven anchors
+// (no JavaScript; «Контакти» is the one way to write to us there: a second «Звʼязатися» link beside it was a duplicate). On the home the anchors are `#…`; on other product pages they go to `{BASE_URL}#…`
 // (prop `home`). The link to the page being shown carries aria-current="page".
 import { offer, requestHref } from '../../config/offer.mjs';
 
@@ -79,7 +79,6 @@ const chevron = 'M6 9l6 6 6-6';
 					</ul>
 					<ul class="nav-menu__main">
 						{panelLinks.map((link) => <li><a href={link.href}>{link.text}</a></li>)}
-						<li><a href={`mailto:${offer.supportEmail}`}>Звʼязатися</a></li>
 					</ul>
 				</nav>
 			</details>

@@ -1,6 +1,7 @@
 ---
 // The pilot request form (story 78, W2 / story 80, S3): a plain HTML form posted to the control plane
-// (`{cpUrl}/v1/requests`), no script of ours. The control plane always answers 303 to /zaiavka/diakuiemo/ or
+// (`{cpUrl}/v1/requests`). Its one script of ours, src/scripts/request-check.js, only says at once that a code or an
+// address cannot be right (see that file); without JavaScript the form works the same. The control plane always answers 303 to /zaiavka/diakuiemo/ or
 // /zaiavka/pomylka/<code>/. Field names, limits and values are the spec's W2 table (cloud docs/specs/78-…) and agree
 // with the server's cloud/control/src/requestForm.js; check-built's checkRequestPage holds both.
 import { offer, privacyEmail } from '../../config/offer.mjs';
@@ -10,7 +11,7 @@ const base = import.meta.env.BASE_URL;
 const root = base.endsWith('/') ? base : `${base}/`;
 
 // The `phone` pattern escapes ( ) and - so it is valid with and without the browser's `v` flag.
-const school = { name: 'school', label: 'Назва закладу', max: 200, autocomplete: 'organization', hint: 'Повна назва, без адреси сайту.' };
+const school = { name: 'school', label: 'Назва закладу', max: 200, autocomplete: 'organization', hint: 'Повна назва, без адреси сайту.', check: true };
 const edrpou = {
 	name: 'edrpou',
 	label: 'Код ЄДРПОУ',
@@ -18,14 +19,25 @@ const edrpou = {
 	pattern: '\\d{8}',
 	inputmode: 'numeric',
 	autocomplete: 'off',
-	hint: 'Вісім цифр, як у виписці з ЄДР. Перевірте кожну: з помилкою в коді заявку не буде прийнято.',
+	hint: 'Вісім цифр, як у виписці з ЄДР.',
+	check: true,
 };
-const place = { name: 'place', label: 'Громада або населений пункт', max: 120, hint: 'Без адреси сайту.' };
+const place = { name: 'place', label: 'Громада або населений пункт', max: 120, hint: 'Без адреси сайту.', check: true };
 const currentSite = { name: 'current_site', label: 'Адреса чинного сайту (якщо є)', max: 200, optional: true, type: 'text' };
 const wanted = { name: 'wanted', label: 'Бажана адреса сайту', max: 40, optional: true, hint: 'назва.tabula.org.ua або власний домен' };
 const person = { name: 'name', label: 'Ваше імʼя', max: 120, autocomplete: 'name' };
 const position = { name: 'position', label: 'Посада', max: 120, autocomplete: 'organization-title' };
-const email = { name: 'email', label: 'Електронна пошта', max: 254, type: 'email', autocomplete: 'email', spellcheck: 'false' };
+const email = {
+	name: 'email',
+	label: 'Електронна пошта для відповіді',
+	max: 254,
+	type: 'email',
+	autocomplete: 'email',
+	spellcheck: 'false',
+	hint: 'На неї прийде лист-підтвердження і наша відповідь.',
+	check: true,
+	fix: true,
+};
 const phone = {
 	name: 'phone',
 	label: 'Телефон',
@@ -37,9 +49,11 @@ const phone = {
 	hint: 'Щоб домовитися про дзвінок',
 };
 
+// The two things we cannot work without come first (owner, 2026-11-14): the institution's code and where to answer.
 const groups = [
-	{ legend: 'Заклад', fields: [school, edrpou, place, currentSite, wanted] },
-	{ legend: 'Контактна особа', fields: [person, position, email, phone] },
+	{ legend: 'Код закладу й пошта', fields: [edrpou, email] },
+	{ legend: 'Заклад', fields: [school, place, currentSite, wanted] },
+	{ legend: 'Хто подає заявку', fields: [person, position, phone] },
 ];
 
 const signers = [
@@ -52,7 +66,7 @@ const signers = [
 const privacy = privacyEmail();
 ---
 
-<div class="req">
+<div class="req" data-request-check data-support={offer.supportEmail}>
 	<form method="post" action={`${offer.cpUrl}/v1/requests`} accept-charset="utf-8">
 		<p class="req__legend-note"><span class="req__star" aria-hidden="true">*</span> — обовʼязкове поле. Решта — необовʼязкові.</p>
 
@@ -82,11 +96,18 @@ const privacy = privacyEmail();
 								inputmode={f.inputmode}
 								autocomplete={f.autocomplete}
 								spellcheck={f.spellcheck}
-								aria-describedby={f.hint ? `req-${f.name}-hint` : undefined}
+								aria-describedby={[f.hint && `req-${f.name}-hint`, f.check && `req-${f.name}-check`].filter(Boolean).join(' ') || undefined}
 							/>
 							{f.hint && (
 								<p class="req__hint" id={`req-${f.name}-hint`}>
 									{f.hint}
+								</p>
+							)}
+							{f.check && <p class="req__check" id={`req-${f.name}-check`} data-check-line={f.name} role="status" hidden />}
+							{f.fix && (
+								<p class="req__fix" data-check-fix hidden>
+									Можливо, ви мали на увазі <b data-check-fix-text />?{' '}
+									<button type="button" class="req__fix-btn">Виправити</button>
 								</p>
 							)}
 						</div>
@@ -141,3 +162,6 @@ const privacy = privacyEmail();
 		<p><button class="btn btn-main req__button" type="submit">Надіслати заявку</button></p>
 	</form>
 </div>
+<script>
+	import '../../scripts/request-check.js';
+</script>

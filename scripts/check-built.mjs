@@ -181,15 +181,23 @@ export function htmlText(html) {
 		.trim();
 }
 
-/** Problems with the <script> elements in a fragment (zaiavka's <main>). */
-export function checkScripts(fragment) {
+/** The marker of the request form's own script (src/scripts/request-check.js: the instant checks). */
+export const REQUEST_CHECK_MARK = 'data-request-check';
+
+/**
+ * Problems with the <script> elements in a fragment (zaiavka's <main>): Cloudflare's Turnstile script, and the form's
+ * own instant checks, known by its marker (`readSrc(src)` returns a built file's text; an inline module is read as it is).
+ */
+export function checkScripts(fragment, readSrc = () => null) {
 	const problems = [];
 	const re = /<script\b([^>]*)>([\s\S]*?)<\/script>/gi;
 	let match;
 	while ((match = re.exec(fragment))) {
 		const src = match[1].match(/\bsrc\s*=\s*"([^"]*)"/i);
-		if (!src) problems.push('an inline <script>');
-		else if (src[1] !== TURNSTILE_SRC) problems.push(`a script with src "${src[1]}"`);
+		if (src && src[1] === TURNSTILE_SRC) continue;
+		const code = src ? readSrc(src[1]) : match[2];
+		if (typeof code === 'string' && code.includes(REQUEST_CHECK_MARK)) continue;
+		problems.push(src ? `a script with src "${src[1]}"` : 'an inline <script>');
 	}
 	return problems;
 }
@@ -242,7 +250,7 @@ const pointsAtPage = (href, slug) => href === `/${slug}/` || href.endsWith(`/${s
 /**
  * Problems with a product page's header: the «Для кого» dropdown (four pages), the six anchors, «Спробувати» (only while
  * `offer.demoOpen`), the button «Подати заявку» (`requestHref`: #request, or the page `zaiavka/` while the form is open)
- * and the «Меню» panel («Для кого» with its four links, the seven anchors, «Звʼязатися»).
+ * and the «Меню» panel («Для кого» with its four links, then the seven anchors; «Контакти» is its one way to write to us).
  */
 export function checkProductHeader(html, { requestOpen = requestFormOpen(), demoOpen = offer.demoOpen } = {}) {
 	const header = html.match(/<header\b[^>]*data-site-header[^>]*>([\s\S]*?)<\/header>/i);
@@ -287,7 +295,7 @@ export function checkProductHeader(html, { requestOpen = requestFormOpen(), demo
 		if (!/<p\b[^>]*class="[^"]*nav-menu__heading[^"]*"[^>]*>\s*Для кого\s*<\/p>/i.test(panel[1])) problems.push('the «Меню» panel has no «Для кого» group heading');
 		const got = anchorsOf(panel[1]);
 		const want = [...FOR_LINKS, ...PRODUCT_LINKS, CONTACT_LINK];
-		const wantText = [...want.map(([text]) => text), 'Звʼязатися'].join(' | ');
+		const wantText = want.map(([text]) => text).join(' | ');
 		if (got.map((a) => a.text).join(' | ') !== wantText) {
 			problems.push(`«Меню» panel is "${got.map((a) => a.text).join(' | ')}", expected "${wantText}"`);
 		}
@@ -298,8 +306,6 @@ export function checkProductHeader(html, { requestOpen = requestFormOpen(), demo
 			const link = got[FOR_LINKS.length + i];
 			if (link && !pointsAt(link.href, id)) problems.push(`«Меню» panel: «${text}» points at "${link.href}", expected #${id}`);
 		});
-		const last = got[got.length - 1];
-		if (last && !last.href.startsWith('mailto:')) problems.push('«Звʼязатися» is not a mailto: link');
 	}
 	return problems;
 }
@@ -393,6 +399,26 @@ export function checkDocChrome(html, base) {
 	const home = anchorsOf(html).find((a) => a.text === 'На головну Tabula');
 	if (!home) problems.push('no footer link «На головну Tabula»');
 	else if (home.href !== root) problems.push(`«На головну Tabula» points at "${home.href}", expected "${root}"`);
+	return problems;
+}
+
+/**
+ * The school guide's own rules on a documentation page: the header's way back to the product pages («← Сайт Tabula»,
+ * src/components/SocialIcons.astro) pointing at the home, no leaked CMS marker comment (`<!-- video: … -->`,
+ * `<!-- screenshot: … -->`, `<!-- hosted -->`; src/lib/guide-markdown.mjs drops them), and every <img> of the page
+ * body with width and height (astro:assets writes them; without them a screenshot shifts the text as it loads).
+ */
+export function checkDocGuide(html, base) {
+	const problems = [];
+	const root = base === '/' ? '/' : `${base.replace(/\/$/, '')}/`;
+	const back = (html.match(/<a\b[^>]*class="[^"]*\bguide-back\b[^"]*"[^>]*>/) ?? [])[0];
+	if (!back) problems.push('no header link «← Сайт Tabula» (class guide-back)');
+	else if (!back.includes(`href="${root}"`)) problems.push(`«← Сайт Tabula» does not point at "${root}"`);
+	if (/<!--\s*(?:video|screenshot|hosted)\b/i.test(html)) problems.push('a CMS marker comment (video/screenshot/hosted) reached the page');
+	const main = (html.match(/<main\b[\s\S]*?<\/main>/i) ?? [''])[0];
+	for (const tag of main.match(/<img\b[^>]*>/gi) ?? []) {
+		if (!/\swidth="\d+"/.test(tag) || !/\sheight="\d+"/.test(tag)) problems.push(`a guide <img> without width and height: ${tag.slice(0, 90)}`);
+	}
 	return problems;
 }
 
@@ -597,7 +623,14 @@ export function checkLawClaims(html, { requireClaims = false } = {}) {
  * (story 82, S1b; `allowTry`) also loads its own script, the one that contains `data-demo-try`.
  */
 export function checkProductScripts(html, readSrc = () => null, { allowTry = false, allowTools = false, allowTurnstile = false } = {}) {
-	const marks = ['data-tabs', 'data-site-header', ...(allowTry ? ['data-demo-try'] : []), ...(allowTools ? ['data-page-tools'] : [])];
+	// `allowTurnstile` is the page «Подати заявку»: Cloudflare's script and the form's own instant checks.
+	const marks = [
+		'data-tabs',
+		'data-site-header',
+		...(allowTry ? ['data-demo-try'] : []),
+		...(allowTools ? ['data-page-tools'] : []),
+		...(allowTurnstile ? [REQUEST_CHECK_MARK] : []),
+	];
 	const ours = new RegExp(marks.join('|'));
 	const problems = [];
 	const re = /<script\b([^>]*)>([\s\S]*?)<\/script>/gi;
@@ -862,7 +895,7 @@ const controlTag = (html, name) =>
  * required consent checkbox with value="yes", the honeypot, the Turnstile widget with the site key, the notice line and the
  * noscript line, and no script but Cloudflare's. Closed: no form, no widget, the support address.
  */
-export function checkRequestPage(html, { open, cpUrl = offer.cpUrl, siteKey = offer.turnstileSiteKey, supportEmail = offer.supportEmail } = {}) {
+export function checkRequestPage(html, { open, cpUrl = offer.cpUrl, siteKey = offer.turnstileSiteKey, supportEmail = offer.supportEmail, readSrc = () => null } = {}) {
 	const main = extractMain(html);
 	const problems = [];
 	if (!open) {
@@ -918,7 +951,7 @@ export function checkRequestPage(html, { open, cpUrl = offer.cpUrl, siteKey = of
 	if (!widget) problems.push('no Turnstile widget (div.cf-turnstile)');
 	else if (!widget.includes(`data-sitekey="${siteKey}"`)) problems.push('the Turnstile widget has not the site key of offer.mjs');
 	if (!main.includes(`src="${TURNSTILE_SRC}"`)) problems.push("Cloudflare's Turnstile script is missing");
-	problems.push(...checkScripts(main));
+	problems.push(...checkScripts(main, readSrc));
 	const text = fold(htmlText(main));
 	if (!/<button\b[^>]*type="submit"[^>]*>\s*Надіслати заявку\s*<\/button>/.test(main)) problems.push('no submit button «Надіслати заявку»');
 	if (/<button\b[^>]*\bdisabled\b/.test(main)) problems.push('the submit button is disabled');
@@ -1063,7 +1096,7 @@ function main() {
 			fail(`dist (${rel})`, `forbidden phrase «${phrase}»`);
 		}
 		if (name === 'zaiavka') {
-			for (const problem of checkScripts(extractMain(html))) fail('dist (zaiavka) <main>', problem);
+			for (const problem of checkScripts(extractMain(html), (src) => readBuilt(distDir, base, src))) fail('dist (zaiavka) <main>', problem);
 		}
 	}
 
@@ -1094,9 +1127,10 @@ function main() {
 				})) fail(`dist/${rel}`, problem);
 		} else {
 			for (const problem of checkDocChrome(html, base)) fail(`dist/${rel} header/footer`, problem);
+			for (const problem of checkDocGuide(html, base)) fail(`dist/${rel}`, problem);
 		}
 		if (rel === path.join(REQUEST_SLUG, 'index.html')) {
-			for (const problem of checkRequestPage(html, { open: requestFormOpen() })) fail(`dist/${rel}`, problem);
+			for (const problem of checkRequestPage(html, { open: requestFormOpen(), readSrc: (src) => readBuilt(distDir, base, src) })) fail(`dist/${rel}`, problem);
 		}
 		if (isResultRel(rel)) {
 			for (const problem of checkResultPage(html)) fail(`dist/${rel}`, problem);
