@@ -492,15 +492,15 @@ export function decided(key, all = decisions) {
 // `pdf` is the address of the sample once it exists: the row then shows «Завантажити PDF» (and its status should be
 // 'ready'); a 'preparing' row offers «Надішлемо, щойно буде готово».
 export const documents = Object.freeze([
-	{ name: 'Витяг із ЄДР', why: 'щоб не утримувати ПДФО й військовий збір', when: 'разом із договором', status: 'ready', pdf: null },
-	{ name: 'Витяг із реєстру платників єдиного податку', why: 'щоб підтвердити групу єдиного податку й статус неплатника ПДВ', when: 'разом із договором', status: 'ready', pdf: null },
+	{ name: 'Витяг із ЄДР', why: 'щоб не утримувати ПДФО й військовий збір', when: 'разом із заявою', status: 'ready', pdf: null },
+	{ name: 'Витяг із реєстру платників єдиного податку', why: 'щоб підтвердити групу єдиного податку й статус неплатника ПДВ', when: 'разом із заявою', status: 'ready', pdf: null },
 	{ name: 'Договір приєднання (оферта), підписаний КЕП виконавця', why: 'умови, однакові для всіх закладів', when: 'до підписання заяви', status: 'preparing', pdf: null },
 	{ name: 'Заява про приєднання на пробний період і зразок акта до неї', why: 'для пробного періоду', when: 'до підписання', status: 'preparing', pdf: null },
 	{ name: `Заява про приєднання на ${yearOf(nextDay(offer.pilotUntil))} рік`, why: 'для основної закупівлі й реєстрації зобовʼязання в Казначействі', when: 'до підписання', status: 'preparing', pdf: null },
 	{ name: 'Зразок наказу про прийняття безоплатно отриманих послуг', why: 'для обліку пробного періоду', when: 'разом із заявою', status: 'preparing', pdf: null },
 	{ name: 'Зразок протоколу уповноваженої особи', why: 'щоб внести закупівлю до річного плану', when: 'до січня', status: 'preparing', pdf: null },
 	{ name: 'Зразок акта й рахунку на оплату', why: 'для щоквартальної оплати', when: 'щокварталу', status: 'preparing', pdf: null },
-	{ name: 'Зразок наказу про призначення працівника, який веде сайт', why: 'щоб призначити відповідального', when: 'разом із договором', status: 'preparing', pdf: null },
+	{ name: 'Зразок наказу про призначення працівника, який веде сайт', why: 'щоб призначити відповідального', when: 'разом із заявою', status: 'preparing', pdf: null },
 	{ name: 'Зразок згоди батьків на фото й відео дітей', why: 'для публікації фото', when: 'до зйомки', status: 'preparing', pdf: null },
 ]);
 
