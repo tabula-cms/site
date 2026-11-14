@@ -81,7 +81,7 @@ export const offer = Object.freeze({
 	// Story 82: the site key of the demo's own Turnstile widget (action `demo-signin`; the CP holds its secret,
 	// CP_DEMO_TURNSTILE_SECRET). The owner fills it in; TABULA_DEMO_TURNSTILE_SITEKEY overrides it. While it is empty
 	// the page «Спробувати» shows «Демо тимчасово закрите».
-	demoTurnstileSiteKey: process.env.TABULA_DEMO_TURNSTILE_SITEKEY || '',
+	demoTurnstileSiteKey: process.env.TABULA_DEMO_TURNSTILE_SITEKEY || '0x4AAAAAAGA27M0_jaDKvo5G',
 	// Story 82, phase 2 (decisions 3, 49): a demo copy is kept this many days from its last save (CP's
 	// `snapshot_saved_at`); the reminder goes this many days before the end. Consent 1 and the privacy section «Демо»
 	// quote them.
