@@ -5,6 +5,7 @@ import StatusBadge from './StatusBadge.astro';
 import { offer, documents } from '../../../config/offer.mjs';
 import { typo } from '../../../lib/typo.mjs';
 
+const root = import.meta.env.BASE_URL.replace(/\/?$/, '/');
 const notify = (name: string) =>
 	`mailto:${offer.supportEmail}?subject=${encodeURIComponent(`Надішліть, щойно буде готово: ${name}`)}`;
 ---
@@ -30,7 +31,7 @@ const notify = (name: string) =>
 						<td>
 							<StatusBadge status={doc.status} />
 							{doc.pdf ? (
-								<a class="doc-table__action" href={doc.pdf}>
+								<a class="doc-table__action" href={`${root}${doc.pdf}`}>
 									Завантажити PDF
 								</a>
 							) : doc.status === 'preparing' ? (

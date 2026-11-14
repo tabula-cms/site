@@ -23,6 +23,7 @@ const TYPES = {
 	'.woff': 'font/woff',
 	'.woff2': 'font/woff2',
 	'.wasm': 'application/wasm',
+	'.pdf': 'application/pdf',
 };
 
 /** Starts the server; resolves to `{ server, origin }` (`origin` has no trailing slash and no base). */

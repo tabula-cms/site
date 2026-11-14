@@ -1,3 +1,4 @@
+import { existsSync, readFileSync } from 'node:fs';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
@@ -270,4 +271,18 @@ test('requestHref: the form page when open, else the home\'s #request', () => {
 	assert.equal(requestHref('/site/', true, false), '#request');
 	assert.equal(requestHref('/site/', false, false), '/site/#request');
 	assert.equal(requestHref('/', false, false), '/#request');
+});
+
+test('documents: every download of the table is a PDF in public/, and every generated form is in the table', async () => {
+	const { DOCUMENTS } = await import('../scripts/lib/document-templates.mjs');
+	const linked = documents.filter((d) => d.pdf).map((d) => d.pdf);
+	for (const pdf of linked) {
+		const file = new URL(`../public/${pdf}`, import.meta.url);
+		assert.ok(existsSync(file), `${pdf} is missing: run "npm run documents"`);
+		assert.equal(readFileSync(file).subarray(0, 5).toString('latin1'), '%PDF-', pdf);
+	}
+	for (const doc of DOCUMENTS) assert.ok(linked.includes(`dokumenty/${doc.file}`), doc.file);
+	assert.ok(linked.includes('dokumenty/dohovir.pdf'));
+	for (const d of documents) if (!d.pdf) assert.notEqual(d.status, 'ready', d.name);
+	assert.match(offer.contractEdition, /^\d{4}-\d{2}-\d{2}$/);
 });

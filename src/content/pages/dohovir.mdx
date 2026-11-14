@@ -4,8 +4,6 @@ description: "Договір приєднання про надання посл
 ---
 
 import { offer, formatDateLongYear, formatGrn, nextDay, yearOf } from '../../config/offer.mjs';
-import Callout from '../../components/product/audience/Callout.astro';
-import Requisites from '../../components/product/audience/Requisites.astro';
 
 export const pilotEnd = formatDateLongYear(offer.pilotUntil);
 export const paidFrom = formatDateLongYear(nextDay(offer.pilotUntil));
@@ -15,18 +13,17 @@ export const year = formatGrn(offer.priceYearUah);
 export const quarter = formatGrn(offer.priceQuarterUah);
 export const trialMonth = formatGrn(offer.pilotValueUah);
 export const mail = `mailto:${offer.supportEmail}`;
+export const edition = formatDateLongYear(offer.contractEdition);
+export const pdf = '../dokumenty/dohovir.pdf';
 
-{/* The contract (договір приєднання). Its wording was reviewed three times and every term was accepted by the owner on
-    2026-11-14. It is published as a draft until the operator's details are filled in (offer.operator) and a lawyer has
-    read it; then the callout below goes and the edition gets its date. Numbers come from offer.mjs. */}
+{/* The contract (договір приєднання), edition offer.contractEdition. Its wording was reviewed three times and every
+    term was accepted by the owner on 2026-11-14. The operator's details are not on the site (owner's decision): they
+    stand in the application both parties sign. Numbers come from offer.mjs; a change of the text is a new edition:
+    move offer.contractEdition and run `npm run documents`. */}
 
-<Callout type="important">
+<p>Редакція від {edition}.<span data-screen-only> <a href={pdf}>Завантажити PDF</a> · Запитання — на <a href={mail}>{offer.supportEmail}</a>.</span></p>
 
-**Це проєкт договору.** Умови остаточні, але редакція набере чинності, коли ми впишемо реквізити виконавця й опублікуємо її з датою та електронним підписом. Запитання — на <a href={mail}>{offer.supportEmail}</a>.
-
-</Callout>
-
-Фізична особа — підприємець, реквізити якої наведено в розділі 12, платник єдиного податку третьої групи за ставкою {offer.operator.taxRatePercent} %, не платник податку на додану вартість (далі — Виконавець), пропонує закладам освіти — юридичним особам (далі — Замовник) укласти цей договір на викладених нижче умовах.
+Фізична особа — підприємець, реквізити якої зазначено в Заяві (розділ 12), платник єдиного податку третьої групи за ставкою {offer.operator.taxRatePercent} %, не платник податку на додану вартість (далі — Виконавець), пропонує закладам освіти — юридичним особам (далі — Замовник) укласти цей договір на викладених нижче умовах.
 
 ## 1. Як укладається договір
 
@@ -182,7 +179,9 @@ export const mail = `mailto:${offer.supportEmail}`;
 
 ## 12. Реквізити Виконавця
 
-<Requisites />
+Прізвище, імʼя та по батькові Виконавця, його реєстраційний номер облікової картки платника податків, адресу, рахунок і банк зазначено в Заяві, яку підписують обидві сторони, і у витягах із Єдиного державного реєстру та реєстру платників єдиного податку, які Виконавець надає разом із Заявою.
+
+Виконавець — платник єдиного податку третьої групи за ставкою {offer.operator.taxRatePercent} %, не платник ПДВ. Електронна пошта: <a href={mail}>{offer.supportEmail}</a>.
 
 ## Додаток 1. Заява про приєднання на пробний період
 
