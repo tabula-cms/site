@@ -70,8 +70,10 @@ export const offer = Object.freeze({
 	// Story 82, decision 24: the public demo's button. While false (phase 1, a closed test by invitation) the page
 	// «Спробувати» (/sprobuvaty/) exists but nothing links to it, it is `noindex` and out of the sitemap; the owner hands
 	// out its address. True (after phase 2) adds it to the footer, the header, the hero, the sitemap and the search engines.
-	// TABULA_DEMO_OPEN=1 turns it on at build time, so the open state can be built and checked (never set it in CI's deploy).
-	demoOpen: process.env.TABULA_DEMO_OPEN === '1',
+	// Open since 2026-11-15 (owner: the demo works and is public; the control plane's `/v1/demo/signin` answers, the demo's
+	// own Turnstile key is set below). TABULA_DEMO_OPEN=0 closes it at build time, so the closed state can still be built
+	// and checked, and the button can be taken down quickly.
+	demoOpen: process.env.TABULA_DEMO_OPEN !== '0',
 	// Story 82, decision 30: the kinds whose golden copy exists, as tabula's `--seed` names (DEMO_KINDS below). With one
 	// kind the form's field is hidden and the page says «на прикладі ліцею». Must match the CP's `demo.kinds`.
 	demoKinds: Object.freeze(['school']),
