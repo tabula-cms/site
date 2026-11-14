@@ -201,9 +201,10 @@ happens in each workflow, not in the composite action. Both checkouts pass
   «Для бухгалтерії» adds `print-summary` to `<html>` and prints only `[data-print-summary]` blocks (Коротко, the details,
   the plan line) on one A4 sheet (`npm run a11y` checks it). «Для бухгалтерії» was rewritten on 2026-11-14
   after a school accountant and four reviews (an accounting firm, a school accountant, the tax office, the auditors) read
-  it. Owner's decisions of that day: the page is exhaustive but plain — eight lines of «Коротко», the requisites, every
-  step with who, document and deadline (trial, plan, January, each quarter), then «Довідка» as closed questions under
-  H3 groups; the contract is an offer (договір приєднання, its text signed with the operator's КЕП) the institution
+  it. Owner's decisions of that day: the page is exhaustive but reads short — «Що робить заклад» (three actions) first, then
+  «Коротко», the requisites, the detailed steps as one closed block per stage (`Faq` + `Steps`: trial, plan, January,
+  each quarter, ids `etap-…` and `shchokvartalu`), then «Довідка» as closed questions under H3 groups; the owner expects
+  to see «an offer and one page to sign», so nothing long may stand open above the fold; the contract is an offer (договір приєднання, its text signed with the operator's КЕП) the institution
   joins by a one-page application its head signs, which the operator prepares and signs first and the head signs
   and dates (that date is the contract's date and the start of the paid period; the trial runs until it; the last
   settlement period of a year is 1 October – 15 December), a two-sided copy only if the Treasury office asks; the code is

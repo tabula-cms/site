@@ -17,8 +17,7 @@ import { accountingActions } from '../../config/audience.mjs';
 import AnswerList from '../../components/product/audience/AnswerList.astro';
 import Actions from '../../components/product/audience/Actions.astro';
 import Requisites from '../../components/product/audience/Requisites.astro';
-import Timeline from '../../components/product/audience/Timeline.astro';
-import TimelineStage from '../../components/product/audience/TimelineStage.astro';
+import Steps from '../../components/product/audience/Steps.astro';
 import Step from '../../components/product/audience/Step.astro';
 import CopyBlock from '../../components/product/audience/CopyBlock.astro';
 import DocumentTable from '../../components/product/audience/DocumentTable.astro';
@@ -116,6 +115,30 @@ export const sources = [
 	{ title: 'Закон України «Про публічні закупівлі» від 27.05.2026 № 4888-IX; лист Мінекономіки від 17.08.2026 № 3323-04/76414-06.', url: 'https://zakon.rada.gov.ua/laws/show/4888-20' },
 ];
 
+## Що робить заклад
+
+Для закладу все зводиться до трьох дій. Договір однаковий для всіх, погоджувати нічого не треба.
+
+<Steps>
+<Step title="Керівник підписує заяву на одну сторінку.">
+
+Заяву готуємо й першими підписуємо ми; текст договору надсилаємо разом із нею.
+
+</Step>
+<Step title="Раз на рік бухгалтерія вносить закупівлю до плану й реєструє договір у Казначействі.">
+
+Готовий рядок плану й перелік документів є нижче.
+
+</Step>
+<Step title={`Раз на квартал заклад підписує акт і платить ${formatGrn(offer.priceQuarterUah)}.`}>
+
+Акт і рахунок надсилаємо ми.
+
+</Step>
+</Steps>
+
+Решта сторінки — довідка для бухгалтерії: відкрийте лише те, що потрібно вам.
+
 <div data-print-summary>
 
 ## Коротко
@@ -138,10 +161,10 @@ export const sources = [
 
 ## Як оформити: від пробного періоду до оплати
 
-Кроки йдуть у тому порядку, у якому їх виконують. Для кожного названо, хто його робить, який документ потрібен і який строк.
+Докладні кроки для бухгалтерії та уповноваженої особи, за етапами. Для кожного названо, хто його робить, який документ потрібен і який строк.
 
-<Timeline>
-<TimelineStage title={`Зараз — пробний період (до ${pilotEnd})`}>
+<Faq id="etap-probnyi-period" q={`Зараз — пробний період (до ${pilotEnd})`}>
+<Steps>
 <Step who="Керівник закладу" title="підписує заяву про приєднання на пробний період.">
 
 Ми надсилаємо заяву з нашим підписом і текст договору приєднання. Підписати заяву можна на папері, КЕП у «Вчасно» чи іншому сервісі електронного документообігу або КЕП на id.gov.ua. У заяві записано, що послуги безоплатні й що заклад не зобовʼязаний купувати їх далі. Покладіть у папку заяву, текст договору, витяг із ЄДР і витяг із реєстру платників єдиного податку.
@@ -168,9 +191,11 @@ export const sources = [
 Цього вимагає стаття 30 Закону «Про освіту» <SourceRef n={3} first />. У Tabula для цього є готовий розділ.
 
 </Step>
-</TimelineStage>
+</Steps>
+</Faq>
 
-<TimelineStage title={`До січня ${paidYear} року`}>
+<Faq id="etap-plan" q={`До січня ${paidYear} року`}>
+<Steps>
 <Step who="Бухгалтерія" title={`передбачає ${formatGrn(offer.priceYearUah)} за КЕКВ ${offer.kekv} у кошторисі на ${paidYear} рік.`}>
 
 Якщо бюджетний запит уже подано, сайт можна оплатити в межах видатків, запланованих за КЕКВ {offer.kekv}: там зазвичай є й інтернет.
@@ -185,9 +210,11 @@ export const sources = [
 Якщо заклад платить не з місцевого бюджету, змініть джерело фінансування.
 
 </Step>
-</TimelineStage>
+</Steps>
+</Faq>
 
-<TimelineStage title={`Січень ${paidYear} року`}>
+<Faq id="etap-sichen" q={`Січень ${paidYear} року`}>
+<Steps>
 <Step who="Керівник закладу" title={`підписує заяву про приєднання на ${paidYear} рік.`} meta={[{ label: 'Коли', text: 'після затвердження кошторису' }]}>
 
 Заява — це і є договір закладу: у ній зазначено сторони та їхні реквізити, редакцію договору приєднання, предмет закупівлі з кодом, ціну без ПДВ, строк і порядок оплати. Заяву підписують обидві сторони: спершу ми, потім керівник закладу, який ставить дату. Ця дата є датою договору <SourceRef n={5} first />, і з неї починається платний період; до неї триває пробний. Рік поділено на чотири розрахункові періоди по {formatGrn(offer.priceQuarterUah)}. За перший, неповний період заклад платить пропорційно дням, тож сума в заяві може бути меншою за річну ціну; розрахунок наведено в заяві.{decided('contract2027') && <> {decided('contract2027')}</>}
@@ -208,10 +235,11 @@ export const sources = [
 Якщо всі закупівлі класу {offer.dk021Class} за рік коштують менше {formatGrn(law.reportLimitUah)}, звіт не потрібен — див. [«Чи потрібен звіт у Prozorro?»](#zvit-prozorro).
 
 </Step>
-</TimelineStage>
+</Steps>
+</Faq>
 
-<div id="shchokvartalu">
-<TimelineStage title={`Щокварталу з ${paidYear} року`}>
+<Faq id="shchokvartalu" q={`Щокварталу з ${paidYear} року`}>
+<Steps>
 <Step who="Tabula" title="надсилає акт і рахунок на оплату.">
 
 В останній день кварталу — акт на {formatGrn(offer.priceQuarterUah)} без ПДВ і рахунок. Останній розрахунковий період року триває з 1 жовтня до 15 грудня: акт за нього надсилаємо 15 грудня, щоб заклад устиг оплатити його до закриття бюджетного року. З 16 до 31 грудня послуги надаються безоплатно; акт за ці дні складаємо в останній робочий день року, і заклад обліковує його так само, як акти пробного періоду.
@@ -232,9 +260,8 @@ export const sources = [
 У додатку 4ДФ за місяць оплати — виплата з ознакою доходу 157; податок і збір дорівнюють нулю <SourceRef n={9} first />. На порталі використання публічних коштів заклад оприлюднює договір і акти <SourceRef n={10} first />.
 
 </Step>
-</TimelineStage>
-</div>
-</Timeline>
+</Steps>
+</Faq>
 
 ## Які документи ми надаємо
 
