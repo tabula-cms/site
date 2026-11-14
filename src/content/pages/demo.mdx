@@ -7,7 +7,15 @@ import { demoPageState } from '../../config/offer.mjs';
 
 export const demo = demoPageState();
 
-{demo.buttonHref ? (
+{demo.tryDemo ? (
+  <>
+    <p>Демо вже працює: годину ви працюєте з власною копією вигаданого шкільного сайту — додаєте новини, змінюєте вигляд, заповнюєте сторінки.</p>
+
+    <p>
+      <a class="btn btn-main btn-lg" href="../sprobuvaty/">Спробувати демо</a>
+    </p>
+  </>
+) : demo.buttonHref ? (
   <>
     <p>
       <a class="btn btn-main btn-lg" href={demo.buttonHref}>Відкрити демо-сайт</a>

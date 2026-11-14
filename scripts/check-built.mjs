@@ -41,7 +41,7 @@
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
-import { offer, requestFormOpen, footerLine, formatDate, formatDateLongYear, formatGrn, checkedOnFor, SERVICE_SLUGS } from '../src/config/offer.mjs';
+import { offer, requestFormOpen, exampleIsSeparate, footerLine, formatDate, formatDateLongYear, formatGrn, checkedOnFor, SERVICE_SLUGS } from '../src/config/offer.mjs';
 import { refNumbers } from '../src/lib/refs.mjs';
 
 export const LAW_PAGE_SLUG = 'zakon-i-sait-shkoly';
@@ -516,9 +516,10 @@ export function checkAssistantChip(html, status) {
 /**
  * The home's first screen (2026-11-14). While `offer.demoOpen` is false: «Подати заявку» (the primary button) and the
  * outlined «Подивитися приклад сайту», and no link to «Спробувати». Once it is true: «Спробувати демо» -> sprobuvaty/
- * first, «Подати заявку» second, «Подивитися приклад сайту» a quiet link under them. «Подати заявку» is `requestHref`.
+ * first, «Подати заявку» second, and «Подивитися приклад сайту» a quiet link under them only when there is an example
+ * site beside the demo (`exampleIsSeparate`); without one the link is absent. «Подати заявку» is `requestHref`.
  */
-export function checkHeroButtons(html, { demoOpen = offer.demoOpen, requestOpen = requestFormOpen() } = {}) {
+export function checkHeroButtons(html, { demoOpen = offer.demoOpen, requestOpen = requestFormOpen(), example: wantExample = exampleIsSeparate(offer.demoSiteUrl, demoOpen) } = {}) {
 	const hero = sectionById(html, 'top');
 	if (hero === null) return ['no <section id="top"> (the hero)'];
 	const problems = [];
@@ -526,7 +527,9 @@ export function checkHeroButtons(html, { demoOpen = offer.demoOpen, requestOpen 
 	const buttons = links.filter((l) => /(^|\s)btn(\s|$)/.test(l.cls));
 	const request = (b) => b && b.text === 'Подати заявку' && (requestOpen ? pointsAtPage(b.href, REQUEST_SLUG) : pointsAt(b.href, 'request'));
 	const example = links.find((l) => l.text === 'Подивитися приклад сайту');
-	if (!example) problems.push('the hero has no «Подивитися приклад сайту»');
+	// With the demo public and no read-only demo site the example link would only repeat «Спробувати демо».
+	if (wantExample && !example) problems.push('the hero has no «Подивитися приклад сайту»');
+	if (!wantExample && example) problems.push('the hero has «Подивитися приклад сайту» although there is no example site beside the demo');
 	if (demoOpen) {
 		const [first, second] = buttons;
 		if (!first || first.text !== 'Спробувати демо' || !/\bbtn-main\b/.test(first.cls) || !pointsAtPage(first.href, TRY_SLUG)) {
@@ -1167,6 +1170,9 @@ function main() {
 
 	// The own pages the footer does not link must still be linked from some product page.
 	for (const slug of FOOTER_EXEMPT) {
+		// «Демо-сайт» is linked from nowhere once the demo «Спробувати» is public and there is no read-only demo site:
+		// the home then names the demo itself, and the page stays only for old links (it sends to the demo).
+		if (slug === 'demo' && !exampleIsSeparate()) continue;
 		if (ownSlugs.has(slug) && !linkedFromProduct.has(slug)) {
 			fail(`dist/${slug}/index.html`, 'not linked from the footer nor from any product page (orphaned)');
 		}

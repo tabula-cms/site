@@ -357,6 +357,12 @@ happens in each workflow, not in the composite action. Both checkouts pass
   site from the tabula checkout (`TABULA_DIR`, default `../tabula`) with a fictitious trusted chain. The three CC0 photos are copied
   from tabula's `test/fixtures/school-seed/photos/`; see `THIRD_PARTY_LICENSES.md`.
 - The demo site (story 80, round 3): `offer.demoSiteUrl` stays `null` until a public demo exists. The hero's «Подивитися приклад сайту» (an outlined button while `demoOpen` is false, a quiet link under the buttons once it is true, see the next bullets) and the templates section's «Відкрити приклад сайту» (always rendered now) use `demoHref(root)` from `offer.mjs`: the demo URL when set, else `{base}demo/`. `src/content/pages/demo.mdx` («Демо-сайт», reading page, linked from the footer's «Продукт» column) shows the amber chip «У розробці», the two verbatim sentences and links to `../#look` and `../#request` while `demoSiteUrl` is null; once it is set it shows the primary button «Відкрити демо-сайт» instead (no chip). `test/offer.test.mjs` covers both states of `demoHref`.
+- The example link once the demo is public (owner, 2026-11-15: a link to an «У розробці» page beside a working demo was confusing).
+  While `offer.demoOpen` is true and `offer.demoSiteUrl` is null (`exampleIsSeparate()` false): the hero has no «Подивитися приклад
+  сайту», the templates section's button reads «Спробувати демо» and `demoHref(root)` is `{root}sprobuvaty/`; the page «Демо-сайт»
+  (`demo.mdx`, `demoPageState().tryDemo`) says the demo works and has the button «Спробувати демо», is linked from nowhere and stays
+  only for old links (check-built skips its orphan check in that state). A read-only demo site (`demoSiteUrl`) brings the example
+  link and the old wording back; with the demo closed everything is as before.
 - The home's role cards and the assistant's story (owner's request, 2026-11-14): «З чого почати» (`Roles.astro`, id `start`, right after the four things,
   ~335 px tall at 1440) is four whole-card links — «Директору», «Тому, хто веде сайт», «Бухгалтерії», «Як це працює» — in the kinds tiles' grid (four in a row,
   2×2 up to 1000 px, one column up to 600 px; `.reveal` and the grid's staggered reveal only); each sentence is written from the page it leads to, so

@@ -222,10 +222,10 @@ test('checkProductHeader: «Спробувати» is in the header exactly whil
 	assert.ok(checkProductHeader(productPage('', after), { requestOpen: false, demoOpen: true }).some((p) => p.includes('not before')));
 });
 
-function hero({ demoOpen = false, requestOpen = false, swap = false } = {}) {
+function hero({ demoOpen = false, requestOpen = false, swap = false, withExample = !demoOpen } = {}) {
 	const request = `<a class="btn ${demoOpen ? 'btn-line' : 'btn-main'} btn-lg" href="${requestOpen ? '/site/zaiavka/' : '#request'}">Подати заявку</a>`;
 	const demo = '<a class="btn btn-main btn-lg" href="/site/sprobuvaty/">Спробувати демо</a>';
-	const example = demoOpen ? '</div><p class="hero__kinds hero__example"><a href="/site/demo/">Подивитися приклад сайту</a></p>' : '<a class="btn btn-line btn-lg" href="/site/demo/">Подивитися приклад сайту</a></div>';
+	const example = demoOpen ? (withExample ? '</div><p class="hero__kinds hero__example"><a href="https://demo.example.test/">Подивитися приклад сайту</a></p>' : '</div>') : '<a class="btn btn-line btn-lg" href="/site/demo/">Подивитися приклад сайту</a></div>';
 	const buttons = demoOpen ? (swap ? request + demo : demo + request) : request;
 	return `<section id="top" class="hero"><div class="hero__buttons">${buttons}${example}</section>`;
 }
@@ -239,8 +239,13 @@ test('checkHeroButtons: demo closed — «Подати заявку» first, the
 });
 
 test('checkHeroButtons: demo open — «Спробувати демо» primary first, «Подати заявку» secondary, the example a quiet link', () => {
-	assert.deepEqual(checkHeroButtons(hero({ demoOpen: true }), { demoOpen: true, requestOpen: false }), []);
-	assert.deepEqual(checkHeroButtons(hero({ demoOpen: true, requestOpen: true }), { demoOpen: true, requestOpen: true }), []);
+	// no example site beside the demo: no example link at all
+	assert.deepEqual(checkHeroButtons(hero({ demoOpen: true }), { demoOpen: true, requestOpen: false, example: false }), []);
+	assert.deepEqual(checkHeroButtons(hero({ demoOpen: true, requestOpen: true }), { demoOpen: true, requestOpen: true, example: false }), []);
+	assert.ok(checkHeroButtons(hero({ demoOpen: true, withExample: true }), { demoOpen: true, requestOpen: false, example: false }).length > 0);
+	// a read-only demo site exists: the quiet link under the buttons
+	assert.deepEqual(checkHeroButtons(hero({ demoOpen: true, withExample: true }), { demoOpen: true, requestOpen: false, example: true }), []);
+	assert.ok(checkHeroButtons(hero({ demoOpen: true }), { demoOpen: true, requestOpen: false, example: true }).length > 0);
 	assert.ok(checkHeroButtons(hero({ demoOpen: true, swap: true }), { demoOpen: true, requestOpen: false }).length > 0);
 	assert.ok(checkHeroButtons(hero({ demoOpen: false }), { demoOpen: true, requestOpen: false }).length > 0);
 });
