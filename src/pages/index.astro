@@ -17,6 +17,8 @@ import Price from '../components/product/home/Price.astro';
 import Faq from '../components/product/home/Faq.astro';
 import Contact from '../components/product/home/Contact.astro';
 import Request from '../components/product/home/Request.astro';
+import NextStep from '../components/product/home/NextStep.astro';
+import { offer, formatDateLongYear } from '../config/offer.mjs';
 import { shots, HERO } from '../components/product/shots';
 
 // The LCP image: the hero's laptop. Same widths, sizes and quality as Hero.astro's <img>, so the
@@ -48,10 +50,12 @@ const hero = await getImage({
 	<Roles />
 	<Kinds />
 	<Assistant />
+	<NextStep text={`Спробуйте на своєму закладі: до ${formatDateLongYear(offer.pilotUntil)} безкоштовно.`} moreText="Скільки це коштує потім" moreHref="#price" />
 	<Meals />
 	<Docs />
 	<Law />
 	<Why />
+	<NextStep text="Заявка займе кілька хвилин і ні до чого не зобовʼязує." moreText="Часті запитання" moreHref="#faq" />
 	<Look />
 	<Panel />
 	<Price />
