@@ -6,28 +6,13 @@
  * its inline styles became the classes below, the numbers did not change. */
 
 @import "./fonts.css";
+/* The tokens, the buttons, the header and the footer: shared with the school guide (Starlight), which renders the same
+ * header and footer components. */
+@import "./chrome.css";
 
 /* ---------------------------------------------------------------------------------------------
- * 2. Tokens (decision 7), base, focus, helpers.
+ * 2. Base, focus, helpers (the tokens are in chrome.css).
  * --------------------------------------------------------------------------------------------- */
-:root[data-product-page] {
-	--bg: #f7f9f8;
-	--surface: #ffffff;
-	--ink: #17283a;
-	--text: #3e4e63;
-	--line: #e2e8e6;
-	--accent: #1f6f66;
-	--accent-hover: #185a53;
-	--mint: #ddf0ea;
-	--amber-bg: #fff3cc;
-	--amber-ink: #6b4a00;
-	--marker: #ffe58a;
-	--hand: #2b4c9b;
-	--pen: #b8432a;
-	--focus: #2f7fd6;
-	--display: 'Unbounded', 'Unbounded Fallback', sans-serif;
-	--body: 'Manrope', 'Manrope Fallback', system-ui, sans-serif;
-}
 
 [data-product-page] body {
 	margin: 0;
@@ -128,66 +113,6 @@
 	background: var(--mint);
 }
 
-/* ---------------------------------------------------------------------------------------------
- * 3. Buttons.
- * --------------------------------------------------------------------------------------------- */
-.btn {
-	display: inline-block;
-	text-decoration: none;
-	font-weight: 700;
-	border-radius: 999px;
-	cursor: pointer;
-	transition:
-		background-color 0.15s ease-out,
-		box-shadow 0.15s ease-out,
-		transform 0.15s ease-out;
-}
-.btn:hover {
-	transform: translateY(-1px);
-}
-.btn:active {
-	transform: scale(0.98);
-}
-.btn-main {
-	background: var(--accent);
-	color: #ffffff;
-	border: 0;
-}
-[data-product-page] a.btn-main:hover,
-.btn-main:hover {
-	background: var(--accent-hover);
-	color: #ffffff;
-}
-.btn-line {
-	color: var(--ink);
-	background: var(--surface);
-	border: 1.5px solid #b9c5c1;
-}
-[data-product-page] a.btn-line:hover,
-.btn-line:hover {
-	border-color: var(--ink);
-	color: var(--ink);
-}
-.btn-lg {
-	font-size: 17px;
-	padding: 17px 28px;
-}
-.btn-lg.btn-line {
-	padding: 15.5px 24px;
-}
-.btn-main.btn-lg {
-	box-shadow: 0 10px 22px rgba(31, 111, 102, 0.22);
-}
-.btn-md {
-	font-size: 16px;
-	padding: 12.5px 22px;
-}
-.btn-block {
-	display: block;
-	text-align: center;
-	padding: 17px;
-	font-size: 17px;
-}
 .card-hover {
 	transition:
 		box-shadow 0.2s ease-out,
@@ -196,280 +121,6 @@
 .card-hover:hover {
 	box-shadow: 0 14px 30px rgba(23, 40, 58, 0.08);
 	transform: translateY(-2px);
-}
-
-/* ---------------------------------------------------------------------------------------------
- * 4. Header (sticky). Above 900 px: the seven links and the button; below: the button and a
- * native <details> «Меню» (no JavaScript).
- * --------------------------------------------------------------------------------------------- */
-.site-header {
-	position: sticky;
-	top: 0;
-	z-index: 20;
-	background: rgba(247, 249, 248, 0.94);
-	border-bottom: 1px solid var(--line);
-}
-.site-header.is-scrolled {
-	box-shadow: 0 6px 18px rgba(23, 40, 58, 0.08);
-	/* Compact once scrolled. The header is in the flow (sticky), so its 12 px of lost padding come back as a
-	 * margin: the document keeps its height and nothing below it moves. */
-	margin-bottom: 12px;
-}
-.site-header.is-scrolled .site-header__inner {
-	padding-top: 8px;
-	padding-bottom: 8px;
-}
-/* The reading progress bar is the header's last child, attached to its bottom edge (the header is sticky, so it
- * is the containing block); it exists only under motion (section 16). */
-.page-progress {
-	display: none;
-}
-.site-header__inner {
-	max-width: 1200px;
-	margin: 0 auto;
-	padding: 14px 24px;
-	display: flex;
-	align-items: center;
-	gap: 28px;
-}
-.brand {
-	display: flex;
-	align-items: center;
-	gap: 10px;
-	text-decoration: none;
-	color: var(--ink);
-}
-[data-product-page] a.brand:hover {
-	color: var(--ink);
-}
-.brand__name {
-	font-family: var(--display);
-	font-weight: 600;
-	font-size: 19px;
-}
-.nav-links {
-	display: flex;
-	gap: 24px;
-	flex: 1 1 auto;
-	font-weight: 600;
-	font-size: 15px;
-}
-.nav-links a,
-.nav-menu__panel a {
-	white-space: nowrap;
-	text-decoration: none;
-	color: var(--ink);
-}
-[data-product-page] .nav-links a:hover,
-[data-product-page] .nav-menu__panel a:hover {
-	color: var(--accent);
-}
-.site-header__actions {
-	margin-left: auto;
-	display: flex;
-	gap: 10px;
-	align-items: center;
-}
-.site-header__actions .btn-main {
-	font-size: 15px;
-	padding: 11px 20px;
-}
-.nav-menu {
-	display: none;
-}
-.nav-menu > summary {
-	cursor: pointer;
-	list-style: none;
-	display: inline-flex;
-	align-items: center;
-	gap: 6px;
-	color: var(--ink);
-	font-weight: 700;
-	font-size: 15px;
-	padding: 10px 14px;
-	border: 1.5px solid #cbd5d2;
-	border-radius: 999px;
-	background: var(--surface);
-}
-.nav-menu > summary::-webkit-details-marker {
-	display: none;
-}
-.nav-menu__panel {
-	/* Twelve links no longer fit a short phone: the panel scrolls inside itself. */
-	max-height: calc(100vh - 76px);
-	max-height: calc(100dvh - 76px);
-	overflow-y: auto;
-	overscroll-behavior: contain;
-	position: absolute;
-	left: 0;
-	right: 0;
-	top: 100%;
-	background: var(--surface);
-	border-bottom: 1px solid var(--line);
-	box-shadow: 0 18px 30px rgba(23, 40, 58, 0.1);
-	padding: 8px 24px 20px;
-}
-.nav-menu__panel ul {
-	list-style: none;
-	margin: 0;
-	padding: 0;
-	display: flex;
-	flex-direction: column;
-}
-.nav-menu__panel a {
-	display: block;
-	padding: 13px 0;
-	font-weight: 700;
-	font-size: 17px;
-	border-bottom: 1px solid #eef1f0;
-}
-.nav-menu__panel li:last-child a {
-	border-bottom: 0;
-}
-/* «Для кого» in the desktop row: a native <details> (works without JavaScript; header.js adds Escape, a click outside
- * and closing on a followed link). */
-.nav-links {
-	align-items: center;
-}
-.nav-for {
-	position: relative;
-}
-.nav-for > summary {
-	cursor: pointer;
-	list-style: none;
-	display: inline-flex;
-	align-items: center;
-	gap: 5px;
-	padding: 10px 0;
-	font-weight: 600;
-	font-size: 15px;
-	color: var(--ink);
-	white-space: nowrap;
-	border-radius: 6px;
-}
-.nav-for > summary::-webkit-details-marker {
-	display: none;
-}
-@media (prefers-reduced-motion: no-preference) {
-	.nav-for > summary svg {
-		transition: transform 0.15s ease-out;
-	}
-}
-.nav-for[open] > summary svg {
-	transform: rotate(180deg);
-}
-[data-product-page] .nav-for > summary:hover,
-.nav-for[open] > summary {
-	color: var(--accent);
-}
-.nav-for__panel {
-	position: absolute;
-	top: calc(100% + 4px);
-	left: -14px;
-	z-index: 2;
-	min-width: 250px;
-	margin: 0;
-	padding: 8px;
-	list-style: none;
-	background: var(--surface);
-	border: 1px solid var(--line);
-	border-radius: 14px;
-	box-shadow: 0 18px 30px rgba(23, 40, 58, 0.12);
-}
-.nav-for__panel a {
-	display: block;
-	padding: 12px 14px;
-	border-radius: 10px;
-	font-weight: 700;
-}
-[data-product-page] .nav-for__panel a:hover {
-	background: #eef4f2;
-}
-.nav-for__panel a[aria-current='page'],
-.nav-menu__panel a[aria-current='page'] {
-	color: var(--accent);
-}
-/* The «Меню» panel's group heading and its second list. */
-.nav-menu__heading {
-	margin: 12px 0 0;
-	font-size: 13px;
-	font-weight: 800;
-	letter-spacing: 0.02em;
-	color: #5f6e83;
-}
-.nav-menu__panel .nav-menu__main {
-	margin-top: 6px;
-	border-top: 1px solid #eef1f0;
-}
-/* «Спробувати» (only while the demo is public): a secondary button from desktop widths, never on phones. */
-.site-header .btn-try {
-	display: none;
-	font-size: 15px;
-	padding: 9.5px 18.5px;
-}
-@media (min-width: 1280px) {
-	.site-header .btn-try {
-		display: inline-flex;
-	}
-}
-/* The seven links and the button fit on one line, with comfortable gaps, from 1100 px (the row needs 1025 px, so at least 75 px of air is left; measured); below it the links
- * move into «Меню». The button never wraps at any width (below 480 px the header is tighter and «Меню» is icon-only, see below). */
-@media (max-width: 1099px) {
-	.nav-links {
-		display: none;
-	}
-	.nav-menu {
-		display: block;
-	}
-	.site-header__inner {
-		gap: 12px;
-	}
-}
-@media (max-width: 900px) {
-	.hide-sm {
-		display: none;
-	}
-}
-/* Nothing in the header wraps. The button never wraps; below 480 px «Меню» is only the three-bar icon (the word stays
- * as visually hidden text, so the accessible name is still «Меню»; the target is 44 x 44) and the header is a little
- * tighter, so brand + button + icon fit down to 320 px. */
-.site-header .btn {
-	white-space: nowrap;
-}
-@media (max-width: 479px) {
-	.nav-menu__label {
-		position: absolute;
-		width: 1px;
-		height: 1px;
-		overflow: hidden;
-		clip-path: inset(50%);
-		white-space: nowrap;
-	}
-	.nav-menu > summary {
-		width: 44px;
-		height: 44px;
-		padding: 0;
-		justify-content: center;
-		box-sizing: border-box;
-	}
-	.site-header__inner {
-		padding-left: 14px;
-		padding-right: 14px;
-		gap: 8px;
-	}
-	.site-header__actions {
-		gap: 8px;
-	}
-	.brand {
-		gap: 8px;
-	}
-	.brand__name {
-		font-size: 17px;
-	}
-	.site-header__actions .btn-main {
-		font-size: 14px;
-		padding: 10px 14px;
-	}
 }
 
 /* ---------------------------------------------------------------------------------------------
@@ -2253,132 +1904,12 @@
 }
 
 /* ---------------------------------------------------------------------------------------------
- * 14. Footer.
- * --------------------------------------------------------------------------------------------- */
-.site-footer {
-	border-top: 1px solid var(--line);
-	background: var(--surface);
-}
-/* Footer-and-audience-pages spec: the brand column and three link columns; below 900 px the brand takes the
- * whole row and the columns go two by two («Для кого» + «Про сервіс», then «Допомога»); the bottom row
- * (legal links, the footer line, ©) spans the grid and stacks on phones. */
-.site-footer__inner {
-	max-width: 1200px;
-	margin: 0 auto;
-	padding: 48px 24px 40px;
-	display: grid;
-	grid-template-columns: minmax(0, 1.4fr) repeat(3, minmax(0, 1fr));
-	gap: 32px;
-	font-size: 15px;
-	color: var(--text);
-}
-@media (max-width: 900px) {
-	.site-footer__inner {
-		grid-template-columns: repeat(2, minmax(0, 1fr));
-		gap: 28px 20px;
-	}
-	.site-footer__lead,
-	.site-footer__col:nth-of-type(3) {
-		grid-column: 1 / -1;
-	}
-}
-.site-footer__brand {
-	display: inline-flex;
-	align-items: center;
-	gap: 10px;
-	margin: 0;
-	font-family: var(--display);
-	font-weight: 600;
-	color: var(--ink);
-	font-size: 18px;
-	text-decoration: none;
-	min-height: 44px;
-}
-.site-footer__brand svg {
-	flex: none;
-}
-.site-footer a[aria-current='page'] {
-	color: var(--ink);
-	font-weight: 700;
-	text-decoration: underline;
-	text-underline-offset: 0.2em;
-}
-.site-footer__col a {
-	overflow-wrap: anywhere;
-}
-.site-footer__bottom {
-	grid-column: 1 / -1;
-	padding-top: 18px;
-	border-top: 1px solid var(--line);
-	font-size: 14px;
-	line-height: 1.6;
-}
-.site-footer__legal-links {
-	display: flex;
-	flex-wrap: wrap;
-	align-items: center;
-	gap: 0 10px;
-	margin: 0 0 8px;
-}
-.site-footer__legal-links a {
-	display: inline-block;
-	padding: 6px 0;
-	color: var(--text);
-}
-.site-footer__copy {
-	margin: 6px 0 0;
-}
-@media (max-width: 600px) {
-	.site-footer__legal-links {
-		flex-direction: column;
-		align-items: flex-start;
-	}
-	.site-footer__legal-links span {
-		display: none;
-	}
-	.site-footer__legal-links a {
-		padding: 11px 0;
-	}
-}
-.site-footer__about {
-	margin: 10px 0 0;
-	line-height: 1.6;
-}
-.site-footer__title {
-	margin: 0 0 12px;
-	font-weight: 800;
-	color: var(--ink);
-}
-.site-footer ul {
-	list-style: none;
-	margin: 0;
-	padding: 0;
-	display: flex;
-	flex-direction: column;
-	gap: 4px;
-}
-.site-footer ul a,
-.site-footer ul span {
-	display: inline-block;
-	padding: 6px 0;
-	color: var(--text);
-}
-.site-footer ul span a {
-	padding: 0;
-}
-.site-footer__legal {
-	margin: 0;
-}
-
-/* ---------------------------------------------------------------------------------------------
  * 15. Phones: 44 px targets.
  * --------------------------------------------------------------------------------------------- */
 @media (max-width: 900px) {
 	.btn,
 	.tab,
-	.nav-menu > summary,
 	.four a,
-	.nav-menu__panel a,
 	.hero__kinds a,
 	.law__text a.quiet {
 		min-height: 44px;
@@ -2400,14 +1931,6 @@
 	}
 	.btn-block {
 		display: flex;
-	}
-	.site-footer ul a,
-	.site-footer ul span {
-		padding: 11px 0;
-	}
-	.site-footer ul span a {
-		padding: 0;
-		display: inline;
 	}
 }
 @media (max-width: 600px) {
@@ -2471,14 +1994,6 @@
 	}
 	to {
 		transform: none;
-	}
-}
-@keyframes progress {
-	from {
-		transform: scaleX(0);
-	}
-	to {
-		transform: scaleX(1);
 	}
 }
 
@@ -2615,31 +2130,6 @@
 		}
 	}
 
-	/* 3. The reading progress bar, attached to the bottom edge of the sticky header: scroll(root), scaleX. */
-	@supports (animation-timeline: scroll()) {
-		.page-progress {
-			display: block;
-			position: absolute;
-			z-index: 1;
-			left: 0;
-			right: 0;
-			top: 100%;
-			height: 3px;
-			background: var(--accent);
-			transform-origin: 0 50%;
-			transform: scaleX(0);
-			pointer-events: none;
-			animation-name: progress;
-			animation-timing-function: linear;
-			animation-fill-mode: both;
-		}
-		.page-progress {
-			animation-timeline: scroll(root);
-		}
-	}
-	.site-header {
-		transition: box-shadow 0.2s ease-out;
-	}
 	.tabs--js .tabpanel--demo:not([hidden]) .thinking {
 		display: block;
 		animation: think 0.9s ease-out forwards;
@@ -2838,20 +2328,6 @@
 	}
 }
 
-/* The footer's link under the tagline («Про проєкт»): the same box as the list links, 44 px on phones via section 15. */
-.site-footer__more {
-	margin: 6px 0 0;
-}
-.site-footer__more a {
-	display: inline-block;
-	padding: 6px 0;
-	color: var(--text);
-}
-@media (max-width: 900px) {
-	.site-footer__more a {
-		padding: 11px 0;
-	}
-}
 
 /* ---------------------------------------------------------------------------------------------
  * 18. Richer motion on the home (owner's request, 2026-11-09; spec decision 10 was widened the same day).

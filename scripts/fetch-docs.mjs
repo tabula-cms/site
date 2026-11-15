@@ -208,6 +208,11 @@ function run(docsDir, ref) {
 		throw new Error(`none of docs/{${PUBLISHED_FOLDERS.join(',')}} found in ${docsDir}`);
 	}
 
+	// Astro caches each page's rendered HTML by the page's own text (node_modules/.astro/data-store.json). A guide page's
+	// HTML also depends on the other pages (its topic, «Інші статті розділу», the landing's cards: issue #57), so a new
+	// import must not reuse it: the next build renders every page again.
+	rmSync(path.join(projectRoot, 'node_modules', '.astro', 'data-store.json'), { force: true });
+
 	printSummary(pagesPerFolder, stats, clips);
 }
 
@@ -219,7 +224,7 @@ function importPage({ sourceFolderDir, outDir, folder, fileName, ref, order, fil
 	const raw = readFileSync(path.join(sourceFolderDir, fileName), 'utf8')
 		.replace(/^﻿/, '')
 		.replace(/\r\n/g, '\n');
-	const { title, body: bodyAfterHeading } = extractTitle(raw);
+	const { title, body: bodyAfterHeading, hosted } = extractTitle(raw);
 	if (title === null) {
 		stats.warnings.push(`no "# " heading found, page has no title: docs/${folder}/${fileName}`);
 	}
@@ -263,7 +268,10 @@ function importPage({ sourceFolderDir, outDir, folder, fileName, ref, order, fil
 		lang: folder === 'dev' ? 'en' : undefined,
 		order: pageOrder,
 		editUrl: githubEditUrl(ref, folder, fileName),
+		// `<!-- hosted -->` on the `#` line: the page exists on hosted sites only (src/lib/guide-structure.mjs reads it).
+		hosted: hosted === true,
 	});
+	if (hosted) stats.hosted = (stats.hosted ?? 0) + 1;
 
 	writeFileSync(path.join(outDir, outputFileName(fileName)), frontmatter + withClips.body, 'utf8');
 }
@@ -310,6 +318,7 @@ function printSummary(pagesPerFolder, stats, clips) {
 	}
 	console.log(`  total: ${total} page(s)`);
 	console.log(`  images copied: ${stats.images.size}`);
+	console.log(`  hosted-only pages: ${stats.hosted ?? 0}`);
 	const unmarked = [...clips].filter((name) => !stats.clipsShown.has(name));
 	console.log(`  clips: ${stats.players} player(s) of ${stats.clipsShown.size} clip(s); ${clips.size} in public/guide/clips`);
 	if (unmarked.length > 0) console.log(`  clips no page marks: ${unmarked.length} (${unmarked.join(', ')})`);

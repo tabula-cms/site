@@ -21,8 +21,12 @@
 //      or in another block are left alone.
 //   5. A table is wrapped in `div.guide-table` (a focusable, labelled scroll region), so a wide table scrolls inside
 //      its box on a phone instead of dragging the page sideways.
+//   6. With the guide's structure (src/lib/guide-structure.mjs, built once in astro.config.mjs and passed to
+//      `guideMarkdown({ guide })`): the landing, the task block of a long page, the back link, the hosted line and
+//      «Інші статті розділу» of a short article — src/lib/guide-layout.mjs. Without short articles nothing changes.
 
 import { fileURLToPath } from 'node:url';
+import { applyGuideLayout } from './guide-layout.mjs';
 
 const COMMENT = /^\s*<!--[\s\S]*?-->\s*$/;
 const DOCS_DIR = '/src/content/docs/';
@@ -44,7 +48,7 @@ function singleImage(paragraph) {
 }
 
 /** @returns {import('satteri').HastPluginDefinition} */
-function createPlugin() {
+function createPlugin(guide = null, slug = null) {
 	// The heading above the table being visited, for its region's label. Visitors run in document order.
 	let heading = '';
 
@@ -54,9 +58,11 @@ function createPlugin() {
 		// The italic role note under the title: the first block of the page, when it is only emphasis.
 		before(root, ctx) {
 			const first = root.children.find((child) => child.type === 'element');
-			if (!isElement(first, 'p')) return;
-			const parts = meaningful(first);
-			if (parts.length === 1 && isElement(parts[0], 'em')) ctx.setProperty(first, 'className', ['guide-role']);
+			if (isElement(first, 'p')) {
+				const parts = meaningful(first);
+				if (parts.length === 1 && isElement(parts[0], 'em')) ctx.setProperty(first, 'className', ['guide-role']);
+			}
+			applyGuideLayout(root, ctx, guide, slug);
 		},
 
 		raw(node, ctx) {
@@ -99,7 +105,8 @@ function createPlugin() {
 					return;
 				}
 				if (node.tagName === 'ol') {
-					if (parent?.type === 'root') ctx.setProperty(node, 'className', ['guide-steps']);
+					// The landing's own lists (`guide-start`) already have their class.
+					if (parent?.type === 'root' && !node.properties?.className) ctx.setProperty(node, 'className', ['guide-steps']);
 					return;
 				}
 				if (node.tagName === 'table') {
@@ -121,27 +128,51 @@ function createPlugin() {
 }
 
 /**
- * The plugin factory for `hastPlugins`: the plugin for a file under src/content/docs/, nothing for any other.
- * @param {{ fileURL?: URL }} context
+ * A plugin factory for `hastPlugins`: the plugin for a file under src/content/docs/, nothing for any other.
+ * @param {object | null} guide the guide's structure (src/lib/guide-structure.mjs), or null for the plain look only
  */
-export function guideHastPlugin({ fileURL }) {
-	if (!fileURL) return false;
-	const where = fileURLToPath(fileURL).replaceAll('\\', '/');
-	return where.includes(DOCS_DIR) ? createPlugin() : false;
+export function createGuideHastPlugin(guide = null) {
+	/** @param {{ fileURL?: URL }} context */
+	return function guideHastPlugin({ fileURL }) {
+		if (!fileURL) return false;
+		const where = fileURLToPath(fileURL).replaceAll('\\', '/');
+		if (!where.includes(DOCS_DIR)) return false;
+		const slug = /\/src\/content\/docs\/editor\/([^/]+)\.md$/.exec(where)?.[1] ?? null;
+		return createPlugin(guide, slug);
+	};
 }
 
-/** An Astro integration that registers the plugin on the Markdown processor (as Starlight does for its own). */
-export function guideMarkdown() {
+/** The plugin without the guide's structure (the typography only). */
+export const guideHastPlugin = createGuideHastPlugin(null);
+
+/**
+ * An Astro integration that registers the plugin on the Markdown processor (as Starlight does for its own).
+ * @param {{ guide?: object | null }} [options] the guide's structure, built once in astro.config.mjs
+ */
+export function guideMarkdown({ guide = null } = {}) {
 	return {
 		name: 'tabula-guide-markdown',
 		hooks: {
-			'astro:config:setup': ({ config, logger }) => {
+			'astro:config:setup': ({ config, logger, updateConfig }) => {
+				// The same structure for the components: `import guide from 'virtual:tabula/guide'` (null without an import).
+				const id = 'virtual:tabula/guide';
+				updateConfig({
+					vite: {
+						plugins: [
+							{
+								name: 'tabula-guide-structure',
+								resolveId: (source) => (source === id ? `\0${id}` : undefined),
+								load: (source) => (source === `\0${id}` ? `export default ${JSON.stringify(guide)};` : undefined),
+							},
+						],
+					},
+				});
 				const hastPlugins = config.markdown?.processor?.options?.hastPlugins;
 				if (!Array.isArray(hastPlugins)) {
 					logger.warn('the Markdown processor is not Sätteri: the guide keeps its plain look (no figures, steps, comment removal)');
 					return;
 				}
-				hastPlugins.push(guideHastPlugin);
+				hastPlugins.push(createGuideHastPlugin(guide));
 			},
 		},
 	};

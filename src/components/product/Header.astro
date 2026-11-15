@@ -5,9 +5,13 @@
 // 1100 px the button and a native <details> «Меню» that lists «Для кого» with its four links and the seven anchors
 // (no JavaScript; «Контакти» is the one way to write to us there: a second «Звʼязатися» link beside it was a duplicate). On the home the anchors are `#…`; on other product pages they go to `{BASE_URL}#…`
 // (prop `home`). The link to the page being shown carries aria-current="page".
+// The school guide renders this same component in Starlight's header slot (src/components/Header.astro; owner, 2026-11-15):
+// there it is a <div> (`as`: Starlight's frame is the <header> already), the slot `brand` holds the «Посібник» marker
+// beside the mark and `actions` what the guide adds before the buttons. On the product pages both slots are empty and the
+// markup is what it always was.
 import { offer, requestHref } from '../../config/offer.mjs';
 
-const { home = false } = Astro.props;
+const { home = false, as: Tag = 'header' } = Astro.props;
 const base = import.meta.env.BASE_URL;
 const root = base.endsWith('/') ? base : `${base}/`;
 const prefix = home ? '' : root;
@@ -33,7 +37,7 @@ const panelLinks = [...links, { text: 'Контакти', href: `${prefix}#conta
 const chevron = 'M6 9l6 6 6-6';
 ---
 
-<header class="site-header" data-site-header>
+<Tag class="site-header" data-site-header="">
 	<div class="site-header__inner">
 		<a class="brand" href={root}>
 			<svg width="30" height="30" viewBox="0 0 34 34" aria-hidden="true"
@@ -45,6 +49,7 @@ const chevron = 'M6 9l6 6 6-6';
 			>
 			<span class="brand__name">Tabula</span>
 		</a>
+		<slot name="brand" />
 		<nav class="nav-links" aria-label="Головне меню">
 			<details class="nav-for">
 				<summary>
@@ -57,6 +62,7 @@ const chevron = 'M6 9l6 6 6-6';
 			{links.map((link) => <a href={link.href}>{link.text}</a>)}
 		</nav>
 		<div class="site-header__actions">
+			<slot name="actions" />
 			{offer.demoOpen && <a class="btn btn-line btn-try" href={`${root}sprobuvaty/`} aria-current={current(`${root}sprobuvaty/`)}>Спробувати</a>}
 			<a class="btn btn-main" href={requestHref(root, home)}>Подати заявку</a>
 			<details class="nav-menu">
@@ -85,4 +91,4 @@ const chevron = 'M6 9l6 6 6-6';
 		</div>
 	</div>
 	<span class="page-progress" aria-hidden="true"></span>
-</header>
+</Tag>

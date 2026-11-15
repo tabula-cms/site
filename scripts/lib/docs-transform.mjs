@@ -420,6 +420,8 @@ export function insertClips(body, { title, fromUrl, clips }) {
 }
 
 const HEADING_RE = /^#[ \t]+(.+?)[ \t]*$/;
+// The CMS's marker of a page that exists on hosted sites only: `<!-- hosted -->` at the end of the `#` line.
+const HOSTED_MARKER_RE = /<!--[ \t]*hosted[ \t]*-->[ \t]*$/;
 const CLOSING_HEADING_HASHES_RE = /[ \t]+#+$/;
 
 /**
@@ -428,7 +430,8 @@ const CLOSING_HEADING_HASHES_RE = /[ \t]+#+$/;
  * closing run of `#` characters (CommonMark allows `# Title #` / `# Title ###`) is stripped from
  * the returned title, but only when preceded by whitespace, so a title that genuinely ends in a
  * word containing `#` (e.g. `C#`) is left alone. An HTML comment in the heading (`# Title<!-- hosted -->`, the
- * CMS's marker for a page that exists on hosted sites only) is not part of the title and is dropped from it.
+ * CMS's marker for a page that exists on hosted sites only) is not part of the title and is dropped from it; the
+ * hosted marker is reported as `hosted: true` (the key is absent otherwise), which the import writes into the front matter.
  */
 export function extractTitle(markdown) {
 	const lines = markdown.split('\n');
@@ -439,7 +442,10 @@ export function extractTitle(markdown) {
 		if (!match) return { title: null, body: markdown };
 		const title = match[1].replace(/<!--[\s\S]*?-->/g, '').trim().replace(CLOSING_HEADING_HASHES_RE, '');
 		const rest = lines.slice(i + 1).join('\n');
-		return { title, body: rest.replace(/^\n+/, '') };
+		const result = { title, body: rest.replace(/^\n+/, '') };
+		// `hosted` is only present when the marker is: a page without it keeps the exact shape it always had.
+		if (HOSTED_MARKER_RE.test(match[1])) result.hosted = true;
+		return result;
 	}
 	return { title: null, body: markdown };
 }
@@ -565,12 +571,13 @@ export function buildFrontmatter(entries) {
 
 /**
  * Convenience wrapper: the frontmatter for one imported page, in the fixed field order the
- * project uses (title, lang, sidebar.order, editUrl).
+ * project uses (title, lang, sidebar.order, editUrl, then `hosted: true` only for a page the CMS marks hosted-only).
  */
-export function buildPageFrontmatter({ title, lang, order, editUrl }) {
+export function buildPageFrontmatter({ title, lang, order, editUrl, hosted = false }) {
 	const entries = [['title', title]];
 	if (lang) entries.push(['lang', lang]);
 	entries.push(['sidebar', { order }]);
 	entries.push(['editUrl', editUrl]);
+	if (hosted) entries.push(['hosted', true]);
 	return buildFrontmatter(entries);
 }

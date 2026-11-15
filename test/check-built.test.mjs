@@ -147,6 +147,9 @@ import {
 	checkDocChrome,
 	checkDocGuide,
 	checkGuideClips,
+	checkGuideLanding,
+	checkGuideArticle,
+	checkGuideHosted,
 	checkCtaName,
 	checkFooterLinks,
 	checkOneH1,
@@ -428,16 +431,29 @@ test('checkNoDocsLinks: the product header and footer do not link into the docum
 	assert.equal(checkNoDocsLinks(productPage('', headerLink), undefined, '/site').length, 1);
 });
 
-test('checkDocChrome: no site navigation or request button, a footer link to the product home', () => {
-	const doc = (extra = '', home = '/site/') =>
-		`<html lang="uk"><body><header class="header"><a href="/site/">Tabula</a>${extra}</header><footer class="site-footer"><a href="${home}">На головну Tabula</a></footer></body></html>`;
-	assert.deepEqual(checkDocChrome(doc(), '/site'), []);
-	assert.deepEqual(checkDocChrome(doc('', '/'), '/'), []);
-	assert.equal(checkDocChrome(doc('<nav aria-label="Основна навігація"></nav>'), '/site').length, 1);
-	assert.equal(checkDocChrome(doc('<a class="btn" href="/site/zaiavka/">Подати заявку</a>'), '/site').length, 1);
-	assert.equal(checkDocChrome(doc('', '/site/editor/'), '/site').length, 1);
-	assert.equal(checkDocChrome(doc('<a class="btn" href="/site/zaiavka/">Залишити заявку</a>'), '/site').length, 1);
-	assert.equal(checkDocChrome('<html><body><header></header></body></html>', '/site').length, 1);
+test('checkDocChrome: the product header itself with the marker and the search, the product footer itself', () => {
+	// A guide page: Starlight's <header> holding the product header as a <div> (the brand and the marker added to the
+	// fixture's header), then the guide's bar with the search; the product footer.
+	const guideHeader = ({ root = '/site/', marker = `<a class="guide-marker" href="${root}editor/">Посібник</a>`, search = '<site-search></site-search>', header = productHeader({ prefix: root, demoOpen: true, requestOpen: true }) } = {}) =>
+		header
+			.replace('<header class="site-header" data-site-header><div>', `<div class="site-header" data-site-header><div><a class="brand" href="${root}">Tabula</a>${marker}`)
+			.replace(/<\/div><\/header>$/, '</div></div>') + `<div class="guide-bar">${search}</div>`;
+	const doc = (opts = {}, footer = '<footer class="site-footer" id="footer-nav"><p>©</p></footer>') =>
+		`<html lang="uk"><body><header class="header">${guideHeader(opts)}</header><main></main>${footer}</body></html>`;
+	const open = { demoOpen: true, requestOpen: true };
+	assert.deepEqual(checkDocChrome(doc(), '/site', open), []);
+	assert.deepEqual(checkDocChrome(doc({ root: '/' }), '/', open), []);
+	assert.match(checkDocChrome('<html><body><header class="header"><a href="/site/">Tabula</a></header></body></html>', '/site', open)[0], /no product header/);
+	assert.match(checkDocChrome(doc({ marker: '' }), '/site', open)[0], /«Посібник» marker/);
+	assert.match(checkDocChrome(doc({ marker: '<a class="guide-marker" href="/site/">Посібник</a>' }), '/site', open)[0], /«Посібник» marker/);
+	assert.match(checkDocChrome(doc({ search: '' }), '/site', open)[0], /no search/);
+	assert.match(checkDocChrome(doc({}, '<footer class="site-footer"><p>©</p></footer>'), '/site', open)[0], /no product footer/);
+	// The product header's own rules hold here too: «Подати заявку» leads where requestHref says, «Спробувати» while open.
+	assert.ok(checkDocChrome(doc(), '/site', { ...open, demoOpen: false }).some((p) => p.startsWith('the product header: ')));
+	assert.ok(checkDocChrome(doc({ header: productHeader({ prefix: '/site/', demoOpen: true, requestOpen: true, dropLink: 'Ціна' }) }), '/site', open).length > 0);
+	assert.ok(checkDocChrome(doc().replace('>Подати заявку<', '>Залишити заявку<'), '/site', open).some((p) => /Залишити заявку/.test(p)));
+	// The mark leads home.
+	assert.match(checkDocChrome(doc().replace('<a class="brand" href="/site/">', '<a class="brand" href="/site/editor/">'), '/site', open)[0], /mark does not lead/);
 });
 
 test('checkCtaName: «Залишити заявку» is on no product page', () => {
@@ -671,16 +687,12 @@ test('result pages: noindex, linked from nowhere, out of the sitemap', () => {
 });
 
 
-test('checkDocGuide: the way back in the header, no leaked marker comment, sized images', () => {
-	const doc = (extra = '') =>
-		`<header><a class="guide-back" href="/site/">Сайт Tabula</a></header><main><img alt="" width="10" height="20" src="/a.webp">${extra}</main>`;
-	assert.deepEqual(checkDocGuide(doc(), '/site'), []);
-	assert.equal(checkDocGuide('<header></header><main></main>', '/site').length, 1);
-	assert.equal(checkDocGuide(doc().replace('/site/', '/site/editor/'), '/site').length, 1);
-	assert.equal(checkDocGuide(doc('<!-- video: novyny-napysaty -->'), '/site').length, 1);
-	assert.equal(checkDocGuide(doc('<!-- hosted -->'), '/site').length, 1);
-	assert.equal(checkDocGuide(doc('<img alt="" src="/b.webp">'), '/site').length, 1);
-	assert.deepEqual(checkDocGuide(doc().replace('/site/', '/'), '/'), []);
+test('checkDocGuide: no leaked marker comment, sized images', () => {
+	const doc = (extra = '') => `<header></header><main><img alt="" width="10" height="20" src="/a.webp">${extra}</main>`;
+	assert.deepEqual(checkDocGuide(doc()), []);
+	assert.equal(checkDocGuide(doc('<!-- video: novyny-napysaty -->')).length, 1);
+	assert.equal(checkDocGuide(doc('<!-- hosted -->')).length, 1);
+	assert.equal(checkDocGuide(doc('<img alt="" src="/b.webp">')).length, 1);
 });
 
 test('checkGuideClips: controls, preload="none", an existing poster, size, a name, one MP4, no autoplay, the credit after it', () => {
@@ -711,4 +723,62 @@ test('checkGuideClips: controls, preload="none", an existing poster, size, a nam
 	assert.match(problems(figure.replace('https://creativecommons.org/licenses/by/4.0/', 'https://example.org/'))[0], /does not link the licence/);
 	// The second of two players is held too.
 	assert.equal(problems(figure + figure.replace(' controls', '')).length, 1);
+});
+
+// The two-layer guide (issue #57).
+const HOSTED = 'Лише на сайтах, що працюють на хостингу Tabula';
+const anchorWrap = (level, id, text) => `<div class="sl-heading-wrapper level-${level}"><h${level.slice(1)} id="${id}">${text}</h${level.slice(1)}><a class="sl-anchor-link" href="#${id}">#</a></div>`;
+
+test('checkGuideLanding: the search field, the cards, «Почніть тут», one card per area, every link built', () => {
+	const landing = (over = {}) =>
+		'<header></header><main>' +
+		(over.search ?? '<button type="button" class="guide-search" data-guide-search hidden>Пошук у посібнику</button>') +
+		(over.cards ?? '<ul class="guide-cards not-content"><li><a class="guide-card" href="novyny-napysaty/">Додати новину</a></li></ul>') +
+		anchorWrap('h2', 'pochnit-tut', 'Почніть тут') +
+		(over.start ?? '<ol class="guide-start not-content"><li><a class="guide-card" href="pochatok-vkhid/">Вхід</a></li></ol>') +
+		'<div class="guide-areas not-content">' +
+		'<section class="guide-area">' + anchorWrap('h3', 'area-a', 'А') + '<ul><li><a href="novyny/">Новини</a></li></ul></section>' +
+		(over.second ?? '<section class="guide-area">' + anchorWrap('h3', 'area-b', 'Б') + '<ul><li><a href="foto/">Фото</a></li></ul></section>') +
+		'</div>' + anchorWrap('h2', 'огляд', 'Огляд') + '<p><a href="nekhai/">Не картка</a></p></main>';
+	const exists = (href) => href !== 'nema/';
+	assert.deepEqual(checkGuideLanding(landing(), { areas: 2, exists }), []);
+	assert.match(checkGuideLanding(landing({ search: '' }), { areas: 2, exists })[0], /search field/);
+	assert.match(checkGuideLanding(landing({ cards: '' }), { areas: 2, exists })[0], /«Найчастіше»/);
+	assert.match(checkGuideLanding(landing({ start: '' }), { areas: 2, exists })[0], /«Почніть тут»/);
+	assert.match(checkGuideLanding(landing({ second: '' }), { areas: 2, exists })[0], /1 area card\(s\), the guide has 2/);
+	assert.match(checkGuideLanding(landing({ cards: '<ul class="guide-cards"><li><a class="guide-card" href="nema/">X</a></li></ul>' }), { areas: 2, exists })[0], /"nema\/", which is not built/);
+	// A link below the areas (the README's own sections) is not a card.
+	assert.deepEqual(checkGuideLanding(landing(), { areas: 2, exists: (href) => href !== 'nekhai/' }), []);
+});
+
+test('checkGuideArticle: «← topic» to the topic, «Інші статті розділу» with exactly the topic\'s other articles', () => {
+	const article = (back, siblings) =>
+		`<header></header><main>${back}<p>Текст.</p>${siblings}</main>`;
+	const back = '<p class="guide-topic not-content"><a href="../foto/">← Фото й альбоми</a></p>';
+	const siblings = '<section class="guide-siblings">' + anchorWrap('h2', 'inshi-statti-rozdilu', 'Інші статті розділу') + '<ul><li><a href="../foto-pidpys/">А</a></li><li><a href="../foto-avtor/">Б</a> <span class="guide-clip-mark">відео</span></li></ul></section>';
+	const opts = { topic: 'Фото й альбоми', topicHref: '../foto/', others: ['../foto-pidpys/', '../foto-avtor/'], exists: (href) => href !== '../nema/' };
+	assert.deepEqual(checkGuideArticle(article(back, siblings), opts), []);
+	assert.match(checkGuideArticle(article('', siblings), opts)[0], /link back/);
+	assert.match(checkGuideArticle(article(back.replace('Фото й альбоми', 'Фото'), siblings), opts)[0], /reads «← Фото»/);
+	assert.ok(checkGuideArticle(article(back.replace('../foto/', '../nema/'), siblings), opts).some((p) => /not built/.test(p)));
+	assert.match(checkGuideArticle(article(back.replace('../foto/', '../novyny/'), siblings), opts)[0], /expected "\.\.\/foto\/"/);
+	assert.match(checkGuideArticle(article(back, siblings), { ...opts, others: [...opts.others, '../foto-kolazh/'] })[0], /lists 2 article\(s\), the topic has 3/);
+	assert.ok(checkGuideArticle(article(back, siblings.replace('../foto-avtor/', '../nema/')), opts).some((p) => /not built/.test(p)));
+	// The current article itself, or an article of another topic, in place of a sibling.
+	assert.match(checkGuideArticle(article(back, siblings.replace('../foto-avtor/', '../foto-albom/')), opts)[0], /expected/);
+	// Any order.
+	assert.deepEqual(checkGuideArticle(article(back, siblings), { ...opts, others: [...opts.others].reverse() }), []);
+	assert.deepEqual(checkGuideArticle(article(back, ''), { ...opts, others: [] }), []);
+	assert.match(checkGuideArticle(article(back, siblings), { ...opts, others: [] })[0], /alone in its topic/);
+});
+
+test('checkGuideHosted: the hosted line once on a hosted-only page, never on another', () => {
+	const page = (body) => `<header></header><main>${body}<p>Текст.</p></main>`;
+	const line = `<p class="guide-hosted not-content">${HOSTED}</p>`;
+	assert.deepEqual(checkGuideHosted(page(line), true), []);
+	assert.deepEqual(checkGuideHosted(page(''), false), []);
+	assert.equal(checkGuideHosted(page(''), true).length, 1);
+	assert.equal(checkGuideHosted(page(line + line), true).length, 1);
+	assert.equal(checkGuideHosted(page(line.replace('що працюють', 'які працюють')), true).length, 1);
+	assert.equal(checkGuideHosted(page(line), false).length, 1);
 });

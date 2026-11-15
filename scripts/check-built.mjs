@@ -28,8 +28,9 @@
 //      text, because htmlText() folds &nbsp;, and on the meta description); «ШІ-помічник» spelled so. On the home only: the chip when `assistantStatus` is
 //      'testing' and a law or procurement word only together with a link to «Закон і сайт школи»
 //      (spec decision 14); the other product pages cite their sources and say «станом на» (items 1–2).
-//   6. Documentation pages (Starlight): the header has no site navigation and no request button, and
-//      the footer has the link «На головну Tabula» to the product home. «Залишити заявку» is in neither.
+//   6. Documentation pages (Starlight): the product header itself (its nav, «Подати заявку», «Меню»; the
+//      owner's decision of 2026-11-15) with the «Посібник» marker and the guide's search, and the product
+//      footer itself. «Залишити заявку» is never the button's name.
 //      The guide's clips (issue #55): a <video> has controls, preload="none", an existing poster, width and
 //      height, an accessible name, one MP4 source and no autoplay, and the music's credit follows it.
 //   7. Every built html page: every <img> has an alt attribute (`alt`, `alt=""` or text) and nothing
@@ -46,6 +47,8 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import { offer, requestFormOpen, exampleIsSeparate, footerLine, formatDate, formatDateLongYear, formatGrn, checkedOnFor, SERVICE_SLUGS } from '../src/config/offer.mjs';
 import { refNumbers } from '../src/lib/refs.mjs';
 import { CLIP_CREDIT_TEXT, CLIP_LICENCE_URL } from './lib/docs-transform.mjs';
+import { buildGuideStructure, guideHref, readGuideFiles } from '../src/lib/guide-structure.mjs';
+import { HOSTED_LINE } from '../src/lib/guide-layout.mjs';
 
 export const LAW_PAGE_SLUG = 'zakon-i-sait-shkoly';
 
@@ -256,7 +259,8 @@ const pointsAtPage = (href, slug) => href === `/${slug}/` || href.endsWith(`/${s
  * and the «Меню» panel («Для кого» with its four links, then the seven anchors; «Контакти» is its one way to write to us).
  */
 export function checkProductHeader(html, { requestOpen = requestFormOpen(), demoOpen = offer.demoOpen } = {}) {
-	const header = html.match(/<header\b[^>]*data-site-header[^>]*>([\s\S]*?)<\/header>/i);
+	// A product page's <header>, or the same component as a <div> inside Starlight's <header> on a guide page.
+	const header = html.match(/<(?:header|div)\b[^>]*data-site-header[^>]*>([\s\S]*?)<\/header>/i);
 	if (!header) return ['no <header data-site-header>'];
 	const problems = [];
 	const inline = header[1].match(/<nav\b[^>]*class="[^"]*nav-links[^"]*"[^>]*>([\s\S]*?)<\/nav>/i);
@@ -393,30 +397,38 @@ export function checkCtaName(html) {
 	return /Залишити\s+заявку/.test(htmlText(html)) ? ['«Залишити заявку» — the CTA is called «Подати заявку» (decision 12)'] : [];
 }
 
-/** A documentation (Starlight) page: no site navigation, no request button, a link to the product home. */
-export function checkDocChrome(html, base) {
+/**
+ * A documentation (Starlight) page carries the product's chrome (owner, 2026-11-15: «Так, продуктова шапка»): the product
+ * header itself (src/components/product/Header.astro as a <div> in Starlight's <header>, held by the same rules as on a
+ * product page: «Для кого», the six anchors, «Спробувати» while the demo is open, «Подати заявку», «Меню»), its mark
+ * leading to the home, the «Посібник» marker leading to the guide's landing, the guide's search (Starlight's
+ * <site-search>) under it, and the product footer itself (src/components/product/Footer.astro). «Залишити заявку» is
+ * never the button's name.
+ */
+export function checkDocChrome(html, base, { requestOpen = requestFormOpen(), demoOpen = offer.demoOpen } = {}) {
 	const problems = [];
-	if (/aria-label="Основна навігація"/.test(html)) problems.push('the documentation header still has the site navigation');
-	if (/(Подати|Залишити)\s+заявку/.test(htmlText(extractHeader(html)))) problems.push('the documentation header has a request button');
 	const root = base === '/' ? '/' : `${base.replace(/\/$/, '')}/`;
-	const home = anchorsOf(html).find((a) => a.text === 'На головну Tabula');
-	if (!home) problems.push('no footer link «На головну Tabula»');
-	else if (home.href !== root) problems.push(`«На головну Tabula» points at "${home.href}", expected "${root}"`);
+	const header = (html.match(/<div\b[^>]*class="site-header"[^>]*data-site-header[^>]*>([\s\S]*?)<\/header>/i) ?? [])[1];
+	if (!header) return ['no product header (div.site-header[data-site-header] in Starlight\'s header)'];
+	for (const problem of checkProductHeader(html, { requestOpen, demoOpen })) problems.push(`the product header: ${problem}`);
+	const brand = header.match(/<a\b[^>]*class="brand"[^>]*href="([^"]*)"/i) ?? header.match(/<a\b[^>]*href="([^"]*)"[^>]*class="brand"/i);
+	if (!brand || brand[1] !== root) problems.push(`the header's mark does not lead to "${root}"`);
+	const marker = header.match(/<a\b[^>]*class="guide-marker"[^>]*href="([^"]*)"[^>]*>([^<]*)<\/a>/i);
+	if (!marker || marker[2].trim() !== 'Посібник' || marker[1] !== `${root}editor/`) problems.push(`no «Посібник» marker leading to "${root}editor/" beside the mark`);
+	if (!/<site-search\b/i.test(header)) problems.push('no search (Starlight\'s <site-search>) in the header');
+	if (/Залишити\s+заявку/.test(htmlText(header))) problems.push('«Залишити заявку» in the header — the button is called «Подати заявку»');
+	if (!/<footer\b[^>]*class="site-footer"[^>]*id="footer-nav"/i.test(html)) problems.push('no product footer (footer.site-footer#footer-nav, src/components/product/Footer.astro)');
 	return problems;
 }
 
 /**
- * The school guide's own rules on a documentation page: the header's way back to the product pages («← Сайт Tabula»,
- * src/components/SocialIcons.astro) pointing at the home, no leaked CMS marker comment (`<!-- video: … -->`,
+ * The school guide's own rules on a documentation page: no leaked CMS marker comment (`<!-- video: … -->`,
  * `<!-- screenshot: … -->`, `<!-- hosted -->`; src/lib/guide-markdown.mjs drops them), and every <img> of the page
- * body with width and height (astro:assets writes them; without them a screenshot shifts the text as it loads).
+ * body with width and height (astro:assets writes them; without them a screenshot shifts the text as it loads). The way
+ * back to the product pages is the product header itself now (`checkDocChrome`).
  */
-export function checkDocGuide(html, base) {
+export function checkDocGuide(html) {
 	const problems = [];
-	const root = base === '/' ? '/' : `${base.replace(/\/$/, '')}/`;
-	const back = (html.match(/<a\b[^>]*class="[^"]*\bguide-back\b[^"]*"[^>]*>/) ?? [])[0];
-	if (!back) problems.push('no header link «← Сайт Tabula» (class guide-back)');
-	else if (!back.includes(`href="${root}"`)) problems.push(`«← Сайт Tabula» does not point at "${root}"`);
 	if (/<!--\s*(?:video|screenshot|hosted)\b/i.test(html)) problems.push('a CMS marker comment (video/screenshot/hosted) reached the page');
 	const main = (html.match(/<main\b[\s\S]*?<\/main>/i) ?? [''])[0];
 	for (const tag of main.match(/<img\b[^>]*>/gi) ?? []) {
@@ -464,9 +476,75 @@ export function checkGuideClips(html, exists = () => true) {
 	return problems;
 }
 
-function extractHeader(html) {
-	const m = html.match(/<header\b[^>]*>([\s\S]*?)<\/header>/i);
-	return m ? m[1] : '';
+// ---------------------------------------------------------------------------------------------
+// The two-layer guide (issue #57): the landing, the short articles, the hosted line (src/lib/guide-layout.mjs).
+
+/** The part of `html` from the first `start` to the first match of `end` after it (to the end when none). */
+function regionOf(html, start, end) {
+	const i = html.indexOf(start);
+	if (i === -1) return null;
+	const rest = html.slice(i + start.length);
+	const m = end.exec(rest);
+	return start + (m ? rest.slice(0, m.index) : rest);
+}
+
+/** The hrefs of the links of a fragment, without the in-page anchors (Starlight's heading links, check-links' job). */
+function pageHrefs(fragment) {
+	return [...(fragment ?? '').matchAll(/<a\b[^>]*?\bhref="([^"]*)"/gi)].map((m) => m[1]).filter((href) => !href.startsWith('#'));
+}
+
+/**
+ * The guide's landing (/editor/ when the guide has short articles): the search field, the «Найчастіше» cards,
+ * «Почніть тут», one card per area (`areas`, the number the structure has), and every link of those blocks leading
+ * to a built page (`exists(href)`).
+ */
+export function checkGuideLanding(html, { areas, exists = () => true }) {
+	const problems = [];
+	const main = extractMain(html);
+	if (!/<button\b[^>]*\bdata-guide-search\b/.test(main)) problems.push('the landing has no search field (data-guide-search)');
+	const cards = regionOf(main, 'class="guide-cards', /<\/ul>/);
+	if (!cards || !/class="guide-card"/.test(cards)) problems.push('the landing has no «Найчастіше» cards (ul.guide-cards)');
+	const start = regionOf(main, 'class="guide-start', /<\/ol>/);
+	if (!/id="pochnit-tut"/.test(main) || !start || !/class="guide-card"/.test(start)) problems.push('the landing has no «Почніть тут» (ol.guide-start)');
+	const grid = regionOf(main, 'class="guide-areas', /<div class="sl-heading-wrapper level-h2"|<h2\b|<\/main>/);
+	const count = (grid?.match(/<section class="guide-area"/g) ?? []).length;
+	if (count !== areas) problems.push(`the landing shows ${count} area card(s), the guide has ${areas}`);
+	for (const href of [...pageHrefs(cards), ...pageHrefs(start), ...pageHrefs(grid)]) {
+		if (!exists(href)) problems.push(`a landing card links to "${href}", which is not built`);
+	}
+	return problems;
+}
+
+/**
+ * A short article of the guide: «← <topic label>» under its title, leading to `topicHref` (when given), a built page;
+ * «Інші статті розділу» with exactly the links `others` (the hrefs of the topic's other articles, in any order), each to a
+ * built page, and no such section when `others` is empty.
+ */
+export function checkGuideArticle(html, { topic, topicHref, others, exists = () => true }) {
+	const problems = [];
+	const main = extractMain(html);
+	const back = main.match(/<p class="guide-topic[^"]*"><a href="([^"]*)">([^<]*)<\/a><\/p>/);
+	if (!back) problems.push('a short article without its link back to the topic (p.guide-topic)');
+	else {
+		if (back[2] !== `← ${topic}`) problems.push(`the link back reads «${back[2]}», expected «← ${topic}»`);
+		if (topicHref !== undefined && back[1] !== topicHref) problems.push(`the link back leads to "${back[1]}", expected "${topicHref}"`);
+		if (!exists(back[1])) problems.push(`the link back leads to "${back[1]}", which is not built`);
+	}
+	const siblings = regionOf(main, '<section class="guide-siblings"', /<\/section>/);
+	const links = pageHrefs(siblings);
+	if (others.length === 0 && siblings) problems.push('«Інші статті розділу» on an article that is alone in its topic');
+	if (others.length > 0 && links.length !== others.length) problems.push(`«Інші статті розділу» lists ${links.length} article(s), the topic has ${others.length} other(s)`);
+	else if (others.length > 0 && [...links].sort().join() !== [...others].sort().join()) problems.push(`«Інші статті розділу» lists ${links.join(', ')}, expected ${others.join(', ')}`);
+	for (const href of links) if (!exists(href)) problems.push(`«Інші статті розділу» links to "${href}", which is not built`);
+	return problems;
+}
+
+/** The hosted line («Лише на сайтах, що працюють на хостингу Tabula»): once on a hosted-only guide page, never elsewhere. */
+export function checkGuideHosted(html, hosted) {
+	const lines = [...extractMain(html).matchAll(/<p class="guide-hosted[^"]*">([^<]*)<\/p>/g)].map((m) => m[1]);
+	if (hosted && (lines.length !== 1 || lines[0] !== HOSTED_LINE)) return [`a hosted-only page without the line «${HOSTED_LINE}»`];
+	if (!hosted && lines.length > 0) return ['the hosted line on a page that is not hosted-only'];
+	return [];
 }
 
 const MONTHS = 'січня|лютого|березня|квітня|травня|червня|липня|серпня|вересня|жовтня|листопада|грудня';
@@ -1181,7 +1259,7 @@ function main() {
 				})) fail(`dist/${rel}`, problem);
 		} else {
 			for (const problem of checkDocChrome(html, base)) fail(`dist/${rel} header/footer`, problem);
-			for (const problem of checkDocGuide(html, base)) fail(`dist/${rel}`, problem);
+			for (const problem of checkDocGuide(html)) fail(`dist/${rel}`, problem);
 			for (const problem of checkGuideClips(html, (url) => builtFileExists(distDir, base, rel, url))) fail(`dist/${rel}`, problem);
 		}
 		if (rel === path.join(REQUEST_SLUG, 'index.html')) {
@@ -1235,6 +1313,26 @@ function main() {
 		const file = path.join(distDir, slug, 'index.html');
 		if (existsSync(file) && !isProductPage(readFileSync(file, 'utf8'))) {
 			fail(`dist/${slug}/index.html`, 'an own page that is not in the product layout');
+		}
+	}
+
+	// The two-layer guide (issue #57), from the same structure the build used (the imported files).
+	const editorDir = path.join(root, 'src', 'content', 'docs', 'editor');
+	const guide = existsSync(editorDir) ? buildGuideStructure(readGuideFiles(editorDir)) : null;
+	for (const slug of Object.keys(guide?.pages ?? {})) {
+		const rel = slug === 'index' ? path.join('editor', 'index.html') : path.join('editor', slug, 'index.html');
+		const file = path.join(distDir, rel);
+		if (!existsSync(file)) continue;
+		const html = readFileSync(file, 'utf8');
+		const exists = (url) => builtFileExists(distDir, base, rel, url.endsWith('/') ? `${url}index.html` : url);
+		for (const problem of checkGuideHosted(html, guide.pages[slug].hosted)) fail(`dist/${rel}`, problem);
+		if (!guide.hasArticles) continue;
+		if (slug === 'index') {
+			for (const problem of checkGuideLanding(html, { areas: guide.areas.length, exists })) fail(`dist/${rel}`, problem);
+		} else if (guide.pages[slug].short && guide.parentOf[slug]) {
+			const topic = guide.topics[guide.parentOf[slug]];
+			const others = topic.articles.filter((other) => other !== slug).map((other) => guideHref(slug, other));
+			for (const problem of checkGuideArticle(html, { topic: topic.label, topicHref: guideHref(slug, topic.slug), others, exists })) fail(`dist/${rel}`, problem);
 		}
 	}
 

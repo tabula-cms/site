@@ -1,0 +1,48 @@
+---
+// Override of Starlight's PageTitle (registered in astro.config.mjs). Every page keeps Starlight's own title; the guide's
+// landing (/editor/, when the imported guide has short articles: issue #57) becomes a hero in the product's look: the
+// label «Посібник редактора», the title, and the site's search (Starlight's own Pagefind dialog in the header) as a big
+// search field. The field is a button that opens that same dialog: Starlight ships the search script, so without
+// JavaScript there is no search at all and the button stays hidden, as the header's own button stays disabled.
+// The rest of the landing is the README rearranged by the Markdown plugin (src/lib/guide-layout.mjs).
+import Default from '@astrojs/starlight/components/PageTitle.astro';
+import guide from 'virtual:tabula/guide';
+
+const isLanding = Astro.locals.starlightRoute.id === 'editor' && guide?.hasArticles === true;
+---
+
+{
+	isLanding ? (
+		<div class="guide-hero not-content">
+			<p class="guide-hero__label">Посібник редактора</p>
+			<Default />
+			<button type="button" class="guide-search" data-guide-search hidden>
+				<svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+					<circle cx="11" cy="11" r="7" />
+					<path d="m20 20-3.5-3.5" />
+				</svg>
+				<span>Пошук у посібнику</span>
+			</button>
+		</div>
+	) : (
+		<Default />
+	)
+}
+
+{
+	isLanding && (
+		<script is:inline>
+			(() => {
+				const field = document.querySelector('[data-guide-search]');
+				const open = document.querySelector('site-search button[data-open-modal]');
+				if (!field || !open) return;
+				field.hidden = false;
+				field.addEventListener('click', (event) => {
+					// The dialog closes on a click outside it: this click must not reach the window after opening it.
+					event.stopPropagation();
+					open.click();
+				});
+			})();
+		</script>
+	)
+}

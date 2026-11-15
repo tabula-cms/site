@@ -1,0 +1,34 @@
+---
+// Override of Starlight's Header (registered in astro.config.mjs): the product's own header on every guide page (owner,
+// 2026-11-15: «Так, продуктова шапка»). It is src/components/product/Header.astro itself — the mark and «Tabula», «Для
+// кого», the six anchors, «Спробувати», «Подати заявку», «Меню» below 1100 px — rendered as a <div> because Starlight's
+// frame is the <header> already, with the «Посібник» marker beside the mark (a link to the guide's landing) from 520 to
+// 1099 px. From 1100 px the product's row (the nav, «Спробувати», «Подати заявку») has no room left for it (measured: 13–52
+// px too wide), so there the marker is the first thing of the bar under the header, under the mark; below 520 px the bar's
+// «Розділи посібника» says where the reader is. The bar: the marker, the site's search (Starlight's Pagefind dialog) and,
+// below 50rem, the button that opens the guide's sidebar (src/components/MobileMenuToggle.astro, placed in this bar by site.css). Its styles are the product's
+// (src/styles/chrome.css, loaded by site.css); the heights Starlight lays the page out with (--sl-nav-height) are set
+// in site.css. header.js is the product's: «Меню» and «Для кого» close on Escape, a click outside, a followed link.
+import ProductHeader from './product/Header.astro';
+import Search from '@astrojs/starlight/components/Search.astro';
+
+const base = import.meta.env.BASE_URL;
+const root = base.endsWith('/') ? base : `${base}/`;
+---
+
+<ProductHeader as="div">
+	<a slot="brand" class="guide-marker" href={`${root}editor/`}>Посібник</a>
+</ProductHeader>
+<div class="guide-bar">
+	<div class="guide-bar__inner">
+		<a class="guide-bar__marker" href={`${root}editor/`}>Посібник редактора</a>
+		<Search />
+	</div>
+</div>
+
+<script>
+	// The query makes this a module of its own: imported plainly, Vite would split header.js into a chunk shared with
+	// the product pages, whose own script would then become a loader of that chunk (another request on the home, and a
+	// script check-built cannot recognise). With it the product pages' bundle stays exactly as it was.
+	import '../scripts/header.js?guide';
+</script>

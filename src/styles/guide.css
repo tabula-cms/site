@@ -261,3 +261,345 @@
 		color: #000;
 	}
 }
+
+/* ---------------------------------------------------------------------------------------------
+ * 7. The two layers (issue #57): the landing, the task block of a long page, the back link, the hosted line and
+ * «Інші статті розділу» of a short article. The HTML is src/lib/guide-layout.mjs (and the landing's title and search,
+ * src/components/PageTitle.astro). The look is the product's (src/styles/product.css): the kinds/roles tiles (a
+ * surface, a 1 px line, 16 px radius, the lift on hover), the Unbounded section headings, the mint chip, the amber
+ * chip, pill buttons; the colours are Starlight's `--sl-*`, which site.css sets to the product's tokens in light mode
+ * (and to the teal-tinted dark scale in dark mode). Every block is `not-content`, so Starlight's prose spacing and
+ * link styles stay out of it.
+ * --------------------------------------------------------------------------------------------- */
+:root {
+	--guide-tile-line: var(--sl-color-hairline-light);
+	--guide-tile-radius: 16px;
+	--guide-tile-hover: 0 14px 30px rgba(0, 0, 0, 0.3);
+	--guide-amber-bg: #3b2f10;
+	--guide-amber-ink: #ffdf9a;
+}
+:root[data-theme='light'] {
+	/* The product's tile border (`.kinds__tile`), its hover shadow (`.card-hover`) and its amber chip (`.chip`). */
+	--guide-tile-line: #dce5e2;
+	--guide-tile-hover: 0 14px 30px rgba(23, 40, 58, 0.08);
+	--guide-amber-bg: #fff3cc;
+	--guide-amber-ink: #6b4a00;
+}
+
+/* A tile: the product's `.kinds__tile`. */
+.guide-card,
+.guide-area,
+.guide-tasks,
+.guide-siblings {
+	background: var(--guide-surface);
+	border: 1px solid var(--guide-tile-line);
+	border-radius: var(--guide-tile-radius);
+}
+
+/* The hero of the landing. */
+.guide-hero {
+	padding-block: 0.5rem 0.25rem;
+}
+.guide-hero__label {
+	display: inline-block;
+	margin: 0 0 0.25rem;
+	padding: 0.3rem 0.75rem;
+	border-radius: 999px;
+	background: var(--sl-color-accent-low);
+	color: var(--sl-color-text-accent);
+	font-size: 0.875rem;
+	font-weight: 700;
+}
+.guide-hero #_top {
+	font-size: clamp(1.625rem, 1.1rem + 2.2vw, 2.5rem);
+	line-height: 1.15;
+}
+.guide-search {
+	display: flex;
+	align-items: center;
+	gap: 0.75rem;
+	width: 100%;
+	max-width: 36rem;
+	min-height: 3.5rem;
+	margin-top: 1.5rem;
+	padding: 0 1.25rem;
+	border: 1.5px solid var(--guide-tile-line);
+	border-radius: 999px;
+	background: var(--guide-surface);
+	color: var(--sl-color-gray-3);
+	font: inherit;
+	font-size: 1.0625rem;
+	text-align: start;
+	cursor: pointer;
+	box-shadow: var(--guide-shadow);
+	transition: border-color 0.15s ease-out;
+}
+.guide-search[hidden] {
+	display: none;
+}
+.guide-search:hover {
+	border-color: var(--sl-color-accent);
+}
+.guide-search svg {
+	flex: none;
+	color: var(--sl-color-text-accent);
+}
+
+/* The README's introduction: its first paragraph as the lead, the rest quieter. */
+.sl-markdown-content .guide-lead {
+	font-size: 1.125rem;
+	line-height: 1.6;
+	color: var(--sl-color-gray-2);
+}
+.sl-markdown-content .guide-intro-note {
+	font-size: 0.9375rem;
+	line-height: 1.6;
+	color: var(--sl-color-gray-3);
+}
+
+/* The landing's section headings: the product's `.h2` (Unbounded), sized for the guide's column. */
+.sl-markdown-content h2.guide-landing-h2 {
+	font-family: var(--guide-display);
+	font-weight: 600;
+	font-size: clamp(1.375rem, 1.1rem + 1.2vw, 1.75rem);
+	letter-spacing: -0.02em;
+	line-height: 1.2;
+}
+
+/* «Найчастіше» and «Почніть тут»: whole-card links, like the home's «З чого почати». */
+.guide-cards,
+.guide-start {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(min(100%, 13.5rem), 1fr));
+	gap: 0.875rem;
+	margin: 1.25rem 0 0;
+	padding: 0;
+	list-style: none;
+}
+.guide-cards > li,
+.guide-start > li {
+	display: flex;
+	margin: 0;
+}
+.guide-card {
+	display: flex;
+	flex-direction: column;
+	gap: 0.5rem;
+	width: 100%;
+	padding: 1rem 1.125rem;
+	color: var(--sl-color-white);
+	text-decoration: none;
+	transition:
+		box-shadow 0.2s ease-out,
+		transform 0.2s ease-out,
+		border-color 0.2s ease-out;
+}
+.guide-card:hover {
+	border-color: var(--sl-color-accent);
+	box-shadow: var(--guide-tile-hover);
+	color: var(--sl-color-white);
+}
+@media (prefers-reduced-motion: no-preference) {
+	.guide-card:hover {
+		transform: translateY(-2px);
+	}
+}
+.guide-card__topic {
+	font-size: 0.8125rem;
+	font-weight: 700;
+	color: var(--sl-color-text-accent);
+}
+.guide-card__title {
+	font-family: var(--guide-display);
+	font-size: 0.9375rem;
+	font-weight: 600;
+	line-height: 1.35;
+}
+.guide-start {
+	counter-reset: guide-start;
+}
+.guide-start > li {
+	counter-increment: guide-start;
+}
+.guide-start .guide-card::before {
+	content: counter(guide-start);
+	display: grid;
+	place-items: center;
+	width: 1.9rem;
+	height: 1.9rem;
+	border-radius: 50%;
+	background: var(--guide-step-bg);
+	color: var(--guide-step-fg);
+	font-size: 0.875rem;
+	font-weight: 700;
+}
+.sl-markdown-content .guide-start__more {
+	margin-top: 1rem;
+	font-weight: 700;
+}
+.guide-start__more a {
+	color: var(--sl-color-text-accent);
+}
+
+/* The areas: one tile each, with its topics and the number of short articles. */
+.guide-areas {
+	align-items: start;
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(min(100%, 17rem), 1fr));
+	gap: 0.875rem;
+	margin-top: 1.25rem;
+}
+.guide-area {
+	padding: 1.125rem 1.25rem 0.75rem;
+}
+.guide-area__title {
+	margin: 0;
+	font-family: var(--guide-display);
+	font-size: 1.0625rem;
+	font-weight: 600;
+	line-height: 1.3;
+	color: var(--sl-color-white);
+}
+.guide-area__count {
+	margin: 0.25rem 0 0;
+	font-size: 0.875rem;
+	color: var(--sl-color-gray-3);
+}
+.guide-area__topics {
+	margin: 0.625rem 0 0;
+	padding: 0;
+	list-style: none;
+}
+.guide-area__topics li {
+	display: flex;
+	align-items: baseline;
+	justify-content: space-between;
+	gap: 0.75rem;
+	margin: 0;
+	border-top: 1px solid var(--sl-color-hairline);
+}
+.guide-area__topics a {
+	display: block;
+	padding: 0.55rem 0;
+	min-height: 2.75rem;
+	box-sizing: border-box;
+	font-weight: 700;
+	color: var(--sl-color-text-accent);
+	text-decoration: none;
+}
+.guide-area__topics a:hover {
+	text-decoration: underline;
+	text-underline-offset: 0.2em;
+}
+.guide-area__n {
+	flex: none;
+	font-size: 0.8125rem;
+	color: var(--sl-color-gray-3);
+}
+
+/* The task block of a long page and «Інші статті розділу» of a short article: a tile of task rows. */
+.sl-markdown-content .guide-tasks {
+	margin-block: 1.5rem;
+	padding: 1rem 1.25rem 0.5rem;
+}
+.guide-tasks__title {
+	margin: 0;
+	font-weight: 800;
+	color: var(--sl-color-white);
+}
+.sl-markdown-content .guide-siblings {
+	margin-top: 2.5rem;
+	padding: 1rem 1.25rem 0.5rem;
+}
+.sl-markdown-content .guide-siblings h2 {
+	margin: 0;
+	font-family: var(--guide-display);
+	font-size: 1.0625rem;
+	font-weight: 600;
+	letter-spacing: -0.01em;
+}
+.sl-markdown-content .guide-tasks__list {
+	margin: 0.5rem 0 0;
+	padding: 0;
+	list-style: none;
+}
+.sl-markdown-content .guide-tasks__list > li {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 0.25rem 0.5rem;
+	margin: 0;
+	padding-block: 0.15rem;
+	border-top: 1px solid var(--sl-color-hairline);
+}
+.sl-markdown-content .guide-tasks__list a {
+	display: inline-block;
+	padding: 0.55rem 0;
+	font-weight: 700;
+	color: var(--sl-color-text-accent);
+	text-decoration: none;
+}
+.sl-markdown-content .guide-tasks__list a::before {
+	content: '→ ';
+	color: var(--sl-color-gray-3);
+}
+.sl-markdown-content .guide-tasks__list a:hover {
+	text-decoration: underline;
+	text-underline-offset: 0.2em;
+}
+
+/* The clip mark: the product's mint chip. */
+.guide-clip-mark {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.25rem;
+	padding: 0.1rem 0.5rem 0.1rem 0.4rem;
+	border-radius: 999px;
+	background: var(--sl-color-accent-low);
+	color: var(--sl-color-text-accent);
+	font-size: 0.8125rem;
+	font-weight: 700;
+	line-height: 1.5;
+	white-space: nowrap;
+}
+.guide-card .guide-clip-mark {
+	align-self: flex-start;
+}
+
+/* A short article: «← <topic>» above its text, the hosted line as the product's amber chip. */
+.sl-markdown-content .guide-topic {
+	margin: 0 0 0.75rem;
+}
+.guide-topic a {
+	display: inline-flex;
+	align-items: center;
+	min-height: 2.75rem;
+	font-weight: 700;
+	color: var(--sl-color-text-accent);
+	text-decoration: none;
+}
+.guide-topic a:hover {
+	text-decoration: underline;
+	text-underline-offset: 0.2em;
+}
+.sl-markdown-content .guide-hosted {
+	display: inline-block;
+	margin: 0 0 1rem;
+	padding: 0.4rem 0.75rem;
+	border-radius: 8px;
+	background: var(--guide-amber-bg);
+	color: var(--guide-amber-ink);
+	font-size: 0.9375rem;
+	font-weight: 700;
+}
+.sl-markdown-content .guide-hosted + .guide-role {
+	margin-top: 0;
+}
+
+@media print {
+	.guide-search,
+	.guide-siblings,
+	.guide-topic {
+		display: none;
+	}
+}
