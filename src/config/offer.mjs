@@ -111,6 +111,9 @@ export const offer = Object.freeze({
 	// they are gone from the storage no later than this many days after the deletion. The control plane's
 	// letters say the same (cloud `MIRROR_GONE_DAYS`, `control/src/leavingDays.js`); keep the two equal.
 	copiesGoneDays: 370,
+	// The contract's documents (applications, acts, invoices) are kept, encrypted, for the life of the contract and this many
+	// years after the year it ended; then the files are erased and the numbers, dates and sums remain.
+	documentsKeepYears: 3,
 
 	// ---- Spec 83 (audience pages, 2026-11-09) ------------------------------------------------------------
 	// The date the four pages «Для директора», «Для того, хто веде сайт», «Для бухгалтерії» and «Ціна й оплата»
