@@ -23,7 +23,12 @@ const slashless = base === '/' ? null : new URL(base, site).href.replace(/\/$/, 
 // The page «Встановити самостійно» was removed (footer-and-audience-pages spec, 2026-11-09): Tabula is a
 // service only. Its old address leads to «Ціна й оплата» and is kept out of the sitemap.
 // Astro prefixes `base` to the source of a redirect but not to its destination.
-const redirects = { '/vstanovyty-samostiino': `${base.replace(/\/$/, '')}/khostynh-i-tsina/` };
+// The current edition of the contract at its own address (the forms cite it) shows /dohovir/; the earlier ones are
+// pages of their own (src/pages/dohovir/[edition].astro).
+const redirects = {
+	'/vstanovyty-samostiino': `${base.replace(/\/$/, '')}/khostynh-i-tsina/`,
+	[`/dohovir/${offer.contractEdition}`]: `${base.replace(/\/$/, '')}/dohovir/`,
+};
 const redirected = Object.keys(redirects).map((from) => new URL(`${base.replace(/\/$/, '')}${from}/`, site).href);
 
 const docsDir = fileURLToPath(new URL('./src/content/docs/', import.meta.url));

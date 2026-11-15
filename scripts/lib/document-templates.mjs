@@ -10,7 +10,8 @@ export { documentHtml } from './documents/print.mjs';
 /** The edition's numbers and codes, as `renderForm` takes them. */
 export const TERMS = Object.freeze({
 	contractEdition: offer.contractEdition,
-	contractUrl: 'https://tabula.org.ua/dohovir/',
+	// The address of this very edition (п. 10.3): it keeps showing the text the institution joined.
+	contractUrl: `https://tabula.org.ua/dohovir/${offer.contractEdition}/`,
 	pilotUntil: offer.pilotUntil,
 	trialDays: offer.trialDays,
 	priceYearUah: offer.priceYearUah,

@@ -161,8 +161,9 @@ ${block('Підписи сторін', [
 ])}`),
 	'invoice': defineForm(() => 'Рахунок на оплату', ['actDate', 'actNumber', 'contractDate', 'contractNumber', 'customerEdrpou', 'customerName', 'invoiceDate', 'number', 'performerBank', 'performerIban', 'performerName', 'performerSignatory', 'performerTaxId', 'period', 'thirdPartyConsent', 'total', 'totalWords'], ({ f, d, sig, has }) => `<h1>РАХУНОК НА ОПЛАТУ № ${f('number', 6)}<br><span class="sub">від ${d('invoiceDate')}</span></h1>
 <p><b>Постачальник:</b> фізична особа — підприємець ${f('performerName', 40)}, реєстраційний номер облікової картки платника податків ${f('performerTaxId', 12)}, рахунок IBAN ${f('performerIban', 30)} у ${f('performerBank', 24)}. Платник єдиного податку третьої групи, не платник ПДВ.</p>
-<p><b>Платник:</b> ${f('customerName', 60)}, код ЄДРПОУ ${f('customerEdrpou', 10)}.</p>
-${has('thirdPartyConsent') ? `<p>Рахунок може бути оплачено іншою особою згідно зі згодою Замовника ${f('thirdPartyConsent', 30)}.</p>
+<p><b>${has('thirdPartyConsent') ? 'Замовник (платник за договором)' : 'Платник'}:</b> ${f('customerName', 60)}, код ЄДРПОУ ${f('customerEdrpou', 10)}.</p>
+${has('thirdPartyConsent') ? `<p>Рахунок може бути оплачено іншою особою згідно зі згодою Замовника ${f('thirdPartyConsent', 30)}. Оплата лише переказом на рахунок IBAN, зазначений у цьому рахунку; оплата на номер платіжної картки не приймається.</p>
+<p>У призначенні платежу обовʼязково зазначте: «Оплата за рахунком № ${f('number', 6)} від ${d('invoiceDate')} за ${f('customerName', 40)}, код ЄДРПОУ ${f('customerEdrpou', 10)}, згідно зі згодою ${f('thirdPartyConsent', 30)}, без ПДВ».</p>
 ` : ''}<p><b>Підстава:</b> договір (річна заява) № ${f('contractNumber', 6)} від ${f('contractDate', 14)}, акт № ${f('actNumber', 6)} від ${f('actDate', 14)}.</p>
 <table>
 <thead><tr><th>№</th><th>Послуга</th><th>Період</th><th class="num">Сума без ПДВ, грн</th></tr></thead>
@@ -173,15 +174,16 @@ ${has('thirdPartyConsent') ? `<p>Рахунок може бути оплачен
 ${block('', [party('Постачальник', ['Фізична особа — підприємець'], sig('performerSignatory'))])}`),
 	// A quarter (or several in a row) paid by somebody else (ЦК ст. 528, п. 4.9 of the contract since the edition of
 	// 2026-11-17). Signed by the institution only: the institution stays the customer, nothing of the payer is printed.
-	'third-party-consent': defineForm(() => 'Згода Замовника на оплату рахунку іншою особою', ['contractDate', 'contractNumber', 'customerBasis', 'customerEdrpou', 'customerName', 'customerRepresentative', 'customerSignatory', 'invoices', 'number', 'periodFrom', 'periodTo', 'place', 'quarters', 'signDate'], ({ f, d, sig, customer }) => `<h1>ЗГОДА № ${f('number', 6)}<br><span class="sub">Замовника на оплату рахунку іншою особою</span></h1>
+	'third-party-consent': defineForm(() => 'Згода Замовника на оплату рахунку іншою особою', ['contractDate', 'contractNumber', 'customerBasis', 'customerEdrpou', 'customerName', 'customerRepresentative', 'customerSignatory', 'invoices', 'number', 'periodFrom', 'periodTo', 'place', 'quarters', 'signDate'], ({ f, d, sig, blank, customer }) => `<h1>ЗГОДА № ${f('number', 6)}<br><span class="sub">Замовника на оплату рахунку іншою особою</span></h1>
 <p class="dateline"><span>${f('place', 24, 'населений пункт')}</span><span>${d('signDate')}</span></p>
 ${customer}
-<p class="pt">1. Замовник погоджується, щоб рахунки Виконавця за договором (річною заявою) № ${f('contractNumber', 6)} від ${f('contractDate', 14)} за ${f('quarters', 36, 'квартали й рік')} — з ${f('periodFrom', 14)} до ${f('periodTo', 14)} — оплатила інша особа (стаття 528 Цивільного кодексу України).</p>
+<p class="pt">1. Відповідно до статті 528 Цивільного кодексу України Замовник покладає виконання свого обовʼязку з оплати рахунків Виконавця за договором (річною заявою) № ${f('contractNumber', 6)} від ${f('contractDate', 14)} за ${f('quarters', 36, 'квартали й рік')} — з ${f('periodFrom', 14)} до ${f('periodTo', 14)} — на іншу особу та погоджується, щоб Виконавець прийняв таку оплату як виконання зобовʼязання Замовника.</p>
 <p class="pt">2. Згода поширюється на всі рахунки Виконавця за цей період, зокрема: ${f('invoices', 50, 'номери, дати й суми рахунків, якщо їх уже складено')}.</p>
 <p class="pt">3. Замовник знає про таку оплату й погоджується з нею. Послуги за цей період Замовник отримує й приймає за актами приймання-передачі наданих послуг, які підписує сам.</p>
-<p class="pt">4. Оплата іншою особою не змінює сторін договору: Замовником лишається заклад освіти. Рахунки виписуються на Замовника й оплачуються безготівково, переказом на рахунок Виконавця, зазначений у рахунку.</p>
-<p class="pt">5. Перед особою, яка оплатила рахунок, Виконавець не має зобовʼязань, зокрема не зобовʼязаний повертати їй кошти. Розрахунки між цією особою та Замовником Виконавця не стосуються.</p>
-<p class="pt">6. Замовник може відкликати цю згоду письмовим повідомленням Виконавцю щодо кварталів, які ще не оплачено.</p>
+<p class="pt">4. Оплата іншою особою не змінює сторін договору: Замовником лишається заклад освіти. Рахунки виписуються на Замовника й оплачуються лише безготівково, переказом на рахунок IBAN Виконавця, зазначений у рахунку; оплата на номер платіжної картки не приймається. У призначенні платежу обовʼязково зазначається: «Оплата за рахунком № ${blank(6)} від ${blank(14)} за ${f('customerName', 40)}, код ЄДРПОУ ${f('customerEdrpou', 10)}, згідно зі згодою № ${f('number', 6)}, без ПДВ».</p>
+<p class="pt">5. Оплата іншою особою зараховується як виконання зобовʼязання Замовника й припиняє його в сплаченій сумі. Кошти, сплачені понад суму рахунку або за вже оплачений рахунок, Виконавець повертає на рахунок, з якого їх отримано. Розрахунки між особою, яка оплатила рахунок, і Замовником Виконавця не стосуються, і Виконавець за ними не відповідає.</p>
+<p class="pt">6. Замовник може відкликати цю згоду щодо ще не оплачених рахунків письмовим повідомленням Виконавцю. Відкликання діє з дня, коли Виконавець його отримав; кошти, що надійшли до цього дня, зараховуються як оплата за Замовника.</p>
+<p class="pt">7. Якщо згоду підписує уповноважена особа, до неї додано копію наказу чи довіреності.</p>
 ${block('Реквізити та підпис Замовника', [
 	party('Замовник', [f('customerName', 30), `Код ЄДРПОУ: ${f('customerEdrpou', 10)}`], sig('customerSignatory')),
 ])}`),

@@ -145,6 +145,10 @@ export const offer = Object.freeze({
 	// text is a new edition with a new date here, and `npm run documents` again. 2026-11-17 (п. 4.9, payment by another
 	// person) is a placeholder date until the owner confirms the edition on merge.
 	contractEdition: '2026-11-17',
+	// The earlier editions (п. 10.3: every edition stays on the site): each is frozen at /dohovir/<edition>/
+	// (src/content/editions/dohovir-<edition>.mdx, rendered by src/pages/dohovir/[edition].astro) with its own PDF;
+	// /dohovir/<contractEdition>/ redirects to /dohovir/ (astro.config.mjs), the address the forms cite.
+	contractArchive: Object.freeze([Object.freeze({ edition: '2026-11-14', pdf: 'dokumenty/dohovir-2026-11-14.pdf' })]),
 	graceDays: 45,
 	// Spec 84, decision 15: the pilot goes on (the same contract, the same monthly acts) until the contract for the paid
 	// year is made, but not past this day — graceDays calendar days from the day after pilotUntil (test/offer.test.mjs).

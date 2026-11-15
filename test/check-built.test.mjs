@@ -782,3 +782,21 @@ test('checkGuideHosted: the hosted line once on a hosted-only page, never on ano
 	assert.equal(checkGuideHosted(page(line.replace('що працюють', 'які працюють')), true).length, 1);
 	assert.equal(checkGuideHosted(page(line), false).length, 1);
 });
+
+import { checkContractEditions } from '../scripts/check-built.mjs';
+
+test('checkContractEditions: the earlier edition kept and linked, the current one at its own address', () => {
+	const product = (main) => `<html lang="uk" data-product-page><body><main id="main">${main}</main></body></html>`;
+	const contractHtml = product('<p>Редакція від 17&nbsp;листопада&nbsp;2026&nbsp;року.</p><p>Попередні редакції: <a href="2026-11-14/">від 14 листопада 2026 року</a>.</p>');
+	const pdf = 'dokumenty/dohovir-2026-11-14.pdf';
+	const files = {
+		'dohovir/2026-11-17/index.html': '<!doctype html><meta http-equiv="refresh" content="0;url=/site/dohovir/"><a href="/site/dohovir/">',
+		'dohovir/2026-11-14/index.html': product(`<p>Редакція від 14 листопада 2026 року. <a href="../../${pdf}">Завантажити PDF</a></p>`),
+	};
+	const args = { contractHtml, current: '2026-11-17', archive: [{ edition: '2026-11-14', pdf }], read: (rel) => files[rel] ?? null, publicExists: (rel) => rel === pdf };
+	assert.deepEqual(checkContractEditions(args), []);
+	assert.equal(checkContractEditions({ ...args, publicExists: () => false }).length, 1);
+	assert.equal(checkContractEditions({ ...args, read: (rel) => (rel.includes('2026-11-17') ? null : files[rel]) }).length, 1);
+	assert.equal(checkContractEditions({ ...args, read: (rel) => (rel.includes('2026-11-14') ? null : files[rel]) }).length, 1);
+	assert.equal(checkContractEditions({ ...args, contractHtml: product('<p>Редакція.</p>') }).length, 2);
+});

@@ -113,18 +113,24 @@ test('forms: the part-year sentence and the payer of an act follow the same thre
 	assert.ok(named.includes('<p class="who">Платник</p>') && named.includes(MARK) && !named.includes('Платник (якщо є)') && named.includes('Олена ВИГАДАНА'));
 });
 
-test('forms: the invoice names the institution\'s consent to another payer only when it is given', () => {
+test('forms: the invoice names the institution\'s consent to another payer, the payment purpose and no card, only when the consent is given', () => {
 	const line = 'Рахунок може бути оплачено іншою особою згідно зі згодою Замовника';
 	const base = renderForm('invoice', TERMS);
-	assert.ok(!base.includes(line));
+	assert.ok(!base.includes(line) && !base.includes('Замовник (платник за договором)') && base.includes('<p><b>Платник:</b>'));
 	assert.equal(renderForm('invoice', TERMS, { thirdPartyConsent: '' }), base);
-	const out = renderForm('invoice', TERMS, { thirdPartyConsent: 'від 20.04.2027 № З-2027-1' });
-	const payer = '<p><b>Платник:</b>';
-	const expectedLine = `<p>${line} <span class="filled">від 20.04.2027 № З-2027-1</span>.</p>\n`;
-	assert.ok(out.includes(expectedLine));
-	// Right under «Платник:», and nothing else moves.
-	assert.ok(out.indexOf(expectedLine) > out.indexOf(payer) && out.indexOf(expectedLine) < out.indexOf('<p><b>Підстава:</b>'));
-	assert.equal(out.replace(expectedLine, ''), base);
+	const consent = 'від 20.04.2027 № З-2027-1';
+	const data = { thirdPartyConsent: consent, number: 'Р-2027-2', invoiceDate: '30.06.2027', customerName: 'Вигаданий ліцей № 0', customerEdrpou: '00000000' };
+	const out = renderForm('invoice', TERMS, data);
+	const added = [
+		`<p>${line} <span class="filled">${consent}</span>. Оплата лише переказом на рахунок IBAN, зазначений у цьому рахунку; оплата на номер платіжної картки не приймається.</p>\n`,
+		'<p>У призначенні платежу обовʼязково зазначте: «Оплата за рахунком № <span class="filled">Р-2027-2</span> від <span class="filled">30.06.2027</span> за <span class="filled">Вигаданий ліцей № 0</span>, код ЄДРПОУ <span class="filled">00000000</span>, згідно зі згодою <span class="filled">' + consent + '</span>, без ПДВ».</p>\n',
+	];
+	for (const text of added) assert.ok(out.includes(text), text);
+	// Under the institution, named as the payer under the contract; before the basis; nothing else moves.
+	assert.ok(out.indexOf(added[0]) > out.indexOf('<p><b>Замовник (платник за договором):</b>') && out.indexOf(added[1]) < out.indexOf('<p><b>Підстава:</b>'));
+	const { thirdPartyConsent, ...rest } = data;
+	assert.equal(out.replace(added.join(''), '').replace('Замовник (платник за договором):', 'Платник:'), renderForm('invoice', TERMS, rest));
+	assert.ok(thirdPartyConsent);
 });
 
 test('forms: the consent to another payer — one party, the institution, and no data of the payer', () => {
@@ -133,15 +139,28 @@ test('forms: the consent to another payer — one party, the institution, and no
 	assert.ok(html.startsWith('<h1>ЗГОДА № '));
 	assert.equal(html.split('<p class="who">').length - 1, 1);
 	assert.ok(html.includes('<p class="who">Замовник</p>') && !html.includes('Виконавець</p>') && !html.includes('Платник'));
-	for (const text of ['стаття 528 Цивільного кодексу України', 'не змінює сторін договору', 'не зобовʼязаний повертати їй кошти', 'може відкликати цю згоду', 'які ще не оплачено', 'приймає за актами', 'переказом на рахунок Виконавця']) {
+	for (const text of [
+		'Відповідно до статті 528 Цивільного кодексу України Замовник покладає виконання свого обовʼязку з оплати рахунків Виконавця',
+		'прийняв таку оплату як виконання зобовʼязання Замовника',
+		'не змінює сторін договору',
+		'оплата на номер платіжної картки не приймається',
+		'У призначенні платежу обовʼязково зазначається: «Оплата за рахунком №',
+		'припиняє його в сплаченій сумі',
+		'Виконавець повертає на рахунок, з якого їх отримано',
+		'Відкликання діє з дня, коли Виконавець його отримав',
+		'7. Якщо згоду підписує уповноважена особа, до неї додано копію наказу чи довіреності.',
+		'приймає за актами',
+	]) {
 		assert.ok(html.includes(text), text);
 	}
+	assert.ok(!html.includes('не зобовʼязаний повертати'));
 	// The data keys are the institution's and the contract's: none names the person who pays.
 	assert.ok(FORMS['third-party-consent'].fields.every((key) => !/payer|person/i.test(key)));
 	const filled = renderForm('third-party-consent', TERMS, {
-		customerName: 'Вигаданий ліцей № 0', quarters: 'II і III квартали 2027 року', periodFrom: '01.04.2027', periodTo: '30.09.2027', invoices: '',
+		customerName: 'Вигаданий ліцей № 0', number: 'З-2027-1', quarters: 'II і III квартали 2027 року', periodFrom: '01.04.2027', periodTo: '30.09.2027', invoices: '',
 	});
-	assert.ok(filled.includes('за <span class="filled">II і III квартали 2027 року</span> — з <span class="filled">01.04.2027</span> до <span class="filled">30.09.2027</span>'));
+	assert.ok(filled.includes('за <span class="filled">II і III квартали 2027 року</span> — з <span class="filled">01.04.2027</span> до <span class="filled">30.09.2027</span> — на іншу особу'));
+	assert.ok(filled.includes('за <span class="filled">Вигаданий ліцей № 0</span>, код ЄДРПОУ <span class="blank">__________</span>, згідно зі згодою № <span class="filled">З-2027-1</span>, без ПДВ».'));
 	assert.ok(filled.includes('зокрема: <span class="blank">'), 'no invoices yet: the blank stays');
 });
 
