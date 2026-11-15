@@ -274,22 +274,26 @@ const REFERENCE_DEFINITION_RE = /^\s*\[[^\]]+\]:\s/;
  *   given, mutated in place so the caller can print a summary.
  */
 export function transformLinks(body, rewrite, stats) {
-	const fenceRanges = [];
-	const fenceRe = new RegExp(FENCE_RE.source, FENCE_RE.flags);
-	let fenceMatch;
-	while ((fenceMatch = fenceRe.exec(body))) {
-		fenceRanges.push([fenceMatch.index, fenceMatch.index + fenceMatch[0].length]);
-	}
-
 	let result = '';
 	let cursor = 0;
-	for (const [start, end] of fenceRanges) {
+	for (const [start, end] of fenceRangesOf(body)) {
 		result += transformLinksOutsideFence(body.slice(cursor, start), rewrite, stats);
 		result += body.slice(start, end); // fenced code block, untouched
 		cursor = end;
 	}
 	result += transformLinksOutsideFence(body.slice(cursor), rewrite, stats);
 	return result;
+}
+
+/** The [start, end) ranges of the fenced code blocks of `body`, in order. */
+function fenceRangesOf(body) {
+	const ranges = [];
+	const fenceRe = new RegExp(FENCE_RE.source, FENCE_RE.flags);
+	let fenceMatch;
+	while ((fenceMatch = fenceRe.exec(body))) {
+		ranges.push([fenceMatch.index, fenceMatch.index + fenceMatch[0].length]);
+	}
+	return ranges;
 }
 
 function transformLinksOutsideFence(text, rewrite, stats) {
@@ -328,6 +332,91 @@ function transformLinksOutsideFence(text, rewrite, stats) {
 	}
 	result += text.slice(lastIndex);
 	return result;
+}
+
+// ---------------------------------------------------------------------------------------------
+// The guide's clips. A how-to article marks where its short clip belongs with a line `<!-- video: <name> -->`; the
+// clips themselves are this repository's files, public/guide/clips/<name>.mp4 with the poster <name>.webp.
+
+/** Where the clips are served, as a site URL without `base` (links to them are emitted relative, like page links). */
+export const CLIPS_URL = '/guide/clips/';
+/** The size of every clip and of its poster. */
+export const CLIP_WIDTH = 1280;
+export const CLIP_HEIGHT = 720;
+/** The music's licence, linked from the credit line. */
+export const CLIP_LICENCE_URL = 'https://creativecommons.org/licenses/by/4.0/';
+const CLIP_LICENCE_NAME = 'Creative Commons Attribution 4.0';
+const CLIP_CREDIT_BEFORE = 'Музика: «Easy Lemon» — Kevin MacLeod (incompetech.com), ліцензія ';
+const CLIP_CREDIT_AFTER = '. Трек скорочено й приглушено.';
+/** The credit under every player, as the reader sees it (scripts/check-built.mjs holds it on the built pages). */
+export const CLIP_CREDIT_TEXT = `${CLIP_CREDIT_BEFORE}${CLIP_LICENCE_NAME}${CLIP_CREDIT_AFTER}`;
+
+// A marker is a line of its own (indentation allowed); the name is a slug, so it can never be a path.
+const CLIP_MARKER_RE = /^([ \t]*)<!--[ \t]*video:[ \t]*([a-z0-9]+(?:-[a-z0-9]+)*)[ \t]*-->[ \t]*$/gm;
+
+function escapeAttribute(text) {
+	return text.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+/**
+ * The player of one clip with its credit, as one line of HTML (one line, so Markdown takes it as a single HTML block
+ * wherever the marker stood): a `<figure>` holding the `<video>` — controls, `preload="none"` (nothing but the poster
+ * is fetched before the reader presses play), the poster, the explicit size (no layout shift), an accessible name
+ * from the page's title, one MP4 source, never autoplay — and the music's credit as its `<figcaption>`.
+ *
+ * @param {object} options
+ * @param {string} options.name - the clip's name (the marker's).
+ * @param {string} options.title - the page's title, for the accessible name.
+ * @param {string} options.fromUrl - the page's URL (`pageUrl()`); the files are linked relative to it, so the
+ *   player works under any `base`.
+ */
+export function clipFigure({ name, title, fromUrl }) {
+	const dir = `${posixRelative(fromUrl, CLIPS_URL) || '.'}/`;
+	const label = escapeAttribute(title ? `Відео: ${title}` : 'Відео');
+	return (
+		`<figure class="guide-clip">` +
+		`<video controls preload="none" playsinline poster="${dir}${name}.webp" width="${CLIP_WIDTH}" height="${CLIP_HEIGHT}" aria-label="${label}">` +
+		`<source src="${dir}${name}.mp4" type="video/mp4"></video>` +
+		`<figcaption>${CLIP_CREDIT_BEFORE}<a href="${CLIP_LICENCE_URL}">${CLIP_LICENCE_NAME}</a>${CLIP_CREDIT_AFTER}</figcaption>` +
+		`</figure>`
+	);
+}
+
+/**
+ * Turns every `<!-- video: <name> -->` line of a page into that clip's player (`clipFigure()`), outside fenced code
+ * blocks. A marker whose clip is not in `clips` is left exactly as written — the page then shows no player (the
+ * comment is dropped at render time by src/lib/guide-markdown.mjs) — and its name is returned in `missing`, for the
+ * caller's warning. A body without a marker is returned unchanged.
+ *
+ * @param {string} body
+ * @param {object} options
+ * @param {string} options.title - the page's title.
+ * @param {string} options.fromUrl - the page's URL (`pageUrl()`).
+ * @param {{ has(name: string): boolean }} options.clips - the names of the clips that exist (a Set).
+ * @returns {{ body: string, shown: string[], missing: string[] }}
+ */
+export function insertClips(body, { title, fromUrl, clips }) {
+	const shown = [];
+	const missing = [];
+	const replace = (text) =>
+		text.replace(CLIP_MARKER_RE, (line, indent, name) => {
+			if (!clips.has(name)) {
+				missing.push(name);
+				return line;
+			}
+			shown.push(name);
+			return `${indent}${clipFigure({ name, title, fromUrl })}`;
+		});
+
+	let result = '';
+	let cursor = 0;
+	for (const [start, end] of fenceRangesOf(body)) {
+		result += replace(body.slice(cursor, start));
+		result += body.slice(start, end); // fenced code block, untouched
+		cursor = end;
+	}
+	result += replace(body.slice(cursor));
+	return { body: result, shown, missing };
 }
 
 const HEADING_RE = /^#[ \t]+(.+?)[ \t]*$/;

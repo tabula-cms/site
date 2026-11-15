@@ -30,6 +30,8 @@
 //      (spec decision 14); the other product pages cite their sources and say «станом на» (items 1–2).
 //   6. Documentation pages (Starlight): the header has no site navigation and no request button, and
 //      the footer has the link «На головну Tabula» to the product home. «Залишити заявку» is in neither.
+//      The guide's clips (issue #55): a <video> has controls, preload="none", an existing poster, width and
+//      height, an accessible name, one MP4 source and no autoplay, and the music's credit follows it.
 //   7. Every built html page: every <img> has an alt attribute (`alt`, `alt=""` or text) and nothing
 //      refers to fonts.googleapis.com; the built CSS neither. The demo's address (127.0.0.1,
 //      localhost) is kept out of every page that is not tabula's own imported documentation
@@ -43,6 +45,7 @@ import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { offer, requestFormOpen, exampleIsSeparate, footerLine, formatDate, formatDateLongYear, formatGrn, checkedOnFor, SERVICE_SLUGS } from '../src/config/offer.mjs';
 import { refNumbers } from '../src/lib/refs.mjs';
+import { CLIP_CREDIT_TEXT, CLIP_LICENCE_URL } from './lib/docs-transform.mjs';
 
 export const LAW_PAGE_SLUG = 'zakon-i-sait-shkoly';
 
@@ -418,6 +421,45 @@ export function checkDocGuide(html, base) {
 	const main = (html.match(/<main\b[\s\S]*?<\/main>/i) ?? [''])[0];
 	for (const tag of main.match(/<img\b[^>]*>/gi) ?? []) {
 		if (!/\swidth="\d+"/.test(tag) || !/\sheight="\d+"/.test(tag)) problems.push(`a guide <img> without width and height: ${tag.slice(0, 90)}`);
+	}
+	return problems;
+}
+
+/**
+ * The guide's clips on a documentation page (issue #55; the players are written by the import,
+ * scripts/lib/docs-transform.mjs `clipFigure()`): every <video> has `controls`, `preload="none"` (the page fetches
+ * nothing but the poster before the reader presses play), a poster that exists in dist/, width and height, an
+ * accessible name, no `autoplay`, and exactly one <source>, an MP4 that exists; the music's credit with the link to
+ * its licence follows the player inside the same <figure>. `exists(url)` says whether a file the page names is built.
+ */
+export function checkGuideClips(html, exists = () => true) {
+	const problems = [];
+	const main = (html.match(/<main\b[\s\S]*?<\/main>/i) ?? [html])[0];
+	const videos = /<video\b([^>]*)>([\s\S]*?)<\/video>([\s\S]*?)(?=<video\b|$)/gi;
+	const attr = (tag, name) => (tag.match(new RegExp(`\\s${name}="([^"]*)"`, 'i')) ?? [])[1];
+	const has = (tag, name) => new RegExp(`\\s${name}(?=[\\s=/>]|$)`, 'i').test(tag);
+	let match;
+	while ((match = videos.exec(main))) {
+		const [, tag, inner, after] = match;
+		const poster = attr(tag, 'poster');
+		const where = `the clip ${poster ?? tag.trim().slice(0, 60)}`;
+		if (!has(tag, 'controls')) problems.push(`${where}: a <video> without controls`);
+		if (attr(tag, 'preload') !== 'none') problems.push(`${where}: a <video> without preload="none"`);
+		if (has(tag, 'autoplay')) problems.push(`${where}: a <video> with autoplay`);
+		if (!poster) problems.push(`${where}: a <video> without a poster`);
+		else if (!exists(poster)) problems.push(`${where}: the poster is not in dist/`);
+		if (!/^\d+$/.test(attr(tag, 'width') ?? '') || !/^\d+$/.test(attr(tag, 'height') ?? '')) problems.push(`${where}: a <video> without width and height`);
+		if (!(attr(tag, 'aria-label') ?? '').trim() && !attr(tag, 'aria-labelledby')) problems.push(`${where}: a <video> without an accessible name`);
+		const sources = inner.match(/<source\b[^>]*>/gi) ?? [];
+		const src = sources.length === 1 ? attr(sources[0], 'src') : undefined;
+		if (sources.length !== 1 || attr(sources[0], 'type') !== 'video/mp4' || !src) problems.push(`${where}: expected one <source type="video/mp4">`);
+		else if (!exists(src)) problems.push(`${where}: the video file ${src} is not in dist/`);
+		const credit = (after.match(/^\s*<figcaption\b[^>]*>([\s\S]*?)<\/figcaption>\s*<\/figure>/i) ?? [])[1];
+		if (credit === undefined) problems.push(`${where}: no credit line (<figcaption>) right after the player, inside its <figure>`);
+		else {
+			if (credit.replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim() !== CLIP_CREDIT_TEXT) problems.push(`${where}: the credit line is not «${CLIP_CREDIT_TEXT}»`);
+			if (!credit.includes(`href="${CLIP_LICENCE_URL}"`)) problems.push(`${where}: the credit does not link the licence (${CLIP_LICENCE_URL})`);
+		}
 	}
 	return problems;
 }
@@ -1050,6 +1092,15 @@ function readBuilt(distDir, base, src) {
 	return existsSync(file) ? readFileSync(file, 'utf8') : null;
 }
 
+/** Whether the file a page (`rel` in dist/) names by `url` (relative or base-rooted) is in dist/. */
+function builtFileExists(distDir, base, rel, url) {
+	if (/^[a-z][a-z0-9+.-]*:/i.test(url) || url.startsWith('//')) return false;
+	const root = base.replace(/\/$/, '');
+	const { pathname } = new URL(url, `https://x${root}/${rel.split(path.sep).join('/')}`);
+	if (!pathname.startsWith(`${root}/`)) return false;
+	return existsSync(path.join(distDir, decodeURIComponent(pathname.slice(root.length + 1))));
+}
+
 function walkFiles(dir, ext) {
 	const files = [];
 	for (const entry of readdirSync(dir, { withFileTypes: true })) {
@@ -1131,6 +1182,7 @@ function main() {
 		} else {
 			for (const problem of checkDocChrome(html, base)) fail(`dist/${rel} header/footer`, problem);
 			for (const problem of checkDocGuide(html, base)) fail(`dist/${rel}`, problem);
+			for (const problem of checkGuideClips(html, (url) => builtFileExists(distDir, base, rel, url))) fail(`dist/${rel}`, problem);
 		}
 		if (rel === path.join(REQUEST_SLUG, 'index.html')) {
 			for (const problem of checkRequestPage(html, { open: requestFormOpen(), readSrc: (src) => readBuilt(distDir, base, src) })) fail(`dist/${rel}`, problem);
