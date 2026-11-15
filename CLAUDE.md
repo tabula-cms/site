@@ -2,7 +2,7 @@
 
 > Internal reference for Claude Code sessions working in this repository.
 >
-> **Last verified: 2026-11-15 (the guide's clips: players written by the import, the files in `public/guide/clips/`).**
+> **Last verified: 2026-11-15 (issue #57: the guide's two layers — structure from the imported files, areas in the sidebar, the landing at `/editor/`, topic links on every article, the hosted line; the product's header and footer on the guide's pages, `src/styles/chrome.css`).**
 >
 > **How to keep this file honest:** every pull request that changes a convention, a command,
 > or the file layout updates the matching section of this file in the same PR.
@@ -39,6 +39,7 @@ Exists now:
 | `src/routeData.ts` | Route data middleware that applies a page's `lang` frontmatter to its `<html lang>` — see Conventions |
 | `src/pages/index.astro` | Story 80 (S1): the home, sections 1–13 (plus «Для шкіл, садочків і коледжів», id `kinds`, after the four things: four tiles for the kinds of institution, `Kinds.astro`, no header link; and «З чого почати», id `start`, between them: four cards to the role pages, `Roles.astro`) in the product layout (`src/components/product/home/*`); replaced `src/content/docs/index.mdx`, which was deleted |
 | `src/layouts/Product.astro`, `src/styles/product.css` | Story 80: the product layout (`<html data-product-page>`, skip link, one `<h1>`, own CSS, self-hosted fonts) — see Conventions |
+| `src/styles/chrome.css` | The product's tokens, buttons, header and footer CSS (moved out of `product.css` on 2026-11-15; the rendered product pages unchanged): imported first by `product.css` and by `site.css`, because the guide renders the same header and footer; the tokens are declared on `:root[data-product-page]` and on `.site-header`/`.site-footer` themselves — see Conventions («The Starlight chrome») |
 | `src/components/product/` | Story 80: `Header.astro`, `Footer.astro` (with the `help` slot; three link columns and a bottom row, see Conventions), `Shot.astro` (responsive `astro:assets` image), `Tick.astro`, `shots.ts` (the screenshots + hero preload options), `home/*.astro` (one component per section) |
 | `src/components/product/home/NextStep.astro` | The slim «what to do next» row between two sections of the home (after the assistant and after «Чому Tabula»): one sentence, «Подати заявку» (`requestHref`) and an optional second link. «Чому Tabula» marks the usual way with a red cross and muted text, not struck-through text (it was hard to read); the assistant's six tabs are a 2 × 3 grid below 560 px |
 | `src/scripts/tabs.js`, `src/scripts/header.js` | Story 80: the only two scripts of the product pages (tabs with keyboard support — the assistant, the templates and the step tabs of «Харчування» and «Панель»; header shadow and «Меню») |
@@ -61,17 +62,17 @@ Exists now:
 | `src/pages/sprobuvaty.astro`, `src/scripts/demo-try.js`, `src/styles/try.css` | Story 82 (S1b): «Спробувати», the demo's sign-in — see Conventions |
 | `src/components/product/RequestForm.astro`, `src/styles/request.css`, `src/pages/zaiavka/diakuiemo.astro`, `src/pages/zaiavka/pomylka/[code].astro` | Story 78 W2 / story 80 S3: the pilot request form (a plain HTML form posted to `{cpUrl}/v1/requests`; built into `zaiavka.mdx` only while `requestFormOpen()`) and the control plane's result pages — see Conventions («The request form») |
 | `test/demo-try.test.mjs` | `node --test`: the pure helpers of `demo-try.js` (answers → states, plural, timer, referrer domain, stored attempt) |
-| `scripts/check-built.mjs` (`npm run check:built`; also runs after the build via `postbuild`) | Story 78/80: the product-page rules on all thirteen product pages (header, no Starlight chrome, no header/footer link into the docs, forbidden phrases, ʼ, no-break spaces, «станом на» on the own pages, `zaiavka` scripts), the doc-page chrome rules, the guide's rules (`checkDocGuide`, `checkGuideClips`), `footerLine` on every page, `CLOSED_SERVICE_PATTERNS` on the product pages, the «Спробувати» rules (`checkTryPage`, `checkTryLinks`). Rules are exported and unit-tested in `test/check-built.test.mjs` |
+| `scripts/check-built.mjs` (`npm run check:built`; also runs after the build via `postbuild`) | Story 78/80: the product-page rules on all thirteen product pages (header, no Starlight chrome, no header/footer link into the docs, forbidden phrases, ʼ, no-break spaces, «станом на» on the own pages, `zaiavka` scripts), the doc-page chrome rules, the guide's rules (`checkDocGuide`, `checkGuideClips`; issue #57: `checkGuideLanding`, `checkGuideArticle`, `checkGuideHosted`), `footerLine` on every page, `CLOSED_SERVICE_PATTERNS` on the product pages, the «Спробувати» rules (`checkTryPage`, `checkTryLinks`). Rules are exported and unit-tested in `test/check-built.test.mjs` |
 | `scripts/a11y.mjs` (`npm run a11y`) | Story 78/80: axe-core (WCAG 2.2 AA) over the home and every reading page at 1280 and 320 px (reduced motion) in headless Chromium, served from `dist/`; CI job `a11y` |
 | `src/styles/site.css`, `src/styles/guide.css`, `src/styles/fonts.css` | `customCss` for the Starlight (documentation) config: the guide in the product's look (teal palette, Manrope and Unbounded) and the article typography (figures, steps, the «Де знайти» callout, tables); `fonts.css` holds the `@font-face` rules shared with `product.css` — see Conventions («The guide's look») |
-| `src/lib/guide-sidebar.mjs`, `src/lib/guide-markdown.mjs`, `src/components/Head.astro`, `src/components/SocialIcons.astro` | The guide's sidebar grouped by topic (`buildGuideSidebar`, pure, tested); the Sätteri hast plugin that restructures a guide page's HTML (never its text); the font preload on guide pages; the header link «← Сайт Tabula» — see Conventions |
+| `src/lib/guide-structure.mjs` | Issue #57: the guide's structure from the imported files (`readGuideFiles`, `analyseGuidePage`, `buildGuideStructure`, pure, tested): short article or long page (the CMS's rule), the long page each article belongs to, the topics' short labels (`TOPIC_LABELS`) and the areas (`AREAS`) — see Conventions («The guide's two layers») |
+| `src/lib/guide-sidebar.mjs`, `src/lib/guide-markdown.mjs`, `src/lib/guide-layout.mjs`, `src/components/Head.astro`, `src/components/PageTitle.astro`, `src/guide.d.ts` | The guide's sidebar from the structure (`buildGuideSidebar`, pure, tested); the Sätteri hast plugin that restructures a guide page's HTML (never its text) and the two-layer layout it applies (`applyGuideLayout`: the landing, the task block, the back link, the hosted line, «Інші статті розділу»); the font preload on guide pages; the landing's hero and search field; the type of `virtual:tabula/guide` — see Conventions |
 | `src/scripts/request-check.js`, `test/request-check.test.mjs` | The request form's instant checks (ЄДРПОУ check digit, whether the mail domain takes mail, a web address in a name) — see Conventions («The request form») |
-| `test/guide-sidebar.test.mjs`, `test/guide-markdown.test.mjs` | `node --test`: the sidebar grouping on fixtures; the hast plugin |
+| `test/guide-sidebar.test.mjs`, `test/guide-structure.test.mjs`, `test/guide-markdown.test.mjs` | `node --test`: the sidebar on fixtures; the structure (the CMS's rule, orphans, areas, counts); the hast plugin and the two-layer layout |
 | `src/components/EditLink.astro` | `EditLink` override that renders nothing (the docs' `editUrl` points into a private repository) |
-| `src/components/Footer.astro` | `Footer` override for the documentation: Starlight's default footer, then «На головну Tabula», «Підтримка», `footerLine` and «© 2026 Tabula» (no GitHub or licence links) |
-| `src/components/SiteTitle.astro` | `SiteTitle` override: the text default plus a small inline SVG wordmark mark |
+| `src/components/Header.astro`, `src/components/Footer.astro`, `src/components/MobileMenuToggle.astro`, `src/components/ThemeSelect.astro` | Starlight overrides that put the product's chrome on the guide (owner, 2026-11-15): `Header` renders `components/product/Header.astro` itself (as a `<div>`, the «Посібник» marker in its `brand` slot) and the guide's bar (the marker from 1100 px, Starlight's search); `Footer` keeps Starlight's «Назад / Далі» and renders `components/product/Footer.astro` itself; `MobileMenuToggle` is «Розділи посібника» in the bar; `ThemeSelect` renders nothing (the product has no theme switch) — see Conventions («The Starlight chrome») |
 | `public/favicon.svg` | The site's mark (story 80, S1): the teal rounded square with the white «T», the same drawing as the product header's inline SVG, with literal hex colours (`#1F6F66`); Starlight's pages use the same file |
-| `scripts/lib/docs-transform.mjs` | Pure functions used by `fetch-docs.mjs`: frontmatter building/serialisation, link rewriting, `sidebar.order` from `docs/INDEX.md`, `editUrl` mapping, back-link removal, the clip players (`insertClips`, `clipFigure`; the list of existing clips is passed in). No filesystem or network access — this is what `test/docs-transform.test.mjs` unit-tests directly. |
+| `scripts/lib/docs-transform.mjs` | Pure functions used by `fetch-docs.mjs`: frontmatter building/serialisation (`hosted: true` last, only for a page whose `#` line ends with `<!-- hosted -->`; `extractTitle` reports it), link rewriting, `sidebar.order` from `docs/INDEX.md`, `editUrl` mapping, back-link removal, the clip players (`insertClips`, `clipFigure`; the list of existing clips is passed in). No filesystem or network access — this is what `test/docs-transform.test.mjs` unit-tests directly. |
 | `scripts/fetch-docs.mjs` | Imports `docs/{editor,install,qa,dev}` from `tabula-cms/tabula` into the gitignored `src/content/docs/{editor,install,qa,dev}/` (issue #3) — obtains the source (local dir or a sparse git clone), runs the transform (the players of the clips found in `public/guide/clips/` included), writes the output, prints a summary. See Conventions for the rules it implements. |
 | `scripts/check-links.mjs` (`npm run check:links`; also runs automatically after `npm run build` via `postbuild`) | Walks the built `dist/` and fails if any internal link or `#anchor` resolves to nothing. Replaces `starlight-links-validator`, which cannot validate this site's relative-link convention — see Conventions. |
 | `test/offer.test.mjs` | `node --test` check of `src/config/offer.mjs` (types, real dates, `priceQuarterUah * 4 === priceYearUah`, formatters, apostrophes; spec 83: `decided()` shows nothing unconfirmed, the operator and lyceum stay null, the decisions take their numbers from `offer`) |
@@ -189,10 +190,10 @@ happens in each workflow, not in the composite action. Both checkouts pass
   markers; a video marker whose clip exists has already become a player in the import, see «The guide's clips» below), turns a paragraph that holds one image
   into `<figure class="guide-shot">` with a `<figcaption>` of the alt text (the `<img>` then has `alt=""`, so a screen
   reader hears the sentence once), marks the «Де знайти:» paragraph (`guide-where`) and the italic role note (`guide-role`),
-  makes top-level ordered lists steps (`guide-steps`; nested lists untouched) and wraps tables in a focusable scroll region.
+  makes top-level ordered lists steps (`guide-steps`; nested lists untouched) and wraps tables in a focusable scroll region. With the guide's structure it also lays out the two layers (`src/lib/guide-layout.mjs`, see «The guide's two layers» below).
   Images of the guide (`docs/editor/img/<topic>/*.webp`) are copied by `fetch-docs.mjs` (its summary counts them and warns on a
   missing one) and go through `astro:assets` (width, height, lazy). Tall phone screenshots are limited to 70vh.
-  `check-built`'s `checkDocGuide` holds the header link, no leaked comment and width/height on every guide image;
+  `check-built`'s `checkDocGuide` holds no leaked comment and width/height on every guide image;
   `checkGuideClips` holds the players.
   The live site imports the CMS's `main`, whose guide may be older than a local checkout: everything here must work with both
   (test the old state with `git -C ../tabula archive origin/main docs | tar -x -C <dir>` and `TABULA_DOCS_DIR=<dir>/docs`).
@@ -297,18 +298,32 @@ happens in each workflow, not in the composite action. Both checkouts pass
   telegraf, ligazakon, yur-gazeta, or the names Anthropic, Resend, Cloudflare, Telegram, «ШІ-помічник» in <main>; every [n] has
   its line in «Джерела» and back (`checkServicePage`). uCoz is allowed on `zakon-i-sait-shkoly` and `yak-tse-pratsiuie`
   (`UCOZ_PAGES`); a page that names a law only to link `zakon-i-sait-shkoly/` needs no «станом на» (`LAW_PAGE_LINK`).
-- The Starlight chrome (S2 of story 80): Starlight is the documentation only. The header is Starlight's own (wordmark via
-  `src/components/SiteTitle.astro`, search, theme switch) — no site navigation, no request button; the wordmark leads to
-  the product home, and since 2026-11-14 the header also says so in words: «← Сайт Tabula» in its right group
-  (`src/components/SocialIcons.astro`, the slot the site has no other use for; the mobile menu shows it too) and a short
-  «← Сайт» beside the wordmark below 50rem, so the way back fits at 320 px. `src/components/Footer.astro` keeps Starlight's default footer (edit link, pagination) and adds the link
-  «На головну Tabula» (base-aware), «Підтримка», `footerLine` and «© 2026 Tabula». The
-  product pages never link into `editor/`, `install/`, `qa/`, `dev/` from their header or footer (`check-built`), except the
-  footer's «Посібник редактора», exactly `{base}/editor/` (spec 83 §9, `GUIDE_SLUG`); a body
-  link from a text page into the docs is allowed. `qa/` is in no menu. `public/favicon.svg` is the product header's mark
-  with literal hex colours (a favicon cannot read CSS custom properties); `favicon: '/favicon.svg'` in `astro.config.mjs`
-  is Starlight's own default, kept only to document that. The light-mode header border in `site.css` targets
-  `header.header`: `--sl-color-hairline` and `-shade` are the same gray-6 there, so it uses gray-5.
+- The Starlight chrome: the guide carries the product's header and footer (owner's decision, 2026-11-15, «Так, продуктова шапка»;
+  until then the documentation header had no site navigation and no request button). `src/components/Header.astro` (Starlight's
+  `Header`) renders `src/components/product/Header.astro` itself — the mark and «Tabula» to the home, «Для кого», the six anchors
+  (to `{base}#…`), «Спробувати» while `offer.demoOpen`, «Подати заявку» (`requestHref`), «Меню» below 1100 px — as a `<div>` (prop
+  `as`; Starlight's frame is the `<header>`), with the «Посібник» marker (a link to `{base}editor/`) in its `brand` slot from 520 to
+  1099 px; under it the guide's bar: the marker «Посібник редактора» from 1100 px (the product's row has no room for it there: 13–52
+  px too wide, measured), Starlight's search (aligned with the article's column) and, below 50rem, «Розділи посібника», which opens
+  the sidebar (`MobileMenuToggle` override; it steps aside while «Меню» is open). The product component's two slots are empty on the
+  product pages, whose markup is byte for byte what it was. `header.js` runs on the guide too, imported as `header.js?guide` so Vite
+  does not split it into a chunk shared with the product pages (their inlined script must stay as it is). Starlight's `--sl-nav-height`
+  is the product header (73 px up to 900 px, 72 px from 901 px) plus the bar (3.25rem); the compact `is-scrolled` padding is cancelled
+  in the guide (the frame's height is fixed), the shadow stays. No theme switch (`ThemeSelect` renders nothing: the product has
+  none); the guide still follows the reader's system setting, and in dark mode `site.css` gives the header and the footer the
+  guide's dark scale (the product has no dark header; the buttons keep its teal). `src/components/Footer.astro` keeps Starlight's
+  «Назад / Далі» and then renders `src/components/product/Footer.astro` itself (no `help` slot: «Довідка» has no page), in the
+  guide's column in its own narrow arrangement. The styles are the product's: `src/styles/chrome.css` (the tokens, the buttons, the
+  header, the footer, their 44 px targets and the progress bar, moved out of `product.css`, which imports it first — plus one rule for the guide, `.site-header .btn-main`'s 44 px box below 900 px, which the product pages get from `.btn`;
+  `site.css` imports it too; the tokens are declared on `.site-header`/`.site-footer` as well, so a guide page, which has no
+  `data-product-page`, gets them). A change there changes the product pages: compare them before and after, pixel for pixel (the
+  move was checked at 320/390/900/1100/1280/1366 px on four product pages). `check-built`'s `checkDocChrome` holds every guide
+  page: the product header with `checkProductHeader`'s own rules, the mark to the home, the marker to `{base}editor/`, Starlight's
+  `<site-search>` in the header, the product footer (`footer.site-footer#footer-nav`), never «Залишити заявку». The product pages
+  still never link into `editor/`, `install/`, `qa/`, `dev/` from their header or footer (`check-built`), except the footer's
+  «Посібник редактора», exactly `{base}/editor/` (spec 83 §9, `GUIDE_SLUG`); a body link from a text page into the docs is allowed.
+  `qa/` is in no menu. `public/favicon.svg` is the product header's mark with literal hex colours (a favicon cannot read CSS custom
+  properties); `favicon: '/favicon.svg'` in `astro.config.mjs` is Starlight's own default, kept only to document that.
 - Starlight's scroll lock (search modal, mobile sidebar) relies on `<html>`'s `overflow` staying `visible`: never set
   `overflow` on `:root`/`html` in `site.css`. (History: the deleted landing's full-bleed bands needed a clip, applied
   to `html:not([data-has-sidebar]) .main-frame` only, for exactly this reason; that rule went with the landing in S2.)
@@ -472,15 +487,45 @@ happens in each workflow, not in the composite action. Both checkouts pass
   the hand-written W1 pages (`src/content/docs/*.mdx`) are written
   without a leading slash (`editor/`, not `/editor/`) so they resolve under either base —
   Starlight does not rewrite frontmatter link fields for the configured `base` itself.
-- The guide's sidebar (2026-11-14): `astro.config.mjs` reads the imported `src/content/docs/editor/` files and calls
-  `buildGuideSidebar` (`src/lib/guide-sidebar.mjs`): «Початок» (the index as «Зміст посібника», `pershi-kroky`, `yak-vlashtovana`,
-  `maister`, `yak-pysaty`; open), then one collapsed group per topic — the topic page under its own title first, then its
-  how-to articles (`novyny-*.md` …) in `sidebar.order` — and «Інше» for what no group claims. Groups come from file-name
-  prefixes with an explicit map for the prefixes whose topic page has another name (`liudy-*` with `kolektyv`, `holovna-*`,
-  `redaktor-*`, `kharchuvannia-kartky-*` with `tekhnolohichni-kartky` …; it already covers the prefixes of the guide branches
-  not merged yet); a group that finds fewer than two of its pages is not made. With the old guide (no how-tos) the result is the
-  single open flat group «Посібник редактора» in INDEX order. The folder is generated by `scripts/fetch-docs.mjs` and
-  gitignored; a fresh clone that has not run `docs:fetch` has no guide group at all, which still builds.
+- The guide's two layers (issue #57, 2026-11-15). The CMS's guide has long pages and short how-to articles. **What a page is
+  and where it belongs come from the imported files**, read once in `astro.config.mjs` (`readGuideFiles` + `buildGuideStructure`
+  of `src/lib/guide-structure.mjs`): a page is a short article when its lead (before the first `##`/`###`) has a numbered list and
+  it has a `## Докладніше` (the rule of tabula's `scripts/guide-index.js`); it belongs to the first long page, in file-name
+  order (README.md first), whose lead links it with no anchor. README's lead lists the panel's own articles, so README is the
+  topic «Панель» too (the area card and the sidebar group open its first article; the back link leads to the landing). The
+  only tables typed here are presentation: `TOPIC_LABELS` (a long page's short label; without one its title) and `AREAS`
+  (the areas and their topics, in order). An article no long page lists is a build warning naming it and is shown under «Інше»;
+  a long page no area names goes to the last area with a warning. The one structure object goes to the sidebar
+  (`buildGuideSidebar`), to the hast plugin (`guideMarkdown({ guide })`) and to the components as `virtual:tabula/guide`
+  (a Vite plugin of the same integration; typed in `src/guide.d.ts`). **Sidebar**: «Зміст посібника» (the landing), then one open
+  group per area (labels in Unbounded), and in it one collapsed group per topic with articles (the long page under its own
+  title first, then its articles in the order its lead lists them; Manrope labels) or a plain link for a long page without
+  articles; «Інше» last. **Pages** (`src/lib/guide-layout.mjs`, applied in the plugin's `before` hook; it moves and wraps the
+  guide's HTML and adds only short labels): the landing `/editor/` — `src/components/PageTitle.astro` makes the title a hero
+  (the chip «Посібник редактора», the title, «Пошук у посібнику»: a button that opens Starlight's own search dialog, hidden
+  without JavaScript; an inline script of five lines, Starlight ships the search script itself), then the README's first
+  paragraph as the lead and the rest of its lead as a quiet note (its list of the panel's articles leaves: they are the
+  «Панель» topic), «Найчастіше» as cards with the topic label and the clip mark, the paragraph «Ще не налаштували сайт?» as
+  «Почніть тут» (`id="pochnit-tut"`: numbered cards of its short articles, its long-page link as «… →»), and under «Зміст» the
+  area cards (topics, «N статей»; `articlesCount()`) **instead of the README's contents table, which is dropped from the
+  built page** (the README's sections below stay: other pages link their anchors). A long page: its list of articles above the
+  first `##` becomes the task block `nav.guide-tasks` (the line before it, «Короткі статті на одне завдання:», is its title),
+  «відео» chip on the articles with a clip. A short article: «← <topic label>» first, «Лише на сайтах, що працюють на хостингу
+  Tabula» (the amber chip) for a hosted-only page, and «Інші статті розділу» (`id="inshi-statti-rozdilu"`) at its end. The
+  hosted mark is `hosted: true` in the front matter, written by the import from the CMS's `<!-- hosted -->` on the `#` line;
+  the line shows on every hosted page, long ones too, whatever the guide's shape. With no short articles (the CMS's `main`
+  today) `hasArticles` is false: the single open flat group «Посібник редактора» in INDEX order and every page as before.
+  `src/routeData.ts` (with short articles only): the landing has no «На цій сторінці» (the README's forty anchors), a short
+  article no «Назад / Далі» (its «Інші статті розділу» leads on). In the sidebar the current page is the mint chip with the
+  accent text and the area labels are in the accent; «Назад / Далі» are product tiles (`site.css`, end of the file).
+  `fetch-docs.mjs` deletes Astro's content cache (`node_modules/.astro/data-store.json`) after an import: a page's HTML now
+  depends on other pages. `check-built`: `checkGuideLanding` (the search field, the cards, «Почніть тут», one card per area,
+  every card link built), `checkGuideArticle` (the back link's label and target, «Інші статті розділу» with exactly the topic's
+  other articles), `checkGuideHosted` (the line on every hosted page, on no other). The look is the product's (owner,
+  2026-11-15): the tiles of the home's «З чого почати» (surface, 1 px line, 16 px radius, the lift on hover), Unbounded section
+  headings, the mint and amber chips — `guide.css` §7, colours through the `--sl-*` scale that `site.css` sets to the
+  product's tokens; the product's own CSS is not loaded on guide pages. A fresh clone that has not run `docs:fetch` has no guide
+  at all, which still builds.
 - Per-page `<html lang>`: Starlight's `docsSchema()` (0.42.4) has no `lang` frontmatter field
   and no way to set `<html lang>` for one page differently from the site's locale, short of
   making that page's folder its own Starlight locale — which was tried and rejected, because

@@ -10,7 +10,9 @@ export const collections = {
 	// (#3) sets it to `en` on pages under docs/dev/.
 	docs: defineCollection({
 		loader: docsLoader(),
-		schema: docsSchema({ extend: z.object({ lang: z.string().optional() }) }),
+		// `hosted: true` marks a guide page that exists on hosted sites only (the CMS's `<!-- hosted -->`, written by the
+		// import; src/lib/guide-structure.mjs reads it from the file).
+		schema: docsSchema({ extend: z.object({ lang: z.string().optional(), hosted: z.boolean().optional() }) }),
 	}),
 	// Story 80, slice S2: the site's own reading pages (src/content/pages/<slug>.md(x)), rendered
 	// at /<slug>/ by src/pages/[slug].astro in the product layout. Not part of Starlight's `docs`.

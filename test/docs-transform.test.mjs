@@ -459,6 +459,19 @@ test('extractTitle: an HTML comment marker in the heading is not part of the tit
 	assert.equal(extractTitle('# Сайт на хостингу<!-- hosted -->\n\nBody.\n').title, 'Сайт на хостингу');
 });
 
+test('extractTitle: <!-- hosted --> on the title line is reported as hosted; without it the result has no hosted key', () => {
+	assert.deepEqual(extractTitle('# Сайт на хостингу<!-- hosted -->\n\nBody.\n'), { title: 'Сайт на хостингу', body: 'Body.\n', hosted: true });
+	assert.deepEqual(extractTitle('# Новини\n\nBody.\n'), { title: 'Новини', body: 'Body.\n' });
+	// Another comment is not the hosted marker.
+	assert.equal(extractTitle('# Новини<!-- video: x -->\n').hosted, undefined);
+});
+
+test('frontmatter serialisation: hosted: true last, only for a hosted-only page; otherwise byte-identical', () => {
+	const plain = buildPageFrontmatter({ title: 'Сайт', order: 2, editUrl: 'x' });
+	assert.equal(buildPageFrontmatter({ title: 'Сайт', order: 2, editUrl: 'x', hosted: false }), plain);
+	assert.equal(buildPageFrontmatter({ title: 'Сайт', order: 2, editUrl: 'x', hosted: true }), plain.replace('editUrl: "x"\n', 'editUrl: "x"\nhosted: true\n'));
+});
+
 // The guide's clips (issue #55).
 const CLIPS = new Set(['novyny-napysaty', 'nalashtuvannia-vyhliad']);
 const clipCtx = { title: 'Як написати й опублікувати новину', fromUrl: pageUrl('editor', 'novyny-napysaty.md'), clips: CLIPS };

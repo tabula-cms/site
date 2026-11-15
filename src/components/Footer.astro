@@ -1,78 +1,13 @@
 ---
-// Override of Starlight's default Footer (registered in astro.config.mjs). Since slice S2 of story 80
-// every Starlight page is a documentation page (`template: doc`), so Starlight's own footer content —
-// edit link, pagination — is kept above ours.
-//
-// Ours: the link back to the product home («На головну Tabula»), «Підтримка», and the footer line of the
-// footer-and-audience-pages spec (`footerLine` from `offer.mjs`, checked on every page by
-// `check-built.mjs`). No GitHub, licence or vulnerability links: Tabula is a closed service now. The documentation is not linked from the product pages, so this is
-// the only way back. The home link is built from `import.meta.env.BASE_URL` (Astro's resolved `base`):
-// this footer renders at every page depth, so a single relative path cannot be correct everywhere;
-// `scripts/check-links.mjs` resolves an absolute (leading-slash) href against its own base-prefixed page
-// map.
+// Override of Starlight's default Footer (registered in astro.config.mjs). Starlight's own footer content stays first (the
+// «Назад / Далі» cards; the edit link renders nothing, src/components/EditLink.astro), then the product's footer itself,
+// src/components/product/Footer.astro (owner, 2026-11-15: the guide carries the product's header and footer): the brand,
+// «Для кого», «Про сервіс», «Допомога» (with «Посібник редактора»), the legal links, `footerLine` (check-built holds it on
+// every page) and «© 2026 Tabula». Its styles are the product's (src/styles/chrome.css); in the guide's column it takes
+// the product's own narrow arrangement (site.css).
 import Default from '@astrojs/starlight/components/Footer.astro';
-import { footerLine } from '../config/offer.mjs';
-
-const base = import.meta.env.BASE_URL;
-const home = base.endsWith('/') ? base : `${base}/`;
-
-const links = [
-	{ text: 'На головну Tabula', href: home },
-	{ text: 'Підтримка', href: `${home}pidtrymka/` },
-];
+import ProductFooter from './product/Footer.astro';
 ---
 
 <Default />
-
-<footer class="site-footer not-content">
-	<nav class="site-footer-links" aria-label="Про сайт">
-		{
-			links.map(({ text, href }, index) => (
-				<>
-					{index > 0 && <span class="site-footer-sep" aria-hidden="true">·</span>}
-					<a href={href}>{text}</a>
-				</>
-			))
-		}
-	</nav>
-	<p class="site-footer-tagline">{footerLine}</p>
-	<p class="site-footer-operator">© 2026 Tabula</p>
-</footer>
-
-<style>
-	@layer starlight.components {
-		.site-footer {
-			margin-top: 2rem;
-			padding-top: 1.5rem;
-			border-top: 1px solid var(--sl-color-hairline);
-			font-size: var(--sl-text-xs);
-			color: var(--sl-color-gray-3);
-		}
-
-		.site-footer-links {
-			display: flex;
-			flex-wrap: wrap;
-			align-items: baseline;
-			gap: 0.5rem;
-		}
-
-		.site-footer-links a {
-			color: var(--sl-color-gray-2);
-			text-decoration: none;
-		}
-
-		.site-footer-links a:hover {
-			color: var(--sl-color-accent);
-			text-decoration: underline;
-		}
-
-		.site-footer-sep {
-			color: var(--sl-color-gray-5);
-		}
-
-		.site-footer-operator,
-		.site-footer-tagline {
-			margin-top: 0.5rem;
-		}
-	}
-</style>
+<ProductFooter />

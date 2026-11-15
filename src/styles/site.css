@@ -8,6 +8,9 @@
 
 /* The brand fonts: the same @font-face rules the product pages use (a file of their own, imported by both). */
 @import './fonts.css';
+/* The product's tokens, buttons, header and footer: the guide renders the same components (src/components/Header.astro,
+ * Footer.astro; owner, 2026-11-15). */
+@import './chrome.css';
 
 /* ---------------------------------------------------------------------------------------------
  * 1. Palette. Dark mode is Starlight's default `data-theme` (a scale in `:root`); light mode overrides it in
@@ -81,14 +84,221 @@
 /* ---------------------------------------------------------------------------------------------
  * 2. Header and focus.
  * --------------------------------------------------------------------------------------------- */
-/* The header's border: the default `--sl-color-hairline-shade` is the page colour in dark mode and the same
- * light gray as the hairline in light mode, so it is set once for both. */
-header.header {
-	border-bottom: 1px solid var(--sl-color-hairline);
+/* The product's header in Starlight's frame (src/components/Header.astro; owner, 2026-11-15). Starlight's fixed
+ * <header class="header"> loses its own padding, border and background and is exactly as tall as the product header
+ * (73 px up to 900 px, where its buttons are 44 px tall, 72 px from 901 px: measured on the product pages) plus the guide's bar; Starlight lays out the sidebar,
+ * the «На цій сторінці» row and the anchors' scroll padding from --sl-nav-height. The product header's compact state
+ * (header.js, `is-scrolled`) keeps its shadow here but not its smaller padding: the frame's height is fixed. */
+:root {
+	--guide-product-header: 73px;
+	--guide-bar-height: 3.25rem;
+	--sl-nav-height: calc(var(--guide-product-header) + var(--guide-bar-height));
 }
-
-:root[data-theme='light'] header.header {
+@media (min-width: 901px) {
+	:root {
+		--guide-product-header: 72px;
+	}
+}
+header.header,
+:root[data-has-sidebar] header.header {
+	padding: 0;
+	border-bottom: 0;
+	background: none;
 	box-shadow: none;
+}
+/* The product pages size boxes the browser's way (content-box) and set border-box where they mean it; Starlight's reset
+ * makes everything border-box (a layer: this unlayered zero-specificity rule wins over it, the chrome's own rules over
+ * this). Without it the header's 1200 px row would be 48 px narrower than on the product pages. */
+:where(.site-header, .site-header *, .site-footer, .site-footer *) {
+	box-sizing: content-box;
+}
+header.header .site-header {
+	/* The product pages' body text: the header's own sizes are set on its parts, the rest inherits from here. */
+	font-family: var(--body);
+	font-size: 16px;
+	line-height: normal;
+	color: var(--ink);
+	-webkit-font-smoothing: antialiased;
+}
+header.header .site-header.is-scrolled {
+	margin-bottom: 0;
+}
+header.header .site-header.is-scrolled .site-header__inner {
+	padding-top: 14px;
+	padding-bottom: 14px;
+}
+header.header .site-header a:focus-visible,
+header.header .site-header summary:focus-visible {
+	outline: 3px solid var(--focus);
+	outline-offset: 2px;
+}
+/* The «Посібник» marker beside the mark: a quiet link to the guide's landing, the product's mint chip. */
+.guide-marker {
+	flex: none;
+	margin-inline-start: -16px;
+	padding: 4px 10px;
+	border-radius: 999px;
+	background: var(--mint);
+	color: var(--accent);
+	font-size: 14px;
+	font-weight: 700;
+	text-decoration: none;
+	white-space: nowrap;
+}
+.guide-marker:hover {
+	color: var(--accent-hover);
+}
+/* The marker fits the product's row from 520 to 1099 px only (below: the mark, the button and «Меню» fill the row; from
+ * 1100 px: the nav). Elsewhere the bar under the header carries it (.guide-bar__marker). */
+@media (max-width: 519px), (min-width: 1100px) {
+	.guide-marker {
+		display: none;
+	}
+}
+/* The guide's bar under the product header: the search and, below 50rem, «Розділи посібника». */
+.guide-bar {
+	height: var(--guide-bar-height);
+	border-bottom: 1px solid var(--sl-color-hairline);
+	background: var(--sl-color-bg-nav);
+}
+.guide-bar__inner {
+	display: flex;
+	align-items: center;
+	justify-content: flex-end;
+	gap: 0.75rem;
+	height: 100%;
+	padding-inline: var(--sl-nav-pad-x);
+}
+.guide-bar__marker {
+	display: none;
+}
+@media (min-width: 50rem) {
+	.guide-bar__inner {
+		justify-content: flex-start;
+		gap: 0;
+	}
+	/* The marker's box is as wide as the sidebar, so the search starts where the article's column does. */
+	.guide-bar__marker {
+		display: block;
+		visibility: hidden;
+		flex: 0 0 calc(var(--sl-sidebar-width) - var(--sl-nav-pad-x) + var(--sl-content-pad-x, 1.5rem));
+		font-size: 0.875rem;
+		font-weight: 700;
+		color: var(--sl-color-text-accent);
+		text-decoration: none;
+		white-space: nowrap;
+	}
+	.guide-bar site-search {
+		width: min(28rem, 100%);
+	}
+}
+@media (min-width: 1100px) {
+	.guide-bar__marker {
+		visibility: visible;
+	}
+}
+.guide-bar__marker:hover {
+	text-decoration: underline;
+	text-underline-offset: 0.2em;
+}
+/* «Розділи посібника» (src/components/MobileMenuToggle.astro): in the bar, at its left, below 50rem only. */
+.guide-menu-button {
+	position: fixed;
+	z-index: var(--sl-z-index-navbar);
+	top: calc(var(--guide-product-header) + (var(--guide-bar-height) - 2.5rem) / 2);
+	inset-inline-start: var(--sl-nav-pad-x);
+	display: inline-flex;
+	align-items: center;
+	gap: 0.4rem;
+	height: 2.5rem;
+	padding: 0 0.9rem;
+	border: 1.5px solid var(--sl-color-hairline-light);
+	border-radius: 999px;
+	background: var(--guide-surface);
+	color: var(--sl-color-white);
+	font: inherit;
+	font-size: 0.9375rem;
+	font-weight: 700;
+	cursor: pointer;
+}
+.guide-menu-button:has(~ :popover-open) .open-menu,
+.guide-menu-button:not(:has(~ :popover-open)) .close-menu {
+	display: none;
+}
+.guide-menu-button:has(~ :popover-open) {
+	border-color: var(--sl-color-accent);
+}
+@media (min-width: 50rem) {
+	.guide-menu-button {
+		display: none;
+	}
+}
+/* The product's «Меню» panel opens over the bar: the button steps aside while it is open. */
+body:has(.nav-menu[open]) .guide-menu-button {
+	visibility: hidden;
+}
+/* The product's footer in the guide's column: the product's own narrow arrangement (the brand on a whole row, the
+ * columns two by two), whatever the window's width, because the column is about 46rem wide. */
+.sl-container .site-footer,
+.content-panel .site-footer {
+	margin-top: 2.5rem;
+	border-radius: 16px;
+	border: 1px solid var(--line);
+	font-family: var(--body);
+	line-height: normal;
+}
+.site-footer .site-footer__inner {
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 28px 20px;
+	padding: 32px 24px 28px;
+}
+.site-footer .site-footer__lead,
+.site-footer .site-footer__col:nth-of-type(3) {
+	grid-column: 1 / -1;
+}
+.site-footer ul {
+	margin: 0;
+}
+.site-footer p {
+	margin-bottom: 0;
+}
+/* Dark: the product has no dark mode; the guide follows the reader's system setting, so its header and footer take the
+ * guide's dark scale (site.css §1). The buttons keep the product's teal (white text on it passes AA). */
+:root:not([data-theme='light']) :is(.site-header, .site-footer) {
+	--bg: #0f1b1d;
+	--surface: #172529;
+	--ink: #e3ecec;
+	--text: #c0cecf;
+	--line: #2c4045;
+	--mint: #123c38;
+}
+:root:not([data-theme='light']) .site-header {
+	background: rgba(15, 27, 29, 0.94);
+}
+:root:not([data-theme='light']) .guide-marker {
+	color: #8fdccd;
+}
+/* The product's hover rules are scoped to its pages (`[data-product-page] …:hover`); the same hovers here. */
+header.header .site-header :is(.nav-links a:hover, .nav-menu__panel a:hover, .nav-for > summary:hover) {
+	color: var(--accent);
+}
+header.header .site-header .nav-for__panel a:hover {
+	background: #eef4f2;
+}
+:root:not([data-theme='light']) .site-header :is(.nav-links a:hover, .nav-menu__panel a:hover, .nav-for > summary:hover, .nav-for[open] > summary, .nav-for__panel a[aria-current='page'], .nav-menu__panel a[aria-current='page']) {
+	color: #8fdccd;
+}
+:root:not([data-theme='light']) header.header .site-header .nav-for__panel a:hover {
+	background: #123c38;
+}
+:root:not([data-theme='light']) .site-header .nav-menu__heading {
+	color: #92a5a8;
+}
+:root:not([data-theme='light']) .site-header :is(.nav-menu > summary, .btn-line) {
+	border-color: #3d5257;
+}
+:root:not([data-theme='light']) .site-header :is(.nav-menu__panel a, .nav-menu__panel .nav-menu__main) {
+	border-color: #223439;
 }
 
 /* The product's focus ring. */
@@ -162,10 +372,63 @@ select:focus-visible,
 /* ---------------------------------------------------------------------------------------------
  * 5. The way back to the product pages, in the footer's colours.
  * --------------------------------------------------------------------------------------------- */
-.pagination-links a {
-	border-radius: 0.75rem;
-	border-color: var(--sl-color-hairline-light);
-}
+/* «Назад / Далі»: see the end of this file (round 2 of issue #57). */
 
 /* Starlight's scroll lock (search modal, mobile sidebar) relies on `<html>`'s `overflow` staying `visible`:
  * never set `overflow` on `:root`/`html` in this file. */
+
+/* The two-layer guide (issue #57): the areas are the sidebar's first level (Unbounded, as above); a topic inside an
+ * area is a second-level group, labelled in the text font so the two levels read apart. */
+.sidebar-content ul ul summary .large {
+	font-family: var(--sl-font);
+	font-size: 0.9375rem;
+	font-weight: 700;
+	letter-spacing: 0;
+}
+
+/* Round 2 of issue #57 (owner, 2026-11-15: the guide in the product's look). The current page in the sidebar is the
+ * product's mint chip with the accent text, not Starlight's filled bar; the area labels take the accent. */
+.sidebar-content a[aria-current='page'],
+.sidebar-content a[aria-current='page']:hover,
+.sidebar-content a[aria-current='page']:focus {
+	background: var(--sl-color-accent-low);
+	color: var(--sl-color-text-accent);
+	font-weight: 700;
+}
+:root:not([data-theme='light']) .sidebar-content a[aria-current='page'] {
+	color: var(--sl-color-accent-high);
+}
+.sidebar-content ul.top-level > li > details > summary .large {
+	color: var(--sl-color-text-accent);
+}
+:root:not([data-theme='light']) .sidebar-content ul.top-level > li > details > summary .large {
+	color: var(--sl-color-accent-high);
+}
+
+/* «Назад / Далі»: the product's tile (`.kinds__tile`: surface, a 1 px line, 16 px radius, the lift on hover), the label
+ * quiet and the title in bold Manrope instead of Starlight's large light type. */
+.pagination-links a {
+	border: 1px solid var(--guide-tile-line);
+	border-radius: 16px;
+	background: var(--guide-surface);
+	box-shadow: none;
+	padding: 1rem 1.125rem;
+	font-size: 0.875rem;
+	color: var(--sl-color-gray-3);
+	transition:
+		box-shadow 0.2s ease-out,
+		border-color 0.2s ease-out;
+}
+.pagination-links a:hover {
+	border-color: var(--sl-color-accent);
+	box-shadow: var(--guide-tile-hover);
+}
+.pagination-links .link-title {
+	font-size: 1rem;
+	font-weight: 700;
+	line-height: 1.4;
+	color: var(--sl-color-text-accent);
+}
+.pagination-links svg {
+	color: var(--sl-color-text-accent);
+}
