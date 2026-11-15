@@ -33,7 +33,7 @@ function faceRules() {
 	return faceCss;
 }
 
-/** The whole HTML document of one form: `doc` is `{ title, html, compact }`. */
+/** The whole HTML document of one form: `doc` is `{ title, html, compact }`; `compact` is true (10.5 pt, the yearly application) or 'snug' (11.5 pt); without it the type is 12 pt. */
 export function documentHtml(doc) {
 	return `<!doctype html>
 <html lang="uk">
@@ -42,31 +42,47 @@ export function documentHtml(doc) {
 <title>${doc.title}</title>
 <style>
 ${faceRules()}
-@page { size: A4; margin: 15mm 16mm 15mm 22mm; }
-body { font: 11.5pt/1.42 'Form Serif', 'Times New Roman', Times, serif; color: #000; margin: 0; }
-h1 { font-size: 13pt; text-align: center; margin: 0 0 10pt; line-height: 1.3; }
+@page { size: A4; margin: 20mm 10mm 20mm 30mm; }
+body { font: 12pt/1.12 'Form Serif', 'Times New Roman', Times, serif; color: #000; margin: 0; hyphens: auto; }
+h1 { font-size: 12pt; text-align: center; margin: 0 0 10pt; line-height: 1.2; }
 h1.break { break-before: page; }
-p { margin: 0 0 7pt; text-align: justify; }
-ol, ul { margin: 0 0 8pt; padding-left: 18pt; }
-li { margin-bottom: 4pt; text-align: justify; }
+h1 .sub { font-weight: 400; }
+p { margin: 0 0 4pt; text-align: left; text-indent: 1.25cm; orphans: 2; widows: 2; }
+p.sub { margin-left: 1.25cm; text-indent: 0; }
+.filled, table.req { hyphens: none; }
 .blank { white-space: nowrap; letter-spacing: -0.5pt; }
-.hint { font-size: 8.5pt; color: #333; }
-.place { text-align: left; }
+.hint { font-size: 9pt; color: #333; font-weight: 400; }
+.dateline, .row, .sign { display: flex; justify-content: space-between; align-items: flex-start; text-indent: 0; text-align: left; margin-bottom: 8pt; }
+.center, .right { text-indent: 0; }
 .center { text-align: center; }
 .right { text-align: left; margin-left: 52%; }
-.row { display: flex; justify-content: space-between; text-align: left; }
-.sign { margin-top: 14pt; text-align: left; }
-.compact { font-size: 10pt; line-height: 1.27; }
-.compact p, .compact li { margin-bottom: 3pt; }
-.compact h1 { font-size: 11.5pt; margin-bottom: 6pt; }
-.compact .sign { margin-top: 8pt; }
-.sample { font-size: 9pt; color: #333; text-align: right; font-style: italic; }
-.boxes { list-style: '☐  '; }
+.sign { margin-top: 14pt; }
+.signdate { margin-top: 8pt; text-indent: 0; text-align: left; }
+.blocktitle { font-weight: 700; text-align: center; text-indent: 0; margin: 10pt 0 4pt; break-after: avoid; }
+table.req { border: 0; margin: 0; break-inside: avoid; }
+table.req td { border: 0; padding: 0 5mm 8pt 0; width: 50%; vertical-align: top; }
+table.req p { text-indent: 0; text-align: left; margin: 0 0 2pt; }
+table.req p.who { font-weight: 700; }
+table.req p.sig { margin-top: 12pt; }
+table.req td.note p { margin-top: 12pt; }
+.compact { font-size: 10.5pt; line-height: 1.08; }
+.snug { font-size: 11.5pt; }
+.compact p { margin-bottom: 1.5pt; }
+.compact h1 { font-size: 11pt; margin-bottom: 6pt; }
+.compact .hint { font-size: 8.5pt; }
+.compact .dateline { margin-bottom: 5pt; }
+.compact .blocktitle { margin-top: 4pt; margin-bottom: 2pt; }
+.compact table.req td { padding-bottom: 2pt; }
+.compact table.req p.sig, .compact table.req td.note p { margin-top: 6pt; }
+.sample { font-size: 9pt; color: #333; text-align: right; font-style: italic; text-indent: 0; }
+.boxes { list-style: '☐  '; margin: 0 0 8pt; padding-left: 18pt; }
+.boxes li { text-align: left; margin-bottom: 3pt; }
 table { width: 100%; border-collapse: collapse; margin: 6pt 0 8pt; }
-th, td { border: 1px solid #000; padding: 4pt 6pt; text-align: left; vertical-align: top; }
+table:not(.req) th, table:not(.req) td { border: 0.75pt solid #000; padding: 3pt 5pt; text-align: left; vertical-align: top; }
+table:not(.req) td.num, table:not(.req) th.num { text-align: right; white-space: nowrap; }
 tfoot td { font-weight: bold; }
 </style>
 </head>
-<body${doc.compact ? ' class="compact"' : ''}>${doc.html}</body>
+<body${doc.compact ? (doc.compact === 'snug' ? ' class="compact snug"' : ' class="compact"') : ''}>${doc.html}</body>
 </html>`;
 }
