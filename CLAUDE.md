@@ -2,7 +2,7 @@
 
 > Internal reference for Claude Code sessions working in this repository.
 >
-> **Last verified: 2026-11-15 (issue #57: the guide's two layers — structure from the imported files, areas in the sidebar, the landing at `/editor/`, topic links on every article, the hosted line; the product's header and footer on the guide's pages, `src/styles/chrome.css`).**
+> **Last verified: 2026-11-16 (story 92 part B, slice SB1: the contract's edition of 2026-11-17 with п. 4.9, the form `third-party-consent`, the invoice's `thirdPartyConsent` line). Before that, 2026-11-15 (issue #57: the guide's two layers — structure from the imported files, areas in the sidebar, the landing at `/editor/`, topic links on every article, the hosted line; the product's header and footer on the guide's pages, `src/styles/chrome.css`).**
 >
 > **How to keep this file honest:** every pull request that changes a convention, a command,
 > or the file layout updates the matching section of this file in the same PR.
@@ -46,8 +46,8 @@ Exists now:
 | `src/assets/shots/` | Story 80: the home's screenshots (WebP) and `facts.json` (`lawFilled`/`lawTotal`), written by `scripts/shots.mjs`; committed |
 | `scripts/shots.mjs` (`npm run shots`), `scripts/lib/shot-kep-line.cjs` | Story 80: reproducible screenshots from a running tabula demo; the `SHOTS` table is exported and tested in `test/shots.test.mjs` |
 | `scripts/budget.mjs` (`npm run budget`), `scripts/lib/serve-dist.mjs` | Story 80: the home's performance budget (600 KB at 390 px, lazy images, LCP preload); the static server of `dist/` shared with `a11y.mjs` |
-| `scripts/documents.mjs` (`npm run documents`), `scripts/lib/document-templates.mjs`, `public/dokumenty/*.pdf` | The downloads of the documents table on «Для бухгалтерії» (`offer.documents[].pdf`): `document-templates.mjs` joins the forms of `scripts/lib/documents/` for the current edition into the seven files, which are printed to PDF, and `dohovir.pdf` is printed from the built contract page; committed — see Conventions («The contract») |
-| `scripts/lib/documents/` (`forms.mjs`, `format.mjs`, `print.mjs`), `scripts/documents-edition.mjs` (`npm run documents:edition`), `test/forms.test.mjs`, `test/fixtures/forms-look-2026-11.json` | The forms as pure functions: `renderForm(kind, terms, data)` (nine kinds; `FORMS[kind].fields` lists the data keys), the pure formatters (`offer.mjs` re-exports them) and the print frame with the embedded face (Tinos, `@fontsource/tinos`). The folder imports nothing outside itself; `documents:edition` copies it with `terms.json` and `manifest.json` (sha256 of every file) to `dist-documents/<contractEdition>/` (gitignored). The fixture holds the text of the seven public files after the look was redesigned (2026-11, ДСТУ 4163:2020): the wording must not drift |
+| `scripts/documents.mjs` (`npm run documents`), `scripts/lib/document-templates.mjs`, `public/dokumenty/*.pdf` | The downloads of the documents table on «Для бухгалтерії» (`offer.documents[].pdf`): `document-templates.mjs` joins the forms of `scripts/lib/documents/` for the current edition into the eight files, which are printed to PDF, and `dohovir.pdf` is printed from the built contract page; committed — see Conventions («The contract») |
+| `scripts/lib/documents/` (`forms.mjs`, `format.mjs`, `print.mjs`), `scripts/documents-edition.mjs` (`npm run documents:edition`), `test/forms.test.mjs`, `test/fixtures/forms-look-2026-11.json` | The forms as pure functions: `renderForm(kind, terms, data)` (ten kinds; `FORMS[kind].fields` lists the data keys), the pure formatters (`offer.mjs` re-exports them) and the print frame with the embedded face (Tinos, `@fontsource/tinos`). The folder imports nothing outside itself; `documents:edition` copies it with `terms.json` and `manifest.json` (sha256 of every file) to `dist-documents/<contractEdition>/` (gitignored). The fixture holds the text of the eight public files after the look was redesigned (2026-11, ДСТУ 4163:2020), in the edition of 2026-11-17: the wording must not drift |
 | `THIRD_PARTY_LICENSES.md` | The fonts (SIL OFL 1.1, via Fontsource), the CC0 photos and the music of the guide's clips (CC BY 4.0) |
 | `public/guide/clips/<name>.mp4`, `<name>.webp` | The school guide's fourteen short clips (H.264 + AAC, 1280×720, about 19 MB together; recorded with a visible pointer — an arrow in a yellow highlight, a tap spot in the phone clip) and the poster of each; the name is the name in the guide's `<!-- video: <name> -->` marker; committed, served as they are — see Conventions («The guide's clips») |
 | `test/tabs.test.mjs`, `test/shots.test.mjs` | `node --test`: tabs keyboard logic (pure helper + a fake DOM); the `SHOTS` table (every file exists, starts `RIFF….WEBP`, `facts.json` valid) |
@@ -226,8 +226,11 @@ happens in each workflow, not in the composite action. Both checkouts pass
   («Безкоштовно до {pilotUntil}» · Подати заявку · Подивитися шаблони; `Product.astro` prop `cta`).
 - The contract (2026-11-14): `src/content/pages/dohovir.mdx` at `/dohovir/` is the договір приєднання with its three
   appendices (the trial application, the yearly application, the data-processing terms), a plain reading page whose
-  numbers come from `offer.mjs`. It is a published edition, dated `offer.contractEdition`; a change of its text is a
-  new edition: move that date. **No operator details are on the site or in this repository** (owner's decision): the
+  numbers come from `offer.mjs`. It is a published edition, dated `offer.contractEdition` (2026-11-17, a placeholder the owner confirms on merge: the
+  edition that added п. 4.9 — a quarter may be paid by another person with the institution's written consent, ЦК ст. 528;
+  the institution stays the customer, no contract with and no data of that person, payment only by transfer by the
+  invoice; story 92 part B; «Для бухгалтерії» answers it in `#inshyi-platnyk`, with п. 4.6 and the panel's «Фінансування
+  ще немає»); a change of its text is a new edition: move that date. **No operator details are on the site or in this repository** (owner's decision): the
   contract says they stand in the application both parties sign and in the extracts sent with it, so `offer.operator`
   stays empty and section 12 names only the tax status and the support address. The owner accepted every term, so the
   decisions `pilotActs`, `pilotActValue`, `contract2027`, `januaryGrace` and `latePayment` are `confirmed: true` and
@@ -240,14 +243,16 @@ happens in each workflow, not in the composite action. Both checkouts pass
   assistant («допоміжні засоби»). A change of a term is a change of this page, of «Для бухгалтерії», of the decisions
   and of the forms together. The documents table (`offer.documents`) links PDFs under `public/dokumenty/`:
   `scripts/lib/document-templates.mjs` holds the forms (the two applications, the acts and the invoice, the two
-  orders, the authorised person's protocol, the parents' consent) with blanks for every party's details, and
+  orders, the authorised person's protocol, the parents' consent, the institution's consent to payment by another person
+  `third-party-consent`, signed by the institution only) with blanks for every party's details, and
   `npm run documents` prints them and the contract (`dohovir.pdf`, from `dist/dohovir/`) with Playwright. Order:
   `npx astro build` → `npm run documents` → `npm run build` → commit the PDFs (the face is Tinos, embedded; `npx playwright install chromium` once); `test/offer.test.mjs` fails when a
   linked PDF is missing. The yearly application must stay on ONE A4 sheet (the pages promise «одна сторінка»). The
   two extracts name the operator, so they are not downloads: they come with the application.
   **A form's wording changes only in `scripts/lib/documents/forms.mjs`** (numbers, dates and codes come in as `terms`
   from `offer.mjs`; `data` is strings to print, escaped there, a missing key prints today's blank); a new blank is a
-  new key in `FORMS[kind].fields`. `dist-documents/<edition>/` (`npm run documents:edition`) is a frozen copy of the
+  new key in `FORMS[kind].fields`. The invoice's optional `thirdPartyConsent` («від … № З-…») prints one line under
+  «Платник:», «Рахунок може бути оплачено іншою особою згідно зі згодою Замовника …»; without it the invoice is as before. `dist-documents/<edition>/` (`npm run documents:edition`) is a frozen copy of the
   folder for another program of the project: generated, never edited, and the folder must keep importing nothing
   outside itself (`test/forms.test.mjs` holds it). A change of a form's text changes `test/fixtures/forms-look-2026-11.json`
   on purpose, with the new edition. The look (2026-11): A4 with the margins of ДСТУ 4163:2020 (30/10/20/20 mm), Tinos 12 pt (the yearly application,

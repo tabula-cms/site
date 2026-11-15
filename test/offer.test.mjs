@@ -296,3 +296,12 @@ test('documents: every download of the table is a PDF in public/, and every gene
 	for (const d of documents) if (!d.pdf) assert.notEqual(d.status, 'ready', d.name);
 	assert.match(offer.contractEdition, /^\d{4}-\d{2}-\d{2}$/);
 });
+
+test('documents: the edition that lets another person pay names it in the contract and has the consent to download', () => {
+	const contract = readFileSync(new URL('../src/content/pages/dohovir.mdx', import.meta.url), 'utf8');
+	assert.ok(contract.includes('4.9. Рахунок Виконавця може оплатити інша особа за письмовою згодою Замовника (стаття 528 Цивільного кодексу України).'));
+	// п. 4.9 came with the edition of 2026-11-17: the edition date cannot be older than the clause.
+	assert.ok(offer.contractEdition >= '2026-11-17', offer.contractEdition);
+	const consent = documents.find((d) => d.pdf === 'dokumenty/zghoda-oplata-inshoiu-osoboiu.pdf');
+	assert.ok(consent && consent.status === 'ready' && consent.name === 'Згода Замовника на оплату рахунку іншою особою');
+});

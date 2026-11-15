@@ -1,9 +1,10 @@
 // The forms an institution's accountant downloads from «Для бухгалтерії» — the trial application and its act, the
-// yearly application, the act, the invoice and four samples — as pure functions of an edition's terms and of the data
-// a caller fills in. Wording lives only here (a form's text changes in this file and nowhere else); numbers, dates and
-// codes come from `terms`; `data` is a flat object of strings ready to print. A key that is missing prints the blank
-// («____») the printed form has. No operator details here: the parties write them in. This folder is copied whole into
-// an edition (scripts/documents-edition.mjs), so it imports nothing outside itself.
+// yearly application, the act, the invoice, the institution's consent to another payer and four samples — as pure
+// functions of an edition's terms and of the data a caller fills in. Wording lives only here (a form's text changes in
+// this file and nowhere else); numbers, dates and codes come from `terms`; `data` is a flat object of strings ready to
+// print. A key that is missing prints the blank («____») the printed form has. No operator details here: the parties
+// write them in. This folder is copied whole into an edition (scripts/documents-edition.mjs), so it imports nothing
+// outside itself.
 //
 // The look follows ДСТУ 4163:2020 for a contract-type document (print.mjs holds the page and the type): the heading, one
 // line with the place on the left and the date on the right, numbered points as paragraphs («1. …»), a hint («(підпис)»,
@@ -158,10 +159,11 @@ ${block('Підписи сторін', [
 	...payerCells,
 	note(`Дата підписання акта Замовником: ${d('signDate')}`),
 ])}`),
-	'invoice': defineForm(() => 'Рахунок на оплату', ['actDate', 'actNumber', 'contractDate', 'contractNumber', 'customerEdrpou', 'customerName', 'invoiceDate', 'number', 'performerBank', 'performerIban', 'performerName', 'performerSignatory', 'performerTaxId', 'period', 'total', 'totalWords'], ({ f, d, sig }) => `<h1>РАХУНОК НА ОПЛАТУ № ${f('number', 6)}<br><span class="sub">від ${d('invoiceDate')}</span></h1>
+	'invoice': defineForm(() => 'Рахунок на оплату', ['actDate', 'actNumber', 'contractDate', 'contractNumber', 'customerEdrpou', 'customerName', 'invoiceDate', 'number', 'performerBank', 'performerIban', 'performerName', 'performerSignatory', 'performerTaxId', 'period', 'thirdPartyConsent', 'total', 'totalWords'], ({ f, d, sig, has }) => `<h1>РАХУНОК НА ОПЛАТУ № ${f('number', 6)}<br><span class="sub">від ${d('invoiceDate')}</span></h1>
 <p><b>Постачальник:</b> фізична особа — підприємець ${f('performerName', 40)}, реєстраційний номер облікової картки платника податків ${f('performerTaxId', 12)}, рахунок IBAN ${f('performerIban', 30)} у ${f('performerBank', 24)}. Платник єдиного податку третьої групи, не платник ПДВ.</p>
 <p><b>Платник:</b> ${f('customerName', 60)}, код ЄДРПОУ ${f('customerEdrpou', 10)}.</p>
-<p><b>Підстава:</b> договір (річна заява) № ${f('contractNumber', 6)} від ${f('contractDate', 14)}, акт № ${f('actNumber', 6)} від ${f('actDate', 14)}.</p>
+${has('thirdPartyConsent') ? `<p>Рахунок може бути оплачено іншою особою згідно зі згодою Замовника ${f('thirdPartyConsent', 30)}.</p>
+` : ''}<p><b>Підстава:</b> договір (річна заява) № ${f('contractNumber', 6)} від ${f('contractDate', 14)}, акт № ${f('actNumber', 6)} від ${f('actDate', 14)}.</p>
 <table>
 <thead><tr><th>№</th><th>Послуга</th><th>Період</th><th class="num">Сума без ПДВ, грн</th></tr></thead>
 <tbody><tr><td>1</td><td>Надання в користування програмного забезпечення вебсайту закладу освіти, його супроводження та обслуговування</td><td>${f('period', 18)}</td><td class="num">${f('total', 10)}</td></tr></tbody>
@@ -169,6 +171,20 @@ ${block('Підписи сторін', [
 </table>
 <p>Сума словами: ${f('totalWords', 60)}.</p>
 ${block('', [party('Постачальник', ['Фізична особа — підприємець'], sig('performerSignatory'))])}`),
+	// A quarter (or several in a row) paid by somebody else (ЦК ст. 528, п. 4.9 of the contract since the edition of
+	// 2026-11-17). Signed by the institution only: the institution stays the customer, nothing of the payer is printed.
+	'third-party-consent': defineForm(() => 'Згода Замовника на оплату рахунку іншою особою', ['contractDate', 'contractNumber', 'customerBasis', 'customerEdrpou', 'customerName', 'customerRepresentative', 'customerSignatory', 'invoices', 'number', 'periodFrom', 'periodTo', 'place', 'quarters', 'signDate'], ({ f, d, sig, customer }) => `<h1>ЗГОДА № ${f('number', 6)}<br><span class="sub">Замовника на оплату рахунку іншою особою</span></h1>
+<p class="dateline"><span>${f('place', 24, 'населений пункт')}</span><span>${d('signDate')}</span></p>
+${customer}
+<p class="pt">1. Замовник погоджується, щоб рахунки Виконавця за договором (річною заявою) № ${f('contractNumber', 6)} від ${f('contractDate', 14)} за ${f('quarters', 36, 'квартали й рік')} — з ${f('periodFrom', 14)} до ${f('periodTo', 14)} — оплатила інша особа (стаття 528 Цивільного кодексу України).</p>
+<p class="pt">2. Згода поширюється на всі рахунки Виконавця за цей період, зокрема: ${f('invoices', 50, 'номери, дати й суми рахунків, якщо їх уже складено')}.</p>
+<p class="pt">3. Замовник знає про таку оплату й погоджується з нею. Послуги за цей період Замовник отримує й приймає за актами приймання-передачі наданих послуг, які підписує сам.</p>
+<p class="pt">4. Оплата іншою особою не змінює сторін договору: Замовником лишається заклад освіти. Рахунки виписуються на Замовника й оплачуються безготівково, переказом на рахунок Виконавця, зазначений у рахунку.</p>
+<p class="pt">5. Перед особою, яка оплатила рахунок, Виконавець не має зобовʼязань, зокрема не зобовʼязаний повертати їй кошти. Розрахунки між цією особою та Замовником Виконавця не стосуються.</p>
+<p class="pt">6. Замовник може відкликати цю згоду письмовим повідомленням Виконавцю щодо кварталів, які ще не оплачено.</p>
+${block('Реквізити та підпис Замовника', [
+	party('Замовник', [f('customerName', 30), `Код ЄДРПОУ: ${f('customerEdrpou', 10)}`], sig('customerSignatory')),
+])}`),
 	'order-free-services': defineForm(() => 'Наказ про прийняття безоплатно отриманих послуг', [], ({ blank, sign, sample, subject, terms }) => `${sample}
 <p class="center">${blank(60)}<br><span class="hint">(назва закладу освіти)</span></p>
 <h1>НАКАЗ</h1>

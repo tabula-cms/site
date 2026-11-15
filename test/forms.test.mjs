@@ -14,13 +14,13 @@ const expected = JSON.parse(readFileSync(new URL('./fixtures/forms-look-2026-11.
 const kinds = Object.keys(FORMS);
 const MARK = 'ЗНАЧЕННЯ-ТЕСТУ';
 // Keys that change the shape of a form, not only fill a blank: tested on their own.
-const SWITCHES = ['paidYear', 'payerName', 'noPayer', 'wholeYear'];
+const SWITCHES = ['paidYear', 'payerName', 'noPayer', 'wholeYear', 'thirdPartyConsent'];
 // A value or a blank with the hint that stands beside a blank only, and the hint under a signature line that asks for a name.
 const normalise = (html) => html
 	.replace(/<span class="(?:blank|filled)">.*?<\/span>(?: <span class="hint">.*?<\/span>)?/g, '<B>')
 	.replaceAll(' <span class="hint">(власне імʼя, ПРІЗВИЩЕ)</span>', '');
 
-test('forms: the seven public files carry the text of the redesigned forms, byte for byte', () => {
+test('forms: the eight public files carry the text of the redesigned forms, byte for byte', () => {
 	assert.equal(DOCUMENTS.length, expected.length);
 	DOCUMENTS.forEach((doc, i) => {
 		assert.equal(doc.file, expected[i].file);
@@ -30,12 +30,12 @@ test('forms: the seven public files carry the text of the redesigned forms, byte
 	});
 });
 
-test('forms: the nine kinds, the samples take no data', () => {
+test('forms: the ten kinds, the samples take no data', () => {
 	assert.deepEqual(kinds, [
-		'trial-application', 'trial-act', 'annual-application', 'act', 'invoice',
+		'trial-application', 'trial-act', 'annual-application', 'act', 'invoice', 'third-party-consent',
 		'order-free-services', 'protocol', 'order-keeper', 'consent',
 	]);
-	for (const kind of kinds.slice(5)) assert.deepEqual(FORMS[kind].fields, [], kind);
+	for (const kind of kinds.slice(6)) assert.deepEqual(FORMS[kind].fields, [], kind);
 });
 
 test('forms: a declared field replaces a blank, exactly where it stood, and leaves none for itself', () => {
@@ -62,7 +62,7 @@ test('forms: paidYear replaces the year of the yearly application in every sente
 
 test('forms: a hint stands only beside a blank — a filled field shows its value alone', () => {
 	const hints = ['(населений пункт)', '(1 січня або перший день платного періоду)', '(власне імʼя, ПРІЗВИЩЕ)'];
-	for (const kind of kinds.slice(0, 5)) {
+	for (const kind of kinds.slice(0, 6)) {
 		const filled = renderForm(kind, TERMS, Object.fromEntries(FORMS[kind].fields.map((k) => [k, MARK])));
 		for (const hint of hints) assert.ok(!filled.includes(hint), kind + ' still prints ' + hint);
 		assert.ok(filled.includes('<span class="hint">(підпис)</span>'), kind);
@@ -72,7 +72,7 @@ test('forms: a hint stands only beside a blank — a filled field shows its valu
 });
 
 test('forms: the parties stand in one block at the end of each form, two columns, the date of signing beside them', () => {
-	for (const kind of kinds.slice(0, 5)) {
+	for (const kind of kinds.slice(0, 6)) {
 		const html = renderForm(kind, TERMS);
 		assert.equal(html.split('<table class="req">').length - 1, 1, kind);
 		assert.ok(html.indexOf('<table class="req">') > html.lastIndexOf('<p class="pt">'), kind);
@@ -111,6 +111,38 @@ test('forms: the part-year sentence and the payer of an act follow the same thre
 	assert.ok(!none.includes('Платник'));
 	const named = renderForm('act', TERMS, { payerName: MARK, payerRepresentative: 'Олена ВИГАДАНА' });
 	assert.ok(named.includes('<p class="who">Платник</p>') && named.includes(MARK) && !named.includes('Платник (якщо є)') && named.includes('Олена ВИГАДАНА'));
+});
+
+test('forms: the invoice names the institution\'s consent to another payer only when it is given', () => {
+	const line = 'Рахунок може бути оплачено іншою особою згідно зі згодою Замовника';
+	const base = renderForm('invoice', TERMS);
+	assert.ok(!base.includes(line));
+	assert.equal(renderForm('invoice', TERMS, { thirdPartyConsent: '' }), base);
+	const out = renderForm('invoice', TERMS, { thirdPartyConsent: 'від 20.04.2027 № З-2027-1' });
+	const payer = '<p><b>Платник:</b>';
+	const expectedLine = `<p>${line} <span class="filled">від 20.04.2027 № З-2027-1</span>.</p>\n`;
+	assert.ok(out.includes(expectedLine));
+	// Right under «Платник:», and nothing else moves.
+	assert.ok(out.indexOf(expectedLine) > out.indexOf(payer) && out.indexOf(expectedLine) < out.indexOf('<p><b>Підстава:</b>'));
+	assert.equal(out.replace(expectedLine, ''), base);
+});
+
+test('forms: the consent to another payer — one party, the institution, and no data of the payer', () => {
+	const html = renderForm('third-party-consent', TERMS);
+	assert.equal(FORMS['third-party-consent'].title(TERMS), 'Згода Замовника на оплату рахунку іншою особою');
+	assert.ok(html.startsWith('<h1>ЗГОДА № '));
+	assert.equal(html.split('<p class="who">').length - 1, 1);
+	assert.ok(html.includes('<p class="who">Замовник</p>') && !html.includes('Виконавець</p>') && !html.includes('Платник'));
+	for (const text of ['стаття 528 Цивільного кодексу України', 'не змінює сторін договору', 'не зобовʼязаний повертати їй кошти', 'може відкликати цю згоду', 'які ще не оплачено', 'приймає за актами', 'переказом на рахунок Виконавця']) {
+		assert.ok(html.includes(text), text);
+	}
+	// The data keys are the institution's and the contract's: none names the person who pays.
+	assert.ok(FORMS['third-party-consent'].fields.every((key) => !/payer|person/i.test(key)));
+	const filled = renderForm('third-party-consent', TERMS, {
+		customerName: 'Вигаданий ліцей № 0', quarters: 'II і III квартали 2027 року', periodFrom: '01.04.2027', periodTo: '30.09.2027', invoices: '',
+	});
+	assert.ok(filled.includes('за <span class="filled">II і III квартали 2027 року</span> — з <span class="filled">01.04.2027</span> до <span class="filled">30.09.2027</span>'));
+	assert.ok(filled.includes('зокрема: <span class="blank">'), 'no invoices yet: the blank stays');
 });
 
 test('forms: only declared keys are read, and every declared key is read', () => {
