@@ -4,6 +4,7 @@
 // order, editUrl, lang for dev/), link rewriting, and removal of the back-link line the sidebar
 // replaces. tabula-cms/tabula's docs/ stays the single source of truth; this script never
 // edits the source text, only transforms it at build time. See issue #3 for the full spec.
+// A page's `<!-- video: <name> -->` line becomes the player of public/guide/clips/<name>.mp4 (issue #55).
 //
 // Source resolution:
 //   - TABULA_DOCS_DIR set -> read straight from that folder, no git involved (local dev loop).
@@ -26,7 +27,9 @@ import {
 	computeOrder,
 	extractTitle,
 	githubEditUrl,
+	insertClips,
 	outputFileName,
+	pageUrl,
 	removeBackLink,
 	rewriteLink,
 	transformLinks,
@@ -38,6 +41,22 @@ const DEFAULT_REF = 'main';
 
 const projectRoot = fileURLToPath(new URL('../', import.meta.url));
 const contentDocsDir = path.join(projectRoot, 'src', 'content', 'docs');
+// The guide's clips: <name>.mp4 with its poster <name>.webp, committed in this repository and served as they are.
+const clipsDir = path.join(projectRoot, 'public', 'guide', 'clips');
+
+/** The names of the clips a page can show: an .mp4 with its poster beside it. A file without its pair is a warning. */
+function readClips(stats) {
+	const clips = new Set();
+	if (!existsSync(clipsDir)) return clips;
+	const files = new Set(readdirSync(clipsDir));
+	for (const file of [...files].sort()) {
+		const name = file.replace(/\.(mp4|webp)$/, '');
+		if (name === file) continue;
+		if (files.has(`${name}.mp4`) && files.has(`${name}.webp`)) clips.add(name);
+		else stats.warnings.push(`clip without its ${file.endsWith('.mp4') ? 'poster (.webp)' : 'video (.mp4)'}, not shown: public/guide/clips/${file}`);
+	}
+	return clips;
+}
 
 async function main() {
 	const ref = process.env.TABULA_REF || DEFAULT_REF;
@@ -144,7 +163,8 @@ function run(docsDir, ref) {
 		console.warn(`fetch-docs: warning: ${indexMdPath} not found, ordering all pages alphabetically`);
 	}
 
-	const stats = { githubRewrites: 0, warnings: [], images: new Set() };
+	const stats = { githubRewrites: 0, warnings: [], images: new Set(), players: 0, clipsShown: new Set() };
+	const clips = readClips(stats);
 	const pagesPerFolder = {};
 
 	// A known folder that is no longer published (install/, qa/, dev/) must not linger from an earlier import.
@@ -178,7 +198,7 @@ function run(docsDir, ref) {
 			existsSync(path.join(docsDir, candidateFolder, candidateFileName));
 
 		for (const fileName of fileNames) {
-			importPage({ sourceFolderDir, outDir, folder, fileName, ref, order, fileExists, stats });
+			importPage({ sourceFolderDir, outDir, folder, fileName, ref, order, fileExists, clips, stats });
 		}
 
 		pagesPerFolder[folder] = fileNames.length;
@@ -188,10 +208,10 @@ function run(docsDir, ref) {
 		throw new Error(`none of docs/{${PUBLISHED_FOLDERS.join(',')}} found in ${docsDir}`);
 	}
 
-	printSummary(pagesPerFolder, stats);
+	printSummary(pagesPerFolder, stats, clips);
 }
 
-function importPage({ sourceFolderDir, outDir, folder, fileName, ref, order, fileExists, stats }) {
+function importPage({ sourceFolderDir, outDir, folder, fileName, ref, order, fileExists, clips, stats }) {
 	// tabula-cms/tabula's docs/ is checked out with CRLF line endings on Windows; normalise to LF
 	// before any line-based processing (extractTitle, removeBackLink, transformLinks all assume
 	// it). Also strip a leading BOM, in case a file was saved with one — `# Title` with a BOM
@@ -229,6 +249,14 @@ function importPage({ sourceFolderDir, outDir, folder, fileName, ref, order, fil
 
 	copyLocalImages({ sourceFolderDir, outDir, images: localImages, folder, fileName, stats });
 
+	// After the links, so the player's own HTML is never read as Markdown to rewrite.
+	const withClips = insertClips(rewrittenBody, { title: title ?? '', fromUrl: pageUrl(folder, fileName), clips });
+	stats.players += withClips.shown.length;
+	for (const name of withClips.shown) stats.clipsShown.add(name);
+	for (const name of withClips.missing) {
+		stats.warnings.push(`clip not found, no player shown: public/guide/clips/${name}.mp4 (marked in docs/${folder}/${fileName})`);
+	}
+
 	const pageOrder = fileName === 'README.md' ? 0 : order.get(fileName);
 	const frontmatter = buildPageFrontmatter({
 		title: title ?? fileName,
@@ -237,7 +265,7 @@ function importPage({ sourceFolderDir, outDir, folder, fileName, ref, order, fil
 		editUrl: githubEditUrl(ref, folder, fileName),
 	});
 
-	writeFileSync(path.join(outDir, outputFileName(fileName)), frontmatter + rewrittenBody, 'utf8');
+	writeFileSync(path.join(outDir, outputFileName(fileName)), frontmatter + withClips.body, 'utf8');
 }
 
 // The school guide's how-to articles carry screenshots (docs/editor/img/<topic>/*.webp, relative paths like
@@ -272,7 +300,7 @@ function copyLocalImages({ sourceFolderDir, outDir, images, folder, fileName, st
 	}
 }
 
-function printSummary(pagesPerFolder, stats) {
+function printSummary(pagesPerFolder, stats, clips) {
 	console.log('fetch-docs: import summary');
 	let total = 0;
 	for (const folder of PUBLISHED_FOLDERS) {
@@ -282,6 +310,9 @@ function printSummary(pagesPerFolder, stats) {
 	}
 	console.log(`  total: ${total} page(s)`);
 	console.log(`  images copied: ${stats.images.size}`);
+	const unmarked = [...clips].filter((name) => !stats.clipsShown.has(name));
+	console.log(`  clips: ${stats.players} player(s) of ${stats.clipsShown.size} clip(s); ${clips.size} in public/guide/clips`);
+	if (unmarked.length > 0) console.log(`  clips no page marks: ${unmarked.length} (${unmarked.join(', ')})`);
 	console.log(`  links rewritten to GitHub: ${stats.githubRewrites}`);
 	console.log(`  links outside the published docs, kept as text: ${stats.unlinked ?? 0}`);
 	console.log(`  warnings: ${stats.warnings.length}`);

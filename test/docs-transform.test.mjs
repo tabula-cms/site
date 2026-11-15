@@ -16,6 +16,10 @@ import {
 	classifyRepoPath,
 	IMPORTED_FOLDERS,
 	PUBLISHED_FOLDERS,
+	insertClips,
+	clipFigure,
+	CLIPS_URL,
+	CLIP_CREDIT_TEXT,
 } from '../scripts/lib/docs-transform.mjs';
 
 const REF = 'main';
@@ -453,4 +457,72 @@ test('PUBLISHED_FOLDERS: only the editor guide is published', () => {
 
 test('extractTitle: an HTML comment marker in the heading is not part of the title', () => {
 	assert.equal(extractTitle('# Сайт на хостингу<!-- hosted -->\n\nBody.\n').title, 'Сайт на хостингу');
+});
+
+// The guide's clips (issue #55).
+const CLIPS = new Set(['novyny-napysaty', 'nalashtuvannia-vyhliad']);
+const clipCtx = { title: 'Як написати й опублікувати новину', fromUrl: pageUrl('editor', 'novyny-napysaty.md'), clips: CLIPS };
+
+test('insertClips: a marker with an existing clip becomes one player with its poster, source and credit', () => {
+	const body = '**Де знайти:** меню › «Новини».\n\n<!-- video: novyny-napysaty -->\n\n1. Відкрийте «Новини».\n';
+	const result = insertClips(body, clipCtx);
+	assert.deepEqual(result.shown, ['novyny-napysaty']);
+	assert.deepEqual(result.missing, []);
+	const lines = result.body.split('\n');
+	assert.equal(lines.length, body.split('\n').length, 'the player takes the marker\'s line and nothing else moves');
+	assert.equal(
+		lines[2],
+		'<figure class="guide-clip">' +
+			'<video controls preload="none" playsinline poster="../../guide/clips/novyny-napysaty.webp" width="1280" height="720" aria-label="Відео: Як написати й опублікувати новину">' +
+			'<source src="../../guide/clips/novyny-napysaty.mp4" type="video/mp4"></video>' +
+			'<figcaption>Музика: «Easy Lemon» — Kevin MacLeod (incompetech.com), ліцензія <a href="https://creativecommons.org/licenses/by/4.0/">Creative Commons Attribution 4.0</a>. Трек скорочено й приглушено.</figcaption>' +
+			'</figure>',
+	);
+	assert.doesNotMatch(result.body, /<!--|autoplay/);
+	assert.equal((result.body.match(/<video\b/g) ?? []).length, 1);
+	assert.equal((result.body.match(/<source\b/g) ?? []).length, 1);
+});
+
+test('insertClips: a marker whose clip is missing gives no player, stays as written and is reported', () => {
+	const body = 'Текст.\n\n<!-- video: foto-albom -->\n\n1. Крок.\n';
+	const result = insertClips(body, clipCtx);
+	assert.equal(result.body, body);
+	assert.deepEqual(result.shown, []);
+	assert.deepEqual(result.missing, ['foto-albom']);
+});
+
+test('insertClips: a page without a marker is returned unchanged', () => {
+	const body = 'Текст.\n\n<!-- screenshot: novyny/forma -->\n\n## Свій домен<!-- hosted -->\n\nСлово video: novyny-napysaty у реченні.\n';
+	const result = insertClips(body, clipCtx);
+	assert.equal(result.body, body);
+	assert.deepEqual([result.shown, result.missing], [[], []]);
+});
+
+test('insertClips: the files are linked relative to the page, so any base works; the folder index is one level up', () => {
+	assert.match(clipFigure({ name: 'a', title: 'T', fromUrl: pageUrl('editor', 'README.md') }), /poster="\.\.\/guide\/clips\/a\.webp".*src="\.\.\/guide\/clips\/a\.mp4"/);
+	assert.match(clipFigure({ name: 'a', title: 'T', fromUrl: pageUrl('editor', 'x.md') }), /poster="\.\.\/\.\.\/guide\/clips\/a\.webp"/);
+	assert.equal(CLIPS_URL, '/guide/clips/');
+});
+
+test('insertClips: the title is escaped in the accessible name; without a title the name is «Відео»', () => {
+	assert.match(clipFigure({ name: 'a', title: 'Теги <b> & "лапки"', fromUrl: '/editor/x/' }), /aria-label="Відео: Теги &lt;b&gt; &amp; &quot;лапки&quot;"/);
+	assert.match(clipFigure({ name: 'a', title: '', fromUrl: '/editor/x/' }), /aria-label="Відео"/);
+});
+
+test('insertClips: a marker in a fenced code block or inside a line is not a marker; an indented one keeps its indent', () => {
+	const fenced = '```html\n<!-- video: novyny-napysaty -->\n```\n';
+	assert.equal(insertClips(fenced, clipCtx).body, fenced);
+	const inline = 'Пишіть `<!-- video: novyny-napysaty -->` окремим рядком.\n';
+	assert.equal(insertClips(inline, clipCtx).body, inline);
+	const indented = insertClips('1. Крок.\n\n   <!-- video: novyny-napysaty -->\n', clipCtx);
+	assert.match(indented.body, /\n {3}<figure class="guide-clip">/);
+	// A name is a slug: nothing that could be a path is taken for a clip.
+	const odd = '<!-- video: ../novyny-napysaty -->\n';
+	assert.deepEqual(insertClips(odd, clipCtx), { body: odd, shown: [], missing: [] });
+});
+
+test('insertClips: one clip may be marked on several pages; each marker of a page is counted', () => {
+	const result = insertClips('<!-- video: nalashtuvannia-vyhliad -->\n\n<!--video:novyny-napysaty-->\n', clipCtx);
+	assert.deepEqual(result.shown, ['nalashtuvannia-vyhliad', 'novyny-napysaty']);
+	assert.equal(CLIP_CREDIT_TEXT, 'Музика: «Easy Lemon» — Kevin MacLeod (incompetech.com), ліцензія Creative Commons Attribution 4.0. Трек скорочено й приглушено.');
 });

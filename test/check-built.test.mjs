@@ -1,6 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { sep } from 'node:path';
+import { clipFigure } from '../scripts/lib/docs-transform.mjs';
 import {
 	findForbidden,
 	checkOwnSource,
@@ -145,6 +146,7 @@ import {
 	checkNoDocsLinks,
 	checkDocChrome,
 	checkDocGuide,
+	checkGuideClips,
 	checkCtaName,
 	checkFooterLinks,
 	checkOneH1,
@@ -679,4 +681,34 @@ test('checkDocGuide: the way back in the header, no leaked marker comment, sized
 	assert.equal(checkDocGuide(doc('<!-- hosted -->'), '/site').length, 1);
 	assert.equal(checkDocGuide(doc('<img alt="" src="/b.webp">'), '/site').length, 1);
 	assert.deepEqual(checkDocGuide(doc().replace('/site/', '/'), '/'), []);
+});
+
+test('checkGuideClips: controls, preload="none", an existing poster, size, a name, one MP4, no autoplay, the credit after it', () => {
+	const figure = clipFigure({ name: 'novyny-napysaty', title: 'Як написати новину', fromUrl: '/editor/novyny-napysaty/' });
+	const page = (body) => `<header></header><main><p>Текст.</p>${body}<ol><li>Крок</li></ol></main>`;
+	const built = new Set(['../../guide/clips/novyny-napysaty.webp', '../../guide/clips/novyny-napysaty.mp4']);
+	const exists = (url) => built.has(url);
+	const problems = (body, ex = exists) => checkGuideClips(page(body), ex);
+
+	assert.deepEqual(problems(''), [], 'a page without a clip');
+	assert.deepEqual(problems(figure), []);
+	assert.deepEqual(problems(figure + figure), [], 'two players on a page');
+	assert.match(problems(figure.replace(' controls', ''))[0], /without controls/);
+	assert.match(problems(figure.replace('preload="none"', 'preload="metadata"'))[0], /preload="none"/);
+	assert.match(problems(figure.replace(' preload="none"', ''))[0], /preload="none"/);
+	assert.match(problems(figure.replace(' playsinline', ' playsinline autoplay'))[0], /autoplay/);
+	assert.match(problems(figure.replace(/ poster="[^"]*"/, ''))[0], /without a poster/);
+	assert.match(problems(figure, (url) => url.endsWith('.mp4'))[0], /poster is not in dist/);
+	assert.match(problems(figure, (url) => url.endsWith('.webp'))[0], /video file .* is not in dist/);
+	assert.match(problems(figure.replace(' width="1280"', ''))[0], /width and height/);
+	assert.match(problems(figure.replace(/ aria-label="[^"]*"/, ''))[0], /accessible name/);
+	assert.match(problems(figure.replace(/ aria-label="[^"]*"/, ' aria-label=""'))[0], /accessible name/);
+	assert.match(problems(figure.replace('type="video/mp4"', 'type="video/webm"'))[0], /one <source type="video\/mp4">/);
+	assert.match(problems(figure.replace('</video>', '<source src="a.webm" type="video/webm"></video>'))[0], /one <source/);
+	assert.match(problems(figure.replace(/<figcaption>[\s\S]*<\/figcaption>/, ''))[0], /no credit line/);
+	assert.match(problems(figure.replace('</video>', '</video><p>Між ними.</p>'))[0], /no credit line/);
+	assert.match(problems(figure.replace('приглушено', 'стишено'))[0], /credit line is not/);
+	assert.match(problems(figure.replace('https://creativecommons.org/licenses/by/4.0/', 'https://example.org/'))[0], /does not link the licence/);
+	// The second of two players is held too.
+	assert.equal(problems(figure + figure.replace(' controls', '')).length, 1);
 });

@@ -79,6 +79,10 @@ never edits the source text. Environment variables:
 | `TABULA_REF` | `main` | Branch/tag to clone or to point `editUrl` and GitHub links at. `deploy.yml`'s manual `workflow_dispatch` can pass `develop` for a preview build. |
 | `TABULA_DOCS_TOKEN` | — | Fine-grained PAT (contents: read, `tabula-cms/tabula` only), needed for clone mode only while that repository is private — either set this, or use `TABULA_DOCS_DIR` instead. Passed to `git` through the environment (`GIT_CONFIG_*`, scoped to `github.com`), never argv, never the URL, never logged. Ignored for a local `TABULA_REPO` path. |
 
+The guide's short clips are files of this repository, `public/guide/clips/<name>.mp4` with a poster `<name>.webp` (H.264 +
+AAC, 1280×720). A guide page shows the clip its `<!-- video: <name> -->` line names; `docs:fetch` writes the player, warns
+about a marker without a clip and lists the clips no page marks (see CLAUDE.md, «The guide's clips»).
+
 `npm run build` runs `scripts/check-links.mjs` automatically afterwards, via npm's `postbuild`
 hook, and fails the build if any internal link or `#anchor` is broken. The same check can be run
 on its own, without rebuilding, as `npm run check:links`. It replaces

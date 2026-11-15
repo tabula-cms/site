@@ -7,8 +7,10 @@
 // src/content/docs/, so the product pages (src/content/pages/) are not touched.
 //
 // What it does:
-//   1. Drops HTML comments (`<!-- video: … -->`, `<!-- screenshot: … -->`, `<!-- hosted -->`): the CMS's markers for
-//      clips and screenshots not in the repository yet. They are not text and must not reach the page.
+//   1. Drops HTML comments (`<!-- video: … -->`, `<!-- screenshot: … -->`, `<!-- hosted -->`): the CMS's markers.
+//      They are not text and must not reach the page. A video marker whose clip exists never gets here: the import
+//      (scripts/fetch-docs.mjs) has already replaced it with the player, `<figure class="guide-clip">`, which this
+//      plugin leaves as it is; only the marker of a clip that is not in public/guide/clips/ is still a comment.
 //   2. A paragraph that holds only one image becomes `<figure class="guide-shot">` with the image and a
 //      `<figcaption>` of its alt text. The image then gets `alt=""`: the caption already says what the picture
 //      shows, and keeping the same sentence as alt would make a screen reader read it twice (HTML allows an empty

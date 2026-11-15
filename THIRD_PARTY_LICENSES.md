@@ -21,6 +21,25 @@ Tinos is not served on the site's pages: it is embedded (as data URIs) in the PD
 each edition of the forms (`npm run documents:edition`, `fonts/` with the package's `LICENSE`); it is metric-compatible with
 Times New Roman, so a form prints the same on a machine that does not have that face.
 
+## Music (CC BY 4.0)
+
+The clips of the school guide (`public/guide/clips/*.mp4`) have one piece of music under the picture.
+
+| | |
+| --- | --- |
+| Track | «Easy Lemon» |
+| Author | Kevin MacLeod (incompetech.com) |
+| Source | https://incompetech.com/music/royalty-free/mp3-royaltyfree/Easy%20Lemon.mp3 |
+| Licence | **Creative Commons Attribution 4.0** (CC BY 4.0), https://creativecommons.org/licenses/by/4.0/ |
+| Taken | 2026-11-14 |
+| Changes | Shortened to each clip's length, the volume lowered, a fade in and a fade out |
+| Used in | Every clip under `public/guide/clips/` |
+
+The attribution the licence asks for stands under every player on the site, with a link to the licence: «Музика: «Easy Lemon» —
+Kevin MacLeod (incompetech.com), ліцензія Creative Commons Attribution 4.0. Трек скорочено й приглушено.» (the import writes it,
+`scripts/lib/docs-transform.mjs`; `check-built` fails a player without it). The picture of the clips is a recording of tabula's
+own demo site with its invented content; the posters (`*.webp`) are frames of it.
+
 ## Photographs (CC0)
 
 Three photographs in `src/assets/shots/` — `classroom-3.webp`, `stage-3.webp` and `food-2.webp` — are copied from tabula's test

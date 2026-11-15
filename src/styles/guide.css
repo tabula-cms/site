@@ -1,6 +1,6 @@
 /* The school guide's article typography: the how-to articles (numbered steps, screenshots, a «Де знайти:» line, a
  * role note) and the long topic pages (tables). The classes are put on the HTML by src/lib/rehype-guide.mjs
- * (`guide-shot`, `guide-where`, `guide-role`, `guide-steps`, `guide-table`); the palette, fonts and chrome are
+ * (`guide-shot`, `guide-where`, `guide-role`, `guide-steps`, `guide-table`; `guide-clip` comes from the import); the palette, fonts and chrome are
  * src/styles/site.css. Registered via `customCss` in astro.config.mjs. Rules sit outside Starlight's cascade
  * layers on purpose: they win over its layered content rules without `!important`.
  */
@@ -150,6 +150,32 @@
 }
 
 /* ---------------------------------------------------------------------------------------------
+ * 4a. Clips: the player the import writes for a `<!-- video: … -->` marker (scripts/lib/docs-transform.mjs), framed
+ * like a screenshot, as wide as the column. Its width and height attributes (1280 × 720) with `height: auto` keep
+ * its place before the poster arrives; the music's credit under it is a caption like a screenshot's.
+ * --------------------------------------------------------------------------------------------- */
+.sl-markdown-content figure.guide-clip {
+	margin: 1.75rem 0;
+}
+.sl-markdown-content figure.guide-clip video {
+	display: block;
+	width: 100%;
+	height: auto;
+	aspect-ratio: 16 / 9;
+	border: 1px solid var(--sl-color-hairline-light);
+	border-radius: 0.75rem;
+	background: var(--guide-surface);
+	box-shadow: var(--guide-shadow);
+}
+.sl-markdown-content figure.guide-clip figcaption {
+	margin-top: 0.625rem;
+	padding-inline: 0.125rem;
+	font-size: 0.875rem;
+	line-height: 1.5;
+	color: var(--sl-color-gray-3);
+}
+
+/* ---------------------------------------------------------------------------------------------
  * 5. Tables: a box that scrolls sideways on a phone (a focusable, labelled region), hairlines, a zebra, a tinted
  * header row. A table of three or more columns keeps a readable width and scrolls instead of squeezing.
  * --------------------------------------------------------------------------------------------- */
@@ -224,6 +250,10 @@
 	.sl-markdown-content figure.guide-shot img {
 		box-shadow: none;
 		max-height: 22cm;
+	}
+	/* A clip cannot be played on paper. */
+	.sl-markdown-content figure.guide-clip {
+		display: none;
 	}
 	.sl-markdown-content ol.guide-steps > li::before {
 		border: 1px solid #000;
