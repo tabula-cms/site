@@ -35,7 +35,7 @@ const paidYear = yearOf(nextDay(offer.pilotUntil));
 
 /** The downloads, in the order of offer.documents; `file` is the name under public/dokumenty/. */
 export const DOCUMENTS = [
-	{ file: 'zaiava-probnyi-period.pdf', compact: true, title: 'Заява про приєднання на пробний період і акт до неї', html: join('trial-application', 'trial-act') },
+	{ file: 'zaiava-probnyi-period.pdf', compact: 'snug', title: 'Заява про приєднання на пробний період і акт до неї', html: join('trial-application', 'trial-act') },
 	{ file: 'richna-zaiava.pdf', compact: true, title: `Річна заява на ${paidYear} рік`, html: join('annual-application') },
 	{ file: 'nakaz-bezoplatni-posluhy.pdf', title: 'Наказ про прийняття безоплатно отриманих послуг', html: join('order-free-services') },
 	{ file: 'protokol-upovnovazhenoi-osoby.pdf', title: 'Протокол (рішення) уповноваженої особи', html: join('protocol') },

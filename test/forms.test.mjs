@@ -10,12 +10,17 @@ import { FORMS, renderForm } from '../scripts/lib/documents/forms.mjs';
 import { documentHtml } from '../scripts/lib/documents/print.mjs';
 import { writeEdition } from '../scripts/documents-edition.mjs';
 
-const expected = JSON.parse(readFileSync(new URL('./fixtures/forms-3613e9f.json', import.meta.url), 'utf8')).docs;
+const expected = JSON.parse(readFileSync(new URL('./fixtures/forms-look-2026-11.json', import.meta.url), 'utf8')).docs;
 const kinds = Object.keys(FORMS);
 const MARK = 'ЗНАЧЕННЯ-ТЕСТУ';
-const normalise = (html) => html.replace(/<span class="(?:blank|filled)">.*?<\/span>/g, '<B>');
+// Keys that change the shape of a form, not only fill a blank: tested on their own.
+const SWITCHES = ['paidYear', 'payerName', 'noPayer', 'wholeYear'];
+// A value or a blank with the hint that stands beside a blank only, and the hint under a signature line that asks for a name.
+const normalise = (html) => html
+	.replace(/<span class="(?:blank|filled)">.*?<\/span>(?: <span class="hint">.*?<\/span>)?/g, '<B>')
+	.replaceAll(' <span class="hint">(власне імʼя, ПРІЗВИЩЕ)</span>', '');
 
-test('forms: the seven public files carry the very text origin/main produced, byte for byte', () => {
+test('forms: the seven public files carry the text of the redesigned forms, byte for byte', () => {
 	assert.equal(DOCUMENTS.length, expected.length);
 	DOCUMENTS.forEach((doc, i) => {
 		assert.equal(doc.file, expected[i].file);
@@ -36,7 +41,7 @@ test('forms: the nine kinds, the samples take no data', () => {
 test('forms: a declared field replaces a blank, exactly where it stood, and leaves none for itself', () => {
 	for (const kind of kinds) {
 		const base = renderForm(kind, TERMS);
-		for (const key of FORMS[kind].fields.filter((k) => k !== 'paidYear')) {
+		for (const key of FORMS[kind].fields.filter((k) => !SWITCHES.includes(k))) {
 			const out = renderForm(kind, TERMS, { [key]: MARK });
 			const filled = out.split(`<span class="filled">${MARK}</span>`).length - 1;
 			assert.ok(filled >= 1, `${kind}.${key} is not printed`);
@@ -53,6 +58,59 @@ test('forms: paidYear replaces the year of the yearly application in every sente
 	assert.ok(base.includes('на 2027 рік'));
 	assert.equal(out.split(MARK).length - 1, base.split('2027').length - 1);
 	assert.equal(out.replaceAll(MARK, '2027'), base);
+});
+
+test('forms: a hint stands only beside a blank — a filled field shows its value alone', () => {
+	const hints = ['(населений пункт)', '(1 січня або перший день платного періоду)', '(власне імʼя, ПРІЗВИЩЕ)'];
+	for (const kind of kinds.slice(0, 5)) {
+		const filled = renderForm(kind, TERMS, Object.fromEntries(FORMS[kind].fields.map((k) => [k, MARK])));
+		for (const hint of hints) assert.ok(!filled.includes(hint), kind + ' still prints ' + hint);
+		assert.ok(filled.includes('<span class="hint">(підпис)</span>'), kind);
+	}
+	const blank = renderForm('annual-application', TERMS);
+	for (const hint of hints) assert.ok(blank.includes(hint), hint);
+});
+
+test('forms: the parties stand in one block at the end of each form, two columns, the date of signing beside them', () => {
+	for (const kind of kinds.slice(0, 5)) {
+		const html = renderForm(kind, TERMS);
+		assert.equal(html.split('<table class="req">').length - 1, 1, kind);
+		assert.ok(html.indexOf('<table class="req">') > html.lastIndexOf('<p class="pt">'), kind);
+	}
+	const annual = renderForm('annual-application', TERMS);
+	assert.ok(!annual.includes('Реквізити Замовника:') && !annual.includes('Реквізити Виконавця:'));
+	assert.ok(annual.includes('Реквізити сторін наведено в кінці заяви.'));
+	assert.ok(annual.includes('Дата підписання Замовником (дата договору):'));
+	assert.ok(annual.includes('Електронна адреса: ' + TERMS.supportEmail));
+	assert.match(renderForm('annual-application', TERMS, { performerSignatory: MARK }), /<p class="sig">.*? \/ <span class="filled">ЗНАЧЕННЯ-ТЕСТУ<\/span><br>/);
+});
+
+test('forms: the payer of the yearly application — named, none, or the blank form', () => {
+	const rule = 'платник підписує заяву й акти та оплачує послуги';
+	const blank = renderForm('annual-application', TERMS);
+	assert.ok(blank.includes('у заяві зазначено платника: <span class="blank">') && blank.includes('Платник (якщо є)'));
+	const none = renderForm('annual-application', TERMS, { noPayer: '1' });
+	assert.ok(none.includes('він зазначається в заяві як платник') && none.includes(rule));
+	assert.ok(!none.includes('Платник') && !none.includes('зазначено платника'));
+	const blanks = (html) => html.split('class="blank"').length - 1;
+	assert.equal(blanks(none), blanks(renderForm('annual-application', TERMS, { noPayer: '1', payerEdrpou: MARK })));
+	const named = renderForm('annual-application', TERMS, { payerName: MARK, payerEdrpou: '00000000' });
+	assert.ok(named.includes('платник — <span class="filled">' + MARK + '</span>') && named.includes(rule));
+	assert.ok(named.includes('<p class="who">Платник</p>') && !named.includes('Платник (якщо є)'));
+	assert.ok(!named.includes('зазначено платника'));
+});
+
+test('forms: the part-year sentence and the payer of an act follow the same three modes', () => {
+	const sentence = 'Якщо платний період починається посеред року';
+	assert.ok(renderForm('annual-application', TERMS).includes(sentence + ', — <span class="blank">'));
+	assert.ok(renderForm('annual-application', TERMS, { partialSum: '1 000,00', partialSumWords: 'одна тисяча гривень' }).includes(sentence + ', — <span class="filled">1 000,00</span> грн (<span class="filled">одна тисяча гривень</span>)'));
+	const whole = renderForm('annual-application', TERMS, { wholeYear: '1' });
+	assert.ok(!whole.includes(sentence) && !whole.includes('  ') && whole.includes('(пункт 293.3 статті 293 Податкового кодексу України).</p>'));
+	assert.ok(renderForm('act', TERMS).includes('Платник (якщо є)'));
+	const none = renderForm('act', TERMS, { noPayer: '1' });
+	assert.ok(!none.includes('Платник'));
+	const named = renderForm('act', TERMS, { payerName: MARK, payerRepresentative: 'Олена ВИГАДАНА' });
+	assert.ok(named.includes('<p class="who">Платник</p>') && named.includes(MARK) && !named.includes('Платник (якщо є)') && named.includes('Олена ВИГАДАНА'));
 });
 
 test('forms: only declared keys are read, and every declared key is read', () => {
