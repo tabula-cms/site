@@ -48,6 +48,55 @@ export function wrongCodeText(left) {
 	return `Код не підходить. Перевірте цифри: лишилося ${left} ${plural(left, ['спроба', 'спроби', 'спроб'])}.`;
 }
 
+export const CODE_DIGITS = 6;
+
+/**
+ * The code field's value as the control plane wants it: digits only, six at most. The letter shows the code grouped
+ * («123 456»), so a paste may carry a space, and the control plane drops white space only: a hyphen or a dot must go
+ * here. `caret` is a position in the raw value; the answer's caret stands after the same digits.
+ */
+export function cleanCode(raw, caret = String(raw ?? '').length) {
+	const text = String(raw ?? '');
+	const digits = (s) => s.replace(/[^0-9]/g, '');
+	const value = digits(text).slice(0, CODE_DIGITS);
+	return { value, caret: Math.min(digits(text.slice(0, Math.max(0, caret))).length, value.length) };
+}
+
+/**
+ * Keeps the code field clean while the person types, pastes or the phone fills the code in. The field has no
+ * `maxlength` (it would cut a pasted «123 456» to «123 45» before this runs), so a seventh typed digit is refused here.
+ */
+export function bindCodeInput(input) {
+	const set = (value, caret) => {
+		input.value = value;
+		try {
+			input.setSelectionRange(caret, caret);
+		} catch {
+			/* a field that is not focused may refuse a selection: the value is what matters */
+		}
+	};
+	const clean = () => {
+		const { value, caret } = cleanCode(input.value, input.selectionStart ?? input.value.length);
+		if (value !== input.value) set(value, caret);
+	};
+	input.addEventListener('beforeinput', (event) => {
+		if (event.inputType !== 'insertText' || event.isComposing) return;
+		// A keyboard's chip may insert the whole code as one piece of text: it replaces whatever the field held.
+		const whole = cleanCode(event.data).value;
+		if (whole.length === CODE_DIGITS) {
+			event.preventDefault();
+			set(whole, CODE_DIGITS);
+			return;
+		}
+		const selected = (input.selectionEnd ?? 0) - (input.selectionStart ?? 0);
+		if (cleanCode(input.value).value.length - selected >= CODE_DIGITS) event.preventDefault();
+	});
+	input.addEventListener('input', (event) => {
+		if (!event.isComposing) clean();
+	});
+	input.addEventListener('compositionend', clean); // the last `input` of a composition still says isComposing
+}
+
 /** «0:45»: minutes and two-digit seconds. */
 export function formatWait(seconds) {
 	const s = Math.max(0, Math.ceil(seconds));
@@ -358,9 +407,11 @@ export function initTry(root, { win = globalThis, doc = globalThis.document, fet
 		if (!sent && timer === null) resendButton.disabled = false;
 	});
 
+	bindCodeInput(codeInput);
 	codeForm.addEventListener('submit', async (event) => {
 		event.preventDefault();
 		say(codeError, '');
+		codeInput.value = cleanCode(codeInput.value).value; // a value set with no `input` event (some autofills)
 		if (!codeForm.checkValidity()) {
 			codeForm.reportValidity();
 			return;
@@ -368,7 +419,7 @@ export function initTry(root, { win = globalThis, doc = globalThis.document, fet
 		busy(codeButton, true);
 		let answer;
 		try {
-			answer = await post('/v1/demo/code', { attempt: attempt || '', code: codeInput.value.trim() });
+			answer = await post('/v1/demo/code', { attempt: attempt || '', code: codeInput.value });
 		} catch {
 			answer = { status: 0, body: null };
 		}
