@@ -296,3 +296,33 @@ test('documents: every download of the table is a PDF in public/, and every gene
 	for (const d of documents) if (!d.pdf) assert.notEqual(d.status, 'ready', d.name);
 	assert.match(offer.contractEdition, /^\d{4}-\d{2}-\d{2}$/);
 });
+
+test('documents: the edition that lets another person pay names it in the contract and has the consent to download', () => {
+	const contract = readFileSync(new URL('../src/content/pages/dohovir.mdx', import.meta.url), 'utf8');
+	assert.ok(contract.includes('4.9. Рахунок Виконавця може оплатити інша особа за письмовою згодою Замовника (стаття 528 Цивільного кодексу України).'));
+	// п. 4.9 came with the edition of 2026-11-17: the edition date cannot be older than the clause.
+	assert.ok(offer.contractEdition >= '2026-11-17', offer.contractEdition);
+	// The review of 2026-11-16: an overpayment goes back to the account it came from; no blanket «no refund»; п. 4.6 says
+	// when the term of payment runs without funds and what the mark in the panel is.
+	assert.ok(contract.includes('Виконавець повертає на рахунок, з якого їх отримано') && !contract.includes('Повертати кошти цій особі'));
+	assert.ok(contract.includes('строк оплати за пунктом 4.5 відраховується з дня їх надходження'));
+	assert.ok(contract.includes('є відповіддю в розумінні пункту 8.4'));
+	const consent = documents.find((d) => d.pdf === 'dokumenty/zghoda-oplata-inshoiu-osoboiu.pdf');
+	assert.ok(consent && consent.status === 'ready' && consent.name === 'Згода Замовника на оплату рахунку іншою особою');
+});
+
+test('documents: every earlier edition of the contract is kept, frozen, with its own PDF (п. 10.3)', () => {
+	assert.ok(offer.contractArchive.length >= 1);
+	for (const { edition, pdf } of offer.contractArchive) {
+		assert.ok(edition < offer.contractEdition, edition);
+		const text = readFileSync(new URL(`../src/content/editions/dohovir-${edition}.mdx`, import.meta.url), 'utf8');
+		// Frozen: its own numbers and date, nothing read from offer.mjs but the formatters.
+		assert.ok(!/import \{[^}]*\boffer\b/.test(text), edition);
+		assert.ok(text.includes(`"contractEdition":"${edition}"`), edition);
+		assert.ok(text.includes(`../../${pdf}`), edition);
+		const file = new URL(`../public/${pdf}`, import.meta.url);
+		assert.ok(existsSync(file) && readFileSync(file).subarray(0, 5).toString('latin1') === '%PDF-', pdf);
+	}
+	const first = readFileSync(new URL('../src/content/editions/dohovir-2026-11-14.mdx', import.meta.url), 'utf8');
+	assert.ok(!first.includes('4.9.') && first.includes('4.8. Попередня оплата'));
+});

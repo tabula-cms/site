@@ -1,4 +1,4 @@
-// The seven files an institution's accountant downloads from «Для бухгалтерії» (offer.documents): the forms of
+// The eight files an institution's accountant downloads from «Для бухгалтерії» (offer.documents): the forms of
 // scripts/lib/documents/ for this repository's current edition, joined as the downloads are (the trial application
 // with its act, the act with the invoice; a page break between). No wording here — it lives in the forms module.
 // Pure: no filesystem, no network.
@@ -10,7 +10,8 @@ export { documentHtml } from './documents/print.mjs';
 /** The edition's numbers and codes, as `renderForm` takes them. */
 export const TERMS = Object.freeze({
 	contractEdition: offer.contractEdition,
-	contractUrl: 'https://tabula.org.ua/dohovir/',
+	// The address of this very edition (п. 10.3): it keeps showing the text the institution joined.
+	contractUrl: `https://tabula.org.ua/dohovir/${offer.contractEdition}/`,
 	pilotUntil: offer.pilotUntil,
 	trialDays: offer.trialDays,
 	priceYearUah: offer.priceYearUah,
@@ -40,6 +41,7 @@ export const DOCUMENTS = [
 	{ file: 'nakaz-bezoplatni-posluhy.pdf', title: 'Наказ про прийняття безоплатно отриманих послуг', html: join('order-free-services') },
 	{ file: 'protokol-upovnovazhenoi-osoby.pdf', title: 'Протокол (рішення) уповноваженої особи', html: join('protocol') },
 	{ file: 'akt-i-rakhunok.pdf', title: 'Акт приймання-передачі наданих послуг і рахунок на оплату', html: join('act', 'invoice') },
+	{ file: 'zghoda-oplata-inshoiu-osoboiu.pdf', title: 'Згода Замовника на оплату рахунку іншою особою', html: join('third-party-consent') },
 	{ file: 'nakaz-vidpovidalnyi-za-sait.pdf', title: 'Наказ про призначення працівника, який веде сайт', html: join('order-keeper') },
 	{ file: 'zghoda-batkiv.pdf', title: 'Згода батьків на фото й відео дитини', html: join('consent') },
 ];

@@ -1,0 +1,26 @@
+---
+// The earlier editions of the contract (п. 10.3: every edition stays on the site), one page each at /dohovir/<edition>/:
+// src/content/editions/dohovir-<edition>.mdx, frozen when the next edition was published (offer.contractArchive lists
+// them). The current edition's own address redirects to /dohovir/ (astro.config.mjs).
+import ProductPage from '../../layouts/ProductPage.astro';
+import Typo from '../../components/product/Typo.astro';
+import { offer, formatDateLongYear } from '../../config/offer.mjs';
+
+export async function getStaticPaths() {
+	const files = import.meta.glob('../../content/editions/dohovir-*.mdx', { eager: true });
+	return offer.contractArchive.map(({ edition }) => {
+		const file = files[`../../content/editions/dohovir-${edition}.mdx`];
+		if (!file) throw new Error(`dohovir: no frozen text for the edition ${edition}`);
+		return { params: { edition }, props: { edition, file } };
+	});
+}
+
+const { edition, file } = Astro.props;
+const { Content, frontmatter } = file;
+---
+
+<ProductPage title={`${frontmatter.title} (редакція від ${formatDateLongYear(edition)})`} description={frontmatter.description}>
+	<Typo>
+		<Content />
+	</Typo>
+</ProductPage>

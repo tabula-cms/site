@@ -37,6 +37,8 @@
 //      refers to fonts.googleapis.com; the built CSS neither. The demo's address (127.0.0.1,
 //      localhost) is kept out of every page that is not tabula's own imported documentation
 //      (that text may legitimately say «localhost» in a command).
+//   8. The contract's editions (п. 10.3): every edition of offer.contractArchive built at dohovir/<edition>/ with its
+//      own PDF and linked from /dohovir/; the current edition's address, cited by the forms, leads to /dohovir/.
 //
 // The rules are pure functions exported for test/check-built.test.mjs; the checks over the files
 // run only when this file is invoked directly.
@@ -1121,6 +1123,34 @@ export function checkDemoAddress(html) {
 	return /127\.0\.0\.1|localhost/i.test(html) ? ['the demo address (127.0.0.1 / localhost) is in the page'] : [];
 }
 
+/**
+ * The editions of the contract (п. 10.3: every edition stays on the site). `contractHtml` is the built /dohovir/;
+ * `read(rel)` the text of a file of dist/ (or null), `publicExists(rel)` whether a file of public/ exists. Every earlier
+ * edition is a product page at dohovir/<edition>/ that names its date and links its own PDF, and /dohovir/ links it under
+ * «Попередні редакції»; the current edition's own address (the one the forms cite) redirects to /dohovir/.
+ */
+export function checkContractEditions({ contractHtml, current, archive, read, publicExists }) {
+	const problems = [];
+	const linked = anchorsOf(contractHtml).map((a) => a.href);
+	const own = read(`dohovir/${current}/index.html`);
+	if (!own) problems.push(`dohovir/${current}/ (the current edition's address, cited by the forms) is not built`);
+	else if (!isRedirectPage(own) || !/\/dohovir\/"/.test(own)) problems.push(`dohovir/${current}/ does not lead to /dohovir/`);
+	if (archive.length && !htmlText(contractHtml).includes('Попередні редакції')) problems.push('/dohovir/ has no «Попередні редакції» line');
+	for (const { edition, pdf } of archive) {
+		if (!linked.includes(`${edition}/`)) problems.push(`/dohovir/ does not link the edition ${edition}`);
+		const html = read(`dohovir/${edition}/index.html`);
+		if (!html) {
+			problems.push(`the edition ${edition} is not built at dohovir/${edition}/`);
+			continue;
+		}
+		if (!isProductPage(html)) problems.push(`dohovir/${edition}/ is not in the product layout`);
+		if (!htmlText(extractMain(html)).includes(`Редакція від ${formatDateLongYear(edition).replace(/\u00a0/g, ' ')}`)) problems.push(`dohovir/${edition}/ does not name its date`);
+		if (!publicExists(pdf)) problems.push(`${pdf} (the PDF of the edition ${edition}) is missing`);
+		else if (!anchorsOf(html).some((a) => a.href === `../../${pdf}`)) problems.push(`dohovir/${edition}/ does not link its own PDF ${pdf}`);
+	}
+	return problems;
+}
+
 // ---------------------------------------------------------------------------------------------
 // The checks over the files.
 
@@ -1298,6 +1328,14 @@ function main() {
 	}
 	for (const file of readdirSync(distDir).filter((name) => /^sitemap.*\.xml$/.test(name))) {
 		for (const problem of checkSitemapResults(readFileSync(path.join(distDir, file), 'utf8'))) fail(`dist/${file}`, problem);
+	}
+
+	// The editions of the contract: the earlier ones kept, the current one at its own address too.
+	const contractFile = path.join(distDir, 'dohovir', 'index.html');
+	if (existsSync(contractFile)) {
+		const read = (rel) => (existsSync(path.join(distDir, rel)) ? readFileSync(path.join(distDir, rel), 'utf8') : null);
+		const publicExists = (rel) => existsSync(path.join(root, 'public', rel));
+		for (const problem of checkContractEditions({ contractHtml: readFileSync(contractFile, 'utf8'), current: offer.contractEdition, archive: offer.contractArchive, read, publicExists })) fail('dist/dohovir', problem);
 	}
 
 	// The own pages the footer does not link must still be linked from some product page.

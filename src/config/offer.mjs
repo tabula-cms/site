@@ -142,8 +142,13 @@ export const offer = Object.freeze({
 	contractUntil: '2027-12-31',
 	paymentBankDays: 20,
 	// The date of the contract's edition at /dohovir/ (ISO). The applications name it, so a change of the contract's
-	// text is a new edition with a new date here, and `npm run documents` again.
-	contractEdition: '2026-11-14',
+	// text is a new edition with a new date here, and `npm run documents` again. 2026-11-17 (п. 4.9, payment by another
+	// person) is a placeholder date until the owner confirms the edition on merge.
+	contractEdition: '2026-11-17',
+	// The earlier editions (п. 10.3: every edition stays on the site): each is frozen at /dohovir/<edition>/
+	// (src/content/editions/dohovir-<edition>.mdx, rendered by src/pages/dohovir/[edition].astro) with its own PDF;
+	// /dohovir/<contractEdition>/ redirects to /dohovir/ (astro.config.mjs), the address the forms cite.
+	contractArchive: Object.freeze([Object.freeze({ edition: '2026-11-14', pdf: 'dokumenty/dohovir-2026-11-14.pdf' })]),
 	graceDays: 45,
 	// Spec 84, decision 15: the pilot goes on (the same contract, the same monthly acts) until the contract for the paid
 	// year is made, but not past this day — graceDays calendar days from the day after pilotUntil (test/offer.test.mjs).
@@ -465,6 +470,7 @@ export const documents = Object.freeze([
 	{ name: 'Заява про приєднання на пробний період і акт до неї', why: 'для пробного періоду; заповнену заяву з нашим підписом надсилаємо закладу', when: 'до підписання', status: 'ready', pdf: 'dokumenty/zaiava-probnyi-period.pdf' },
 	{ name: `Річна заява на ${yearOf(nextDay(offer.pilotUntil))} рік`, why: 'для основної закупівлі й реєстрації зобовʼязання в Казначействі', when: 'у січні, після затвердження кошторису', status: 'ready', pdf: 'dokumenty/richna-zaiava.pdf' },
 	{ name: 'Акт приймання-передачі наданих послуг і рахунок на оплату', why: 'для щоквартальної оплати', when: 'щокварталу', status: 'ready', pdf: 'dokumenty/akt-i-rakhunok.pdf' },
+	{ name: 'Згода Замовника на оплату рахунку іншою особою', why: 'якщо квартал оплачує не заклад, а інша особа; рахунок лишається виписаним на заклад', when: 'до оплати такого кварталу', status: 'ready', pdf: 'dokumenty/zghoda-oplata-inshoiu-osoboiu.pdf' },
 	{ name: 'Зразок протоколу уповноваженої особи', why: 'щоб внести закупівлю до річного плану', when: 'до січня', status: 'ready', pdf: 'dokumenty/protokol-upovnovazhenoi-osoby.pdf' },
 	{ name: 'Зразок наказу про прийняття безоплатно отриманих послуг', why: 'для обліку пробного періоду', when: 'після акта пробного періоду', status: 'ready', pdf: 'dokumenty/nakaz-bezoplatni-posluhy.pdf' },
 	{ name: 'Зразок наказу про призначення працівника, який веде сайт', why: 'щоб призначити відповідального', when: 'на початку роботи', status: 'ready', pdf: 'dokumenty/nakaz-vidpovidalnyi-za-sait.pdf' },
