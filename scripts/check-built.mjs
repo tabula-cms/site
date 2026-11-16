@@ -968,6 +968,8 @@ export function checkTryPage(html, { demoOpen = offer.demoOpen, demoUrl = offer.
 	if (!code || !/inputmode="numeric"/.test(code[0]) || !/autocomplete="one-time-code"/.test(code[0])) {
 		problems.push('the code field is not inputmode="numeric" autocomplete="one-time-code"');
 	}
+	// The letter shows the code grouped («123 456»): a maxlength would cut the paste before the script cleans it (#64).
+	if (code && /\bmaxlength=/i.test(code[0])) problems.push('the code field has a maxlength, which cuts a pasted «123 456»');
 	const text = htmlText(html);
 	if (!text.includes('Демо працює лише з увімкненим JavaScript.')) problems.push('no no-JavaScript line');
 	const consent = `Погоджуюся, щоб Tabula надіслала мені код для входу і ${keepDays} днів зберігала мою демо-копію. Докладно — на сторінці «Обробка персональних даних».`;

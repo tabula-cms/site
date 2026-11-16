@@ -526,6 +526,7 @@ test('checkTryPage: the referrer policy, the pass form, the code field, noindex 
 	assert.ok(checkTryPage(tryPage(), { ...opts, keepDays: 7 }).some((p) => p.includes('Consent 1')));
 	assert.deepEqual(checkTryPage(tryPage({ consent: CONSENT_1.replace('14 днів', '14 днів') }), opts), []);
 	assert.ok(checkTryPage(tryPage().replace('one-time-code', 'off'), opts).some((p) => p.includes('one-time-code')));
+	assert.ok(checkTryPage(tryPage().replace('data-try-code-input', 'maxlength="6" data-try-code-input'), opts).some((p) => p.includes('maxlength')));
 });
 
 test('checkTryLinks: no link while the demo is not public, the footer link once it is', () => {

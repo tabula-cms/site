@@ -421,7 +421,10 @@ happens in each workflow, not in the composite action. Both checkouts pass
   with the Turnstile token (action `demo-signin`, the demo widget's `demoTurnstileSiteKey`); the code step on the same page posts the
   attempt id and the code to `{cpUrl}/v1/demo/code`; the pass goes in a hidden POST form to `{demoUrl}/__demo/start`. CP answers map
   to the page: 503 → «Демо тимчасово закрите», 429 → «Зараз демо переповнене» (the broker shows the same page on its IP limit), 403 → the
-  Turnstile line, 400 → a field line, else a server line; a code 400 → «Код не підходить… лишилося N …», 410 → «Цей код уже не діє…». The
+  Turnstile line, 400 → a field line, else a server line; a code 400 → «Код не підходить… лишилося N …», 410 → «Цей код уже не діє…». The code
+  field has no `maxlength` (the letter shows the code grouped, «123 456», and a `maxlength` cuts the paste, #64): `cleanCode()` /
+  `bindCodeInput()` of `demo-try.js` keep digits only, six at most, on every `input` (the control plane drops white space only);
+  `checkTryPage` fails a `maxlength` on it. The
   attempt is kept in sessionStorage (decision 26: a reload keeps the code step); «Надіслати ще раз» waits 60 s and renders a second
   Turnstile widget for its token; a Turnstile token not given within 20 s shows the Turnstile line. `demo-try.js` loads Turnstile itself
   (`?render=explicit`), so without JavaScript only the line «Демо працює лише з увімкненим JavaScript.» shows and nothing reaches
