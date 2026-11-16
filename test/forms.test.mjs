@@ -123,7 +123,7 @@ test('forms: the invoice names the institution\'s consent to another payer, the 
 	const out = renderForm('invoice', TERMS, data);
 	const added = [
 		`<p>${line} <span class="filled">${consent}</span>. Оплата лише переказом на рахунок IBAN, зазначений у цьому рахунку; оплата на номер платіжної картки не приймається.</p>\n`,
-		'<p>У призначенні платежу обовʼязково зазначте: «Оплата за рахунком № <span class="filled">Р-2027-2</span> від <span class="filled">30.06.2027</span> за <span class="filled">Вигаданий ліцей № 0</span>, код ЄДРПОУ <span class="filled">00000000</span>, згідно зі згодою <span class="filled">' + consent + '</span>, без ПДВ».</p>\n',
+		'<p>У призначенні платежу обовʼязково зазначте: «Оплата за рахунком № <span class="filled">Р-2027-2</span> від <span class="filled">30.06.2027</span>; Замовник — <span class="filled">Вигаданий ліцей № 0</span>, код ЄДРПОУ <span class="filled">00000000</span>; згідно зі згодою <span class="filled">' + consent + '</span>; без ПДВ».</p>\n',
 	];
 	for (const text of added) assert.ok(out.includes(text), text);
 	// Under the institution, named as the payer under the contract; before the basis; nothing else moves.
@@ -160,7 +160,7 @@ test('forms: the consent to another payer — one party, the institution, and no
 		customerName: 'Вигаданий ліцей № 0', number: 'З-2027-1', quarters: 'II і III квартали 2027 року', periodFrom: '01.04.2027', periodTo: '30.09.2027', invoices: '',
 	});
 	assert.ok(filled.includes('за <span class="filled">II і III квартали 2027 року</span> — з <span class="filled">01.04.2027</span> до <span class="filled">30.09.2027</span> — на іншу особу'));
-	assert.ok(filled.includes('за <span class="filled">Вигаданий ліцей № 0</span>, код ЄДРПОУ <span class="blank">__________</span>, згідно зі згодою № <span class="filled">З-2027-1</span>, без ПДВ».'));
+	assert.ok(filled.includes('; Замовник — <span class="filled">Вигаданий ліцей № 0</span>, код ЄДРПОУ <span class="blank">__________</span>; згідно зі згодою від <span class="blank">„__“ ____________ 20__ р.</span> № <span class="filled">З-2027-1</span>; без ПДВ».'));
 	assert.ok(filled.includes('зокрема: <span class="blank">'), 'no invoices yet: the blank stays');
 });
 
