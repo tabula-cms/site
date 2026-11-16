@@ -86,3 +86,98 @@ test('within: the value, or the fallback once the time is up', async () => {
 	assert.equal(await within(Promise.resolve('tok'), 50), 'tok');
 	assert.equal(await within(new Promise(() => {}), 10), null);
 });
+
+// ---- the code field (#64): the letter shows the code grouped, «123 456» ----
+
+import { cleanCode, bindCodeInput, CODE_DIGITS } from '../src/scripts/demo-try.js';
+
+test('cleanCode: digits only, six at most', () => {
+	for (const raw of ['123 456', ' 123456 ', '123-456', '123 456', '1.2.3.4.5.6', '123456\n', 'Код: 123 456']) {
+		assert.equal(cleanCode(raw).value, '123456', JSON.stringify(raw));
+	}
+	assert.equal(cleanCode('1234567').value, '123456');
+	assert.equal(cleanCode('12a').value, '12');
+	assert.equal(cleanCode('').value, '');
+	assert.equal(cleanCode(null).value, '');
+	assert.equal(CODE_DIGITS, 6);
+});
+
+test('cleanCode: the caret stays after the same digits', () => {
+	assert.deepEqual(cleanCode('123 456', 7), { value: '123456', caret: 6 });
+	assert.deepEqual(cleanCode('123 456', 4), { value: '123456', caret: 3 });
+	assert.deepEqual(cleanCode('12x34', 3), { value: '1234', caret: 2 }); // a letter typed in the middle
+	assert.deepEqual(cleanCode('1234', 2), { value: '1234', caret: 2 }); // a digit deleted in the middle
+	assert.deepEqual(cleanCode(' 123456 ', 0), { value: '123456', caret: 0 });
+	assert.deepEqual(cleanCode('123456789', 9), { value: '123456', caret: 6 });
+});
+
+function fakeInput(value = '', start = value.length, end = start) {
+	const handlers = {};
+	const input = {
+		value,
+		selectionStart: start,
+		selectionEnd: end,
+		addEventListener: (type, fn) => (handlers[type] = fn),
+		setSelectionRange(a, b) {
+			this.selectionStart = a;
+			this.selectionEnd = b;
+		},
+	};
+	bindCodeInput(input);
+	/** What the browser does: change the value, move the caret after the inserted text, fire `input`. */
+	const insert = (text, inputType) => {
+		const before = { defaultPrevented: false, inputType, data: text, preventDefault() { this.defaultPrevented = true; } };
+		handlers.beforeinput(before);
+		if (before.defaultPrevented) return input;
+		input.value = input.value.slice(0, input.selectionStart) + text + input.value.slice(input.selectionEnd);
+		input.selectionStart = input.selectionEnd = input.selectionStart + text.length;
+		handlers.input({ inputType });
+		return input;
+	};
+	return { input, type: (text) => insert(text, 'insertText'), paste: (text) => insert(text, 'insertFromPaste') };
+}
+
+test('bindCodeInput: a pasted grouped code is whole', () => {
+	for (const text of ['123 456', ' 123456 ', '123-456']) {
+		const { input } = (() => {
+			const f = fakeInput();
+			f.paste(text);
+			return f;
+		})();
+		assert.equal(input.value, '123456', JSON.stringify(text));
+		assert.equal(input.selectionStart, 6);
+	}
+	const over = fakeInput('999999', 0, 6); // a paste over the selected old code
+	assert.equal(over.paste('123 456').value, '123456');
+});
+
+test('bindCodeInput: typing takes digits only, six at most, and keeps the caret', () => {
+	const f = fakeInput();
+	for (const ch of '12a3 4-56') f.type(ch);
+	assert.equal(f.input.value, '123456');
+	f.type('7');
+	assert.equal(f.input.value, '123456'); // the seventh digit is refused, as maxlength did
+	const mid = fakeInput('123456', 2);
+	assert.equal(mid.type('9').value, '123456'); // nor does one in the middle push the last digit out
+	assert.equal(mid.input.selectionStart, 2);
+	const sel = fakeInput('123456', 2, 3);
+	assert.equal(sel.type('9').value, '129456'); // typing over a selected digit replaces it
+	assert.equal(sel.input.selectionStart, 3);
+	const short = fakeInput('1256', 2);
+	short.type('x');
+	assert.deepEqual([short.input.value, short.input.selectionStart], ['1256', 2]);
+	short.type('3');
+	assert.deepEqual([short.input.value, short.input.selectionStart], ['12356', 3]);
+});
+
+test('bindCodeInput: a whole code inserted as one text replaces what the field held; a composition is cleaned at its end', () => {
+	assert.equal(fakeInput('999999').type('123 456').value, '123456');
+	assert.equal(fakeInput('999').type('123456').value, '123456');
+	const handlers = {};
+	const input = { value: '12 34', selectionStart: 5, selectionEnd: 5, addEventListener: (t, fn) => (handlers[t] = fn), setSelectionRange() {} };
+	bindCodeInput(input);
+	handlers.input({ isComposing: true });
+	assert.equal(input.value, '12 34');
+	handlers.compositionend({});
+	assert.equal(input.value, '1234');
+});
