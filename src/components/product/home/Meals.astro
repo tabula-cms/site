@@ -5,15 +5,18 @@
 // reads. Without JavaScript the tablist is hidden and the four panels are shown one under another, each with its
 // heading and text. The allergens claim links to «Закон і сайт школи» in its own <li> (spec decision 14).
 import Shot from '../Shot.astro';
-import { shots } from '../shots';
+import { shots, facts } from '../shots';
+import { formatMealDay } from '../../../lib/meal-day.mjs';
 
+// The chat card quotes the day of the `phone-meal-day` picture (facts.json `mealDay`, written by scripts/shots.mjs).
+const mealDay = formatMealDay(facts.mealDay);
 const base = import.meta.env.BASE_URL;
 const root = base.endsWith('/') ? base : `${base}/`;
 
 const steps = [
-	{ id: 'photo', title: 'Чотири дотики', text: 'Сфотографували порцію в їдальні — день уже на сайті.' },
+	{ id: 'photo', title: 'Три дотики', text: 'Сфотографували порцію в їдальні — день уже на сайті.' },
 	{ id: 'share', title: '«Поділитися» у Viber і Telegram', text: 'У кожного дня своя адреса, у чаті батьків видно фото й страви.' },
-	{ id: 'allergens', title: 'Алергени й калорійність', text: 'Біля кожної страви, а під меню — розшифровка кодів.' },
+	{ id: 'allergens', title: 'Алергени й калорійність', text: 'Вмикаєте показ — і вони стоять біля страв із технологічною карткою або вашими позначками. Під меню — розшифровка кодів.' },
 	{ id: 'assistant', title: 'ШІ-помічник', text: 'Читає меню з фото аркуша й перевіряє, чи не потрапили в кадр діти.' },
 ];
 ---
@@ -45,7 +48,7 @@ const steps = [
 				<p class="showcase__note">{steps[0].text}</p>
 				<div class="showcase__visual">
 					<div class="phone-frame phone-frame--tall">
-						<Shot src={shots.adminMeals} alt="Панель на телефоні: екран «Харчування» з кнопкою «Сфотографувати порцію»" widths={[240, 480, 580]} sizes="240px" />
+						<Shot src={shots.adminMeals} alt="Панель на телефоні: «Харчування», картка сніданку з фото і кнопкою «Сфотографувати сніданок»" widths={[240, 480, 580]} sizes="240px" />
 					</div>
 				</div>
 			</div>
@@ -62,7 +65,7 @@ const steps = [
 							<div class="chat__row">
 								<Shot src={shots.food2} alt="" widths={[54, 108]} sizes="54px" />
 								<div>
-									<p>Харчування — пʼятниця, 6&#160;листопада</p>
+									<p>Харчування — {mealDay}</p>
 									<p>Каша вівсяна, борщ, котлета з пюре…</p>
 									<p>licey0.tabula.org.ua</p>
 								</div>
@@ -75,8 +78,8 @@ const steps = [
 				<h3 class="tab-heading" data-tab-heading>{steps[2].title}</h3>
 				<p class="showcase__note">{steps[2].text}</p>
 				<div class="showcase__visual">
-					<div class="phone-frame">
-						<Shot src={shots.phoneMealAllergens} alt="Сторінка дня на сайті: біля кожної страви рядок «алергени: …» і калорійність, під меню — розшифровка кодів" widths={[240, 480, 600]} sizes="240px" />
+					<div class="phone-frame phone-frame--tall">
+						<Shot src={shots.phoneMealAllergens} alt="Сторінка дня на сайті: біля страв алергени й калорійність, «Разом» за прийом їжі, під меню — розшифровка кодів" widths={[240, 480, 600]} sizes="240px" />
 					</div>
 				</div>
 				<ul class="showcase__caption">

@@ -2,11 +2,20 @@
 // Takes the screenshots of the home page (story 80, decision 11) from a running tabula demo
 // and writes them as WebP into src/assets/shots/ (committed).
 //
-//   # terminal 1, in a tabula checkout:
-//   npm run demo -- --seed school --template panorama
+//   # terminal 1, in a tabula checkout (without --port the demo takes a free port: pass one, or read it from its output):
+//   npm run demo -- --seed school --template panorama --port 3100
 //   # terminal 2, in this repository:
 //   npm run shots -- --template panorama      # the rows of that template, and the template-free rows
 //   npm run shots -- --only admin-law         # one row
+//
+// The pictures of the home were last shot from Tabula 1.3.0 (release candidate 1). The demo is started WITHOUT
+// --fake-platform and --fake-gateway: --fake-platform (a site «on hosting») does not remove the panel's «Пошту не
+// налаштовано» card from «Огляд» (checked on 1.3.0), and the assistant's buttons stay out of the pictures while
+// `offer.assistantStatus` is `testing`. Nothing on a page is hidden or edited to get a picture.
+//
+// The seed's dates are relative to the day the demo starts, so the two meal rows find their day on the running demo
+// (`day: 'photos'` — the day with three photos; `day: 'allergens'` — the day whose dishes are ALLERGEN_DISHES) and fail
+// loudly when it is not there. The panel rows share ONE sign-in (the session is kept in memory).
 //
 // The table SHOTS below lists every file: what it shows, at which address, in which viewport. A row
 // with `template: null` works under any template; the other rows need the demo started with that
@@ -44,7 +53,8 @@ export const PUBLIC_HOST = 'licey0.tabula.org.ua';
 /**
  * One row per file in src/assets/shots/.
  *  - kind 'page': a screenshot of `path` in `viewport`; `template` is the demo's template or null
- *    (any); `clip` is a rectangle in CSS pixels of the viewport; `panel: true` signs in first;
+ *    (any); `clip` is a rectangle in CSS pixels of the viewport; `panel: true` opens it in the panel's one signed-in
+ *    session;
  *    `waitFor` is a selector to wait for; `facts: 'law'` also writes facts.json from the page;
  *    `runner: 'kep'` hands the row to scripts/lib/shot-kep-line.cjs (it needs a site of its own).
  *  - kind 'photo': a CC0 photo copied from tabula's test/fixtures/school-seed/photos/<file>.webp.
@@ -75,34 +85,46 @@ export const SHOTS = Object.freeze([
 		file: 'phone-meal-day',
 		kind: 'page',
 		template: 'panorama',
-		// A seeded day with three photos and the «Поділитися» buttons.
-		path: '/kharchuvannya/2026-11-06',
+		// The seeded day with three photos and the «Поділитися» buttons (today on the seed's clock). Its date is
+		// written to facts.json (`mealDay`): the chat card of the home's «Харчування» says the same weekday and date.
+		path: '/kharchuvannya/{day}',
+		day: 'photos',
+		facts: 'mealDay',
 		viewport: 'phone',
 		waitFor: 'main',
 	},
 	{
 		// The home's «Харчування» story, step 3: a day with the allergen marks and the legend. The seed's dishes
-		// carry none, so `setup: 'allergens'` first turns the marks on and marks the dishes of this day (see
-		// SETUPS: it CHANGES the demo's throwaway database, so only this row runs it). The day is the seed's second
-		// day, 2026-11-06 while the seed's «today» is Monday 2026-11-09; with another day the dishes below are not
-		// there and the row fails loudly. It CHANGES the demo's throwaway database (the marks stay on), so it is
-		// always taken last in a full run (orderRows); restart the demo (fresh seed) before re-running any other row. `scrollTo` is a number (CSS pixels) or `{ selector, nth, offset }`.
+		// carry none, so `setup: 'allergens'` first turns the marks on («Показувати калорійність, Б/Ж/В і
+		// алергени»), marks the dishes of this day and ticks their «Показувати на сайті» boxes (see SETUPS: it
+		// CHANGES the demo's throwaway database, so only this row runs it). The day is the seed's «Оладки зі
+		// сметаною…» day (the previous school day on the seed's clock), found on the running demo; without such a
+		// day the row fails loudly. The marks stay on afterwards, so the row is always taken last in a full run
+		// (orderRows); restart the demo (fresh seed) before re-running any other row. `scrollTo` is a number (CSS
+		// pixels) or `{ selector, nth, offset }`: the first day block (breakfast) with its marks, the «Разом» lines
+		// and the start of the legend fill the frame.
 		file: 'phone-meal-allergens',
 		kind: 'page',
 		template: 'panorama',
-		path: '/kharchuvannya/2026-11-06',
+		path: '/kharchuvannya/{day}',
+		day: 'allergens',
 		viewport: 'phone',
 		waitFor: '.meals-marks',
 		setup: 'allergens',
-		scrollTo: { selector: '.meals-dayblock', nth: 1, offset: 290 },
+		scrollTo: { selector: '.meals-dayblock', nth: 0, offset: 16 },
 	},
 	{
+		// «Сьогодні» of the panel's «Харчування» on a phone, scrolled so that the breakfast card (the photo taken,
+		// the dishes, «Сфотографувати сніданок», «Обрати фото з галереї», «Опублікувати») is whole in the frame: at
+		// 390x844 the cards start below the fold, so the page title and the tabs scroll out. The frame starts at the line
+		// «У кадрі — лише тарілка…» above the card.
 		file: 'admin-m-meals',
 		kind: 'page',
 		template: null,
-		path: '/admin/kharchuvannia',
+		path: '/admin/kharchuvannia/sohodni',
 		viewport: 'phone',
 		panel: true,
+		scrollTo: { selector: 'h2:has-text("Сніданок"), h3:has-text("Сніданок")', nth: 0, offset: 54 },
 	},
 	{
 		file: 'admin-law',
@@ -148,9 +170,10 @@ export const SHOTS = Object.freeze([
 /** The rows to take for the command line: `only` wins, else `template` (plus the template-free rows). */
 export function selectRows(rows, { template = null, only = null } = {}) {
 	if (only) {
-		const row = rows.find((r) => r.file === only);
-		if (!row) throw new Error(`shots: no row named "${only}"`);
-		return [row];
+		// `--only a,b` takes several rows (one process, one sign-in), in the table's order.
+		const names = only.split(',').filter(Boolean);
+		for (const name of names) if (!rows.some((r) => r.file === name)) throw new Error(`shots: no row named "${name}"`);
+		return rows.filter((r) => names.includes(r.file));
 	}
 	return rows.filter((row) => !template || row.template === null || row.template === template);
 }
@@ -220,6 +243,66 @@ async function signIn(page) {
 	await Promise.all([page.waitForURL(`${demoUrl}/admin`), page.click('button[type="submit"]')]);
 }
 
+// One sign-in for every panel row (the demo throttles sign-ins): the session is kept in memory.
+let sessionState = null;
+async function getSession(browser) {
+	if (!sessionState) {
+		const context = await browser.newContext({ viewport: VIEWPORTS.desktop, locale: 'uk-UA' });
+		try {
+			await signIn(await context.newPage());
+			sessionState = await context.storageState();
+		} finally {
+			await context.close();
+		}
+	}
+	return sessionState;
+}
+
+/** Counts the meal photos of a public day page: the thumbnails of the photos, not the brand logo or the hero. */
+export function countMealPhotos(html) {
+	return (html.match(/<img\b[^>]*\.thumb\.webp/g) ?? []).length;
+}
+
+/**
+ * Finds the days of the two meal rows on the running demo (the seed's dates are relative to the day it starts):
+ * `photos` — the newest day with at least three photos that lists the dishes the home's chat card quotes
+ * (CHAT_DISHES; the seed has an older three-photo day with other dishes); `allergens` — the day that lists every dish
+ * of ALLERGEN_DISHES. Throws a clear error when either is missing, so a wrong picture is never written.
+ */
+// The dishes of the chat card in src/components/product/home/Meals.astro («Каша вівсяна, борщ, котлета з пюре…»):
+// the card's date follows the picture (facts.json `mealDay`), its dishes line is typed, so the day must have them.
+export const CHAT_DISHES = Object.freeze(['Каша вівсяна', 'Борщ', 'Котлета']);
+export async function findMealDays(fetchText) {
+	const index = await fetchText('/kharchuvannya');
+	const days = [...new Set([...index.matchAll(/href="\/kharchuvannya\/(\d{4}-\d{2}-\d{2})"/g)].map((m) => m[1]))];
+	let photos = null;
+	let allergens = null;
+	for (const day of days) {
+		const html = await fetchText(`/kharchuvannya/${day}`);
+		const count = countMealPhotos(html);
+		if (count >= 3 && CHAT_DISHES.every((dish) => html.includes(dish)) && (!photos || day > photos.day)) photos = { day };
+		if (!allergens && ALLERGEN_DISHES.every((dish) => html.includes(dish.name))) allergens = { day };
+	}
+	if (!photos) {
+		throw new Error(
+			`meal rows: no day with three photos and the dishes ${CHAT_DISHES.join(', ')} among ${days.join(', ') || 'no days'} on ${demoUrl}/kharchuvannya` +
+				' (if the seed changed, change the chat card of Meals.astro and CHAT_DISHES together)',
+		);
+	}
+	if (!allergens) throw new Error(`meal rows: no day with the dishes ${ALLERGEN_DISHES.map((d) => d.name).join(', ')} among ${days.join(', ') || 'no days'}`);
+	return { photos: photos.day, allergens: allergens.day };
+}
+
+let mealDays = null;
+async function mealDayFor(kind) {
+	mealDays ??= await findMealDays(async (p) => {
+		const response = await fetch(`${demoUrl}${p}`);
+		if (!response.ok) throw new Error(`meal rows: ${p} answered ${response.status}`);
+		return response.text();
+	});
+	return mealDays[kind];
+}
+
 async function toWebp(png) {
 	return sharp(png)
 		.webp({ quality: QUALITY, effort: 6 })
@@ -237,12 +320,11 @@ export const ALLERGEN_DISHES = Object.freeze([
 	{ name: 'Узвар', none: true, kcal: 70 },
 ]);
 
-/** Turns on «Позначати алергени й калорійність у меню» and marks ALLERGEN_DISHES on «Страви й алергени». */
+/** Turns on «Показувати калорійність, Б/Ж/В і алергени» and marks ALLERGEN_DISHES on «Страви й алергени». */
 async function setupAllergens(browser) {
-	const context = await browser.newContext({ viewport: VIEWPORTS.desktop, locale: 'uk-UA', reducedMotion: 'reduce' });
+	const context = await browser.newContext({ viewport: VIEWPORTS.desktop, locale: 'uk-UA', reducedMotion: 'reduce', storageState: await getSession(browser) });
 	try {
 		const page = await context.newPage();
-		await signIn(page);
 		await page.goto(`${demoUrl}/admin/settings/kharchuvannia`, { waitUntil: 'networkidle' });
 		await page.locator('input[name="allergens"]').check();
 		await Promise.all([page.waitForLoadState('networkidle'), page.locator('form[action="/admin/settings/kharchuvannia"] button[type="submit"]').last().click()]);
@@ -252,8 +334,9 @@ async function setupAllergens(browser) {
 		for (let pageNo = 1; pageNo <= 20 && url; pageNo += 1) {
 			await page.goto(url, { waitUntil: 'networkidle' });
 			let touched = 0;
-			for (const fieldset of await page.locator('form[action="/admin/kharchuvannia/stravy"] fieldset').all()) {
-				const name = ((await fieldset.locator('legend').innerText()).split('\n')[0] ?? '').replace(/Перевірте алергени$/, '').trim();
+			// Each dish's fieldset nests others (card choice, portions): only the dish fieldsets, by their `key_` input.
+			for (const fieldset of await page.locator('form[action="/admin/kharchuvannia/stravy"] fieldset:has(> input[name^="key_"])').all()) {
+				const name = ((await fieldset.locator('> legend').innerText()).split('\n')[0] ?? '').replace(/Перевірте алергени$/, '').trim();
 				const dish = todo.get(name);
 				if (!dish) continue;
 				if (dish.none) await fieldset.locator('input[data-dish-none]').check();
@@ -263,6 +346,8 @@ async function setupAllergens(browser) {
 					}
 				}
 				await fieldset.locator('input[inputmode="numeric"]').first().fill(String(dish.kcal));
+				// The marks reach the public page only when the dish's «Показувати на сайті» boxes are ticked.
+				for (const box of await fieldset.locator('input[name^="showa_"], input[name^="showk_"]').all()) await box.check();
 				todo.delete(name);
 				touched += 1;
 			}
@@ -296,17 +381,22 @@ async function scrollPage(page, to) {
 async function takePage(browser, row) {
 	if (row.setup) await SETUPS[row.setup](browser);
 	const viewport = VIEWPORTS[row.viewport];
+	const pagePath = row.day ? row.path.replace('{day}', await mealDayFor(row.day)) : row.path;
 	const context = await browser.newContext({
 		viewport,
 		deviceScaleFactor: SCALE,
 		locale: 'uk-UA',
 		colorScheme: 'light',
 		reducedMotion: 'reduce',
+		...(row.panel ? { storageState: await getSession(browser) } : {}),
 	});
 	try {
 		const page = await context.newPage();
-		if (row.panel) await signIn(page);
-		await page.goto(`${demoUrl}${row.path}`, { waitUntil: 'networkidle' });
+		await page.goto(`${demoUrl}${pagePath}`, { waitUntil: 'networkidle' });
+		// A session that ended (or a throttled sign-in) lands on the sign-in page: never write that as the picture.
+		if (row.panel && new URL(page.url()).pathname.startsWith('/admin/login')) {
+			throw new Error(`${row.file}: the panel asked to sign in again at ${pagePath}; restart the demo and run the row again`);
+		}
 		if (row.template) {
 			const cls = await page.evaluate(() => globalThis.document.body.className);
 			if (!cls.split(/\s+/).includes(`${row.template}-body`)) {
@@ -319,6 +409,7 @@ async function takePage(browser, row) {
 		await page.evaluate(() => globalThis.document.fonts.ready);
 		await page.evaluate(() => globalThis.document.activeElement?.blur?.());
 		if (row.facts === 'law') await writeLawFacts(page);
+		if (row.facts === 'mealDay') writeFacts({ mealDay: pagePath.split('/').pop() });
 		if (row.scrollTo) await scrollPage(page, row.scrollTo);
 		await maskDemoAddress(page);
 		const png = await page.screenshot({ type: 'png', ...(row.clip ? { clip: row.clip } : {}) });
@@ -334,9 +425,23 @@ async function writeLawFacts(page) {
 	const text = await page.locator('main').innerText();
 	const match = text.match(/Заповнено:\s*(\d+)\s*з\s*(\d+)/);
 	if (!match) throw new Error('admin-law: no «Заповнено: N з M» on the screen');
-	const facts = { lawFilled: Number(match[1]), lawTotal: Number(match[2]), takenAt: new Date().toISOString() };
-	writeFileSync(path.join(OUT_DIR, 'facts.json'), `${JSON.stringify(facts, null, '\t')}\n`);
+	const facts = writeFacts({ lawFilled: Number(match[1]), lawTotal: Number(match[2]) });
 	console.log(`shots: facts.json — ${facts.lawFilled} of ${facts.lawTotal}`);
+}
+
+/** Merges `patch` into facts.json (the rows write different keys); `takenAt` dates the law figures only. */
+function writeFacts(patch) {
+	const file = path.join(OUT_DIR, 'facts.json');
+	let facts = {};
+	try {
+		facts = JSON.parse(readFileSync(file, 'utf8'));
+	} catch {
+		// no facts.json yet
+	}
+	facts = { ...facts, ...patch, ...(patch.lawFilled === undefined ? {} : { takenAt: new Date().toISOString() }) };
+	writeFileSync(file, `${JSON.stringify(facts, null, '\t')}\n`);
+	if (patch.mealDay) console.log(`shots: facts.json — mealDay ${patch.mealDay}`);
+	return facts;
 }
 
 async function takePhoto(row) {

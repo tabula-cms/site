@@ -108,14 +108,18 @@ takes them from a running demo of tabula, in two terminals.
 
 ```sh
 # terminal 1, in a tabula checkout (a sibling ../tabula by default):
-npm run demo -- --seed school --template panorama
+npm run demo -- --seed school --template panorama --port 3100
 
 # terminal 2, in this repository (npx playwright install chromium once):
 npm run shots -- --template panorama
 ```
 
 `--template <key>` takes the rows of that template and the template-free rows (the panel screens); `phone-meal-day` and `kep-line` show a public page, so they are pinned to `panorama`; restart the
-demo with `--template vitryna`, `stend` or `shkilna` and repeat for those. `--only <file>` takes one row. The table
+demo with `--template vitryna`, `stend` or `shkilna` and repeat for those. `--only <file>` takes one row (`--only a,b` several, with
+one sign-in for all their panel rows). Without `--port` the demo takes a free port: pass one, or set `TABULA_DEMO_URL` to what it
+prints. Start it without `--fake-platform` and `--fake-gateway`. The seed's dates are relative to the day the demo starts; the two
+meal rows find their day on the running demo, and `phone-meal-allergens` changes the demo's database, so restart the demo before
+shooting any other row after it. The table
 of rows is `SHOTS` in `scripts/shots.mjs`. Environment: `TABULA_DEMO_URL` (default `http://127.0.0.1:3100`),
 `TABULA_DEMO_LOGIN` / `TABULA_DEMO_PASSWORD` (default: the demo's throwaway fixture account), `TABULA_DIR` (the tabula
 checkout, default `../tabula`: the CC0 photos, and the fixtures for `kep-line`, which starts a throwaway site of its own

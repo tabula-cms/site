@@ -67,6 +67,8 @@ export const FORBIDDEN_PHRASES = [
 	'e-schools',
 	'Метастудія',
 	'school.org.ua',
+	// Tabula 1.3.0 has one «Меню на тиждень», not a four-week menu.
+	'чотиритижнев',
 ];
 // Allowed only in the law page's sentence about МОН's letter (decision 8) and, since spec 84, in «Як це працює»'s card
 // «Сайт на іншій системі (наприклад, uCoz, …)».

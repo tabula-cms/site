@@ -23,6 +23,11 @@ import {
 	REQUEST_SIGNERS,
 } from '../scripts/check-built.mjs';
 
+test('findForbidden: no four-week menu (Tabula 1.3.0 has «Меню на тиждень»)', () => {
+	assert.deepEqual(findForbidden('Тиждень чотиритижневого меню.'), ['чотиритижнев']);
+	assert.deepEqual(findForbidden('Меню на тиждень.'), []);
+});
+
 test('findForbidden: each phrase of decision 8, case-insensitively', () => {
 	assert.deepEqual(findForbidden('Ми гарантуємо відповідність закону.'), ['гарантуємо відповідність']);
 	assert.deepEqual(findForbidden('Це ВІДПОВІДАЄ ЗАКОНУ.'), ['відповідає закону']);
