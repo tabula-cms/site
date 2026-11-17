@@ -96,6 +96,7 @@ const demoStart = `${offer.demoUrl.replace(/\/+$/, '')}/__demo/start`;
 
 			<input type="hidden" name="source" value="" />
 			<div class="try__turnstile" data-try-turnstile></div>
+			<p class="try__tick" role="status" data-try-form-tick></p>
 
 			<p class="try__error" role="alert" data-try-form-error hidden></p>
 			<p><button class="btn btn-main try__button" type="submit" data-try-send>Надіслати код</button></p>
@@ -106,6 +107,11 @@ const demoStart = `${offer.demoUrl.replace(/\/+$/, '')}/__demo/start`;
 			<p id="try-code-title" aria-live="polite">
 				Ми надіслали код на <strong data-try-email></strong>. Лист зазвичай приходить за хвилину. Якщо його немає,
 				подивіться в «Спамі» та «Промоакціях».
+			</p>
+			<p class="try__hint">
+				Діє лише останній код. Якщо листа немає й за дві хвилини, напишіть на <a href={`mailto:${offer.supportEmail}`}
+					>{offer.supportEmail}</a
+				>.
 			</p>
 			<p><button class="btn btn-line try__button" type="button" data-try-change>Змінити адресу</button></p>
 
@@ -129,18 +135,19 @@ const demoStart = `${offer.demoUrl.replace(/\/+$/, '')}/__demo/start`;
 			</form>
 
 			<div class="try__turnstile" data-try-resend-turnstile hidden></div>
+			<p class="try__tick" role="status" data-try-resend-tick></p>
 			<p><button class="btn btn-line try__button" type="button" data-try-resend disabled>Надіслати ще раз</button></p>
 		</section>
 
 		<div class="try__state" data-try-closed tabindex="-1" hidden>
 			<p>
-				Демо тимчасово закрите. Спробуйте пізніше. Відеотур і <a href={`${root}editor/`}>посібник</a> доступні завжди.
+				Демо тимчасово закрите. Спробуйте пізніше. <a href={`${root}editor/`}>Посібник</a> доступний завжди.
 			</p>
 		</div>
 		<div class="try__state" data-try-full tabindex="-1" hidden>
 			<p>
 				Зараз демо переповнене: усі місця зайняті, і черга задовга. Спробуйте трохи пізніше, наприклад за годину. А
-				поки — відеотур і <a href={`${root}editor/`}>посібник</a>.
+				поки — <a href={`${root}editor/`}>посібник</a>.
 			</p>
 		</div>
 

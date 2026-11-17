@@ -84,6 +84,19 @@
 	margin: 4px 0 16px;
 	min-height: 0;
 }
+/* The «tick the box above» hint: a quiet amber note, not an error. */
+.try__tick {
+	margin: 0 0 16px;
+	padding: 12px 16px;
+	border-radius: 12px;
+	background: var(--amber-bg);
+	color: var(--amber-ink);
+	font-size: 16px;
+}
+/* The hint is a live region that stays in the page; empty, it takes no room. */
+.try__tick:empty {
+	display: none;
+}
 .try__button {
 	min-height: 48px;
 	padding: 12px 24px;

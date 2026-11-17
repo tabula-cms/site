@@ -21,6 +21,7 @@ export const ACTION = 'demo-signin';
 export const RESEND_S = 60; // the CP sends no new code to the same address sooner (decision 18)
 export const ATTEMPT_MS = 10 * 60_000; // a code lives 10 minutes
 export const TOKEN_WAIT_MS = 20_000; // Turnstile blocked or never answering: the page says so instead of waiting forever
+export const TICK_WAIT_MS = 120_000; // a challenge that waits for the visitor's tick gets longer
 const STORE_KEY = 'tabula-demo-attempt';
 const DOMAIN_LIKE = /^[a-z0-9]([a-z0-9.-]{0,98}[a-z0-9])?$/;
 
@@ -31,6 +32,7 @@ export const TEXTS = Object.freeze({
 	invalid: 'Перевірте адресу пошти й позначку згоди.',
 	server: 'Не вдалося звʼязатися з сервером. Спробуйте ще раз за хвилину.',
 	resend: 'Надіслати ще раз',
+	tick: 'Спершу поставте позначку над кнопкою. Код надішлемо одразу.',
 });
 
 /** Ukrainian plural: 1 спроба, 2–4 спроби, 0 / 5–20 спроб; 21 спроба, 22 спроби… */
@@ -150,12 +152,39 @@ export function within(promise, ms, fallback = null, timers = globalThis) {
 	});
 }
 
-/** A stored attempt that is still worth showing the code step for, or null. */
+/** `fields` of a stored attempt: a plain object of strings, else null (older tabs stored none). */
+export function storedFields(fields) {
+	if (!fields || typeof fields !== 'object' || Array.isArray(fields)) return null;
+	return Object.values(fields).every((v) => typeof v === 'string') ? fields : null;
+}
+
+/** A stored attempt that is still worth showing the code step for, or null. A bad `fields` is dropped, not fatal. */
 export function liveAttempt(stored, nowMs) {
 	if (!stored || typeof stored !== 'object') return null;
 	const { attempt, email, sentAt } = stored;
 	if (typeof attempt !== 'string' || typeof email !== 'string' || typeof sentAt !== 'number') return null;
-	return nowMs - sentAt < ATTEMPT_MS ? stored : null;
+	if (!(nowMs - sentAt < ATTEMPT_MS)) return null;
+	if (!('fields' in stored) || storedFields(stored.fields)) return stored;
+	const { fields: _bad, ...rest } = stored;
+	return rest;
+}
+
+/**
+ * The same address asked for again within the minute: the control plane would answer with an attempt that has no code
+ * (one letter per address per RESEND_S), so the page shows the code step of the attempt it left. Else null.
+ */
+export function sameAttempt(previous, email, nowMs) {
+	const live = liveAttempt(previous, nowMs);
+	if (!live) return null;
+	const norm = (v) => String(v ?? '').trim().toLowerCase();
+	if (!norm(email) || norm(live.email) !== norm(email)) return null;
+	return nowMs - live.sentAt < RESEND_S * 1000 ? live : null;
+}
+
+/** What to do with the token the page has (or waited for): send it, ask for the tick, or say Turnstile failed. */
+export function tokenVerdict({ token, needsTick }) {
+	if (token) return 'send';
+	return needsTick ? 'tick' : 'turnstile';
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -201,10 +230,11 @@ function loadTurnstile(win, doc) {
 
 /** One Turnstile widget in `container`: `token()` waits for a fresh token (null when Turnstile failed), `reset()` asks
  * for the next one. */
-function widget(win, doc, container, siteKey, onError) {
+function widget(win, doc, container, siteKey, { onError = () => {}, onInteractive = () => {}, onToken = () => {} } = {}) {
 	let rendered = null;
 	let current = null;
 	let failed = false;
+	let interactive = false;
 	let waiting = [];
 	const wake = (value) => {
 		const list = waiting;
@@ -215,12 +245,15 @@ function widget(win, doc, container, siteKey, onError) {
 		current = token;
 		if (token) {
 			failed = false;
+			interactive = false;
+			onToken();
 			wake(token);
 		}
 	};
 	const fail = () => {
 		failed = true;
 		current = null;
+		interactive = false;
 		onError();
 		wake(null);
 	};
@@ -233,6 +266,13 @@ function widget(win, doc, container, siteKey, onError) {
 					language: 'uk',
 					'response-field': false,
 					callback: (token) => settle(token),
+					'before-interactive-callback': () => {
+						interactive = true;
+						onInteractive();
+					},
+					'after-interactive-callback': () => {
+						interactive = false;
+					},
 					'expired-callback': () => settle(null),
 					'error-callback': () => {
 						fail();
@@ -244,6 +284,7 @@ function widget(win, doc, container, siteKey, onError) {
 		});
 	return {
 		render: () => render().catch(fail),
+		needsTick: () => interactive && !current,
 		token: () => {
 			if (current) return Promise.resolve(current);
 			if (failed) return Promise.resolve(null);
@@ -251,6 +292,8 @@ function widget(win, doc, container, siteKey, onError) {
 		},
 		reset: () => {
 			current = null;
+			failed = false; // Turnstile runs again: an earlier error must not answer for the new run
+			interactive = false;
 			if (rendered !== null && win.turnstile) win.turnstile.reset(rendered);
 		},
 	};
@@ -271,10 +314,15 @@ export function initTry(root, { win = globalThis, doc = globalThis.document, fet
 	const emailOut = $('[data-try-email]');
 	const resendButton = $('[data-try-resend]');
 	const resendBox = $('[data-try-resend-turnstile]');
+	const formTick = $('[data-try-form-tick]');
+	const resendTick = $('[data-try-resend-tick]');
 	const passForm = $('[data-try-pass]');
 	const states = { closed: $('[data-try-closed]'), full: $('[data-try-full]') };
 
 	let attempt = null;
+	let saved = null; // the live attempt as stored: { attempt, email, sentAt, fields }
+	const leftBehind = new Map(); // the attempts «Змінити адресу» left, by address, in memory only
+	const addressKey = (value) => String(value ?? '').trim().toLowerCase();
 	let lastFields = null;
 	let timer = null;
 
@@ -319,12 +367,18 @@ export function initTry(root, { win = globalThis, doc = globalThis.document, fet
 		emailOut.textContent = email;
 		say(codeError, '');
 		show(codeStep, true);
+		// A resend left waiting for its tick belongs to the code step before this one.
+		show(resendBox, false);
+		resendUi.hide();
+		resendWidget.reset();
 		startTimer(sentAt);
 		if (focus) codeInput.focus();
 	};
 
 	const showForm = () => {
 		stopTimer();
+		if (saved) leftBehind.set(addressKey(saved.email), saved);
+		saved = null;
 		attempt = null;
 		writeStored(win, null);
 		show(codeStep, false);
@@ -333,8 +387,61 @@ export function initTry(root, { win = globalThis, doc = globalThis.document, fet
 		form.elements.email.focus();
 	};
 
-	const formWidget = widget(win, doc, $('[data-try-turnstile]'), siteKey, () => say(formError, TEXTS.turnstile));
-	const resendWidget = widget(win, doc, resendBox, siteKey, () => say(codeError, TEXTS.turnstile));
+	// The tick hint of one widget. The hint is a live region that stays in the page: its text is set and cleared (an
+	// empty one takes no room, try.css), so a screen reader announces it. `resume` sends once the owed tick arrives.
+	const tickUi = (box, hint, errorEl, resume) => {
+		const ui = {
+			active: false, // a wait is running
+			pending: false, // the wait ended with the tick still owed: the token, when it comes, sends by itself
+			reveal() {
+				hint.textContent = TEXTS.tick;
+				if (typeof box.scrollIntoView === 'function') box.scrollIntoView({ block: 'nearest' });
+			},
+			hide() {
+				hint.textContent = '';
+				ui.pending = false;
+			},
+			// The challenge now wants a tick: during a wait, or after one that ended with the Turnstile line.
+			interactive() {
+				const stale = errorEl.textContent === TEXTS.turnstile;
+				if (stale) {
+					say(errorEl, '');
+					ui.pending = true;
+				}
+				if (ui.active || stale) ui.reveal();
+			},
+			token() {
+				const owed = ui.pending;
+				ui.hide();
+				if (errorEl.textContent === TEXTS.turnstile) say(errorEl, '');
+				if (owed) resume();
+			},
+		};
+		return ui;
+	};
+	const formBox = $('[data-try-turnstile]');
+	const formUi = tickUi(formBox, formTick, formError, () => (form.requestSubmit ? form.requestSubmit() : sendButton.click()));
+	const resendUi = tickUi(resendBox, resendTick, codeError, () => resendButton.click());
+	const formWidget = widget(win, doc, formBox, siteKey, {
+		onError: () => say(formError, TEXTS.turnstile),
+		onInteractive: () => formUi.interactive(),
+		onToken: () => formUi.token(),
+	});
+	const resendWidget = widget(win, doc, resendBox, siteKey, {
+		onError: () => say(codeError, TEXTS.turnstile),
+		onInteractive: () => resendUi.interactive(),
+		onToken: () => resendUi.token(),
+	});
+
+	// Waits for a token: TOKEN_WAIT_MS, and up to TICK_WAIT_MS in all once the challenge wants a tick.
+	async function waitToken(w, ui) {
+		ui.active = true;
+		if (w.needsTick()) ui.reveal();
+		let token = await within(w.token(), TOKEN_WAIT_MS);
+		if (!token && w.needsTick()) token = await within(w.token(), TICK_WAIT_MS - TOKEN_WAIT_MS);
+		ui.active = false;
+		return token;
+	}
 
 	const post = (path, fields) =>
 		fetchFn(`${cp}${path}`, {
@@ -355,7 +462,9 @@ export function initTry(root, { win = globalThis, doc = globalThis.document, fet
 		const outcome = signinOutcome(answer.status, answer.body);
 		if (outcome === 'code') {
 			attempt = answer.body.attempt;
-			const saved = { attempt, email: fields.email, sentAt: Date.now() };
+			// Kept for «Надіслати ще раз» after a reload: what the visitor typed, not the referrer's domain.
+			const { source: _source, ...typed } = fields;
+			saved = { attempt, email: fields.email, sentAt: Date.now(), fields: typed };
 			writeStored(win, saved);
 			showCodeStep(saved);
 			return true;
@@ -368,6 +477,13 @@ export function initTry(root, { win = globalThis, doc = globalThis.document, fet
 		return false;
 	}
 
+	const readFields = () => {
+		const fields = {};
+		for (const [key, value] of new FormData(form).entries()) if (typeof value === 'string') fields[key] = value.trim();
+		fields.email = String(fields.email || '');
+		return fields;
+	};
+
 	form.addEventListener('submit', async (event) => {
 		event.preventDefault();
 		say(formError, '');
@@ -376,17 +492,37 @@ export function initTry(root, { win = globalThis, doc = globalThis.document, fet
 			return;
 		}
 		busy(sendButton, true);
-		const data = new FormData(form);
-		const fields = {};
-		for (const [key, value] of data.entries()) if (typeof value === 'string') fields[key] = value.trim();
-		fields.email = String(fields.email || '');
-		lastFields = fields;
-		const token = await within(formWidget.token(), TOKEN_WAIT_MS);
-		if (token) {
-			await signin(fields, token, formError);
-			formWidget.reset(); // a token works once
-		} else {
+		// The same address again within the minute: the control plane would send no new code, so show the old code step.
+		const asked = readFields().email;
+		const again = sameAttempt(leftBehind.get(addressKey(asked)), asked, Date.now());
+		if (again) {
+			saved = again;
+			attempt = again.attempt;
+			lastFields = storedFields(again.fields) ?? readFields();
+			writeStored(win, again);
+			showCodeStep(again);
+			busy(sendButton, false);
+			return;
+		}
+		const token = await waitToken(formWidget, formUi);
+		const verdict = tokenVerdict({ token, needsTick: formWidget.needsTick() });
+		if (verdict === 'send') {
+			formUi.hide();
+			// The form stays editable during the wait (the tick is inside it): send what it holds now, not what it held
+			// when the button was pressed.
+			if (form.checkValidity()) {
+				const fields = readFields();
+				lastFields = fields;
+				await signin(fields, token, formError);
+				formWidget.reset(); // a token works once
+			} else {
+				form.reportValidity();
+			}
+		} else if (verdict === 'turnstile') {
+			formUi.hide();
 			say(formError, TEXTS.turnstile);
+		} else {
+			formUi.pending = true; // the hint stays, no error: the tick, when it comes, sends
 		}
 		busy(sendButton, false);
 	});
@@ -399,10 +535,22 @@ export function initTry(root, { win = globalThis, doc = globalThis.document, fet
 		busy(resendButton, true);
 		show(resendBox, true);
 		resendWidget.render();
-		const token = await within(resendWidget.token(), TOKEN_WAIT_MS);
-		const sent = token ? await signin(lastFields, token, codeError) : (say(codeError, TEXTS.turnstile), false);
-		resendWidget.reset();
-		show(resendBox, false);
+		const token = await waitToken(resendWidget, resendUi);
+		const verdict = tokenVerdict({ token, needsTick: resendWidget.needsTick() });
+		let sent = false;
+		if (verdict === 'send') {
+			sent = await signin(lastFields, token, codeError);
+		} else if (verdict === 'turnstile') {
+			say(codeError, TEXTS.turnstile);
+		}
+		if (verdict === 'tick') {
+			resendUi.pending = true; // the box and the hint stay: the tick, when it comes, sends
+		} else {
+			// A code went out or the wait ended with no tick owed: the box and the hint go.
+			resendWidget.reset();
+			show(resendBox, false);
+			resendUi.hide();
+		}
 		resendButton.setAttribute('aria-busy', 'false');
 		if (!sent && timer === null) resendButton.disabled = false;
 	});
@@ -445,6 +593,8 @@ export function initTry(root, { win = globalThis, doc = globalThis.document, fet
 	const stored = liveAttempt(readStored(win), Date.now());
 	if (stored) {
 		attempt = stored.attempt;
+		saved = stored;
+		lastFields = storedFields(stored.fields); // a reload keeps «Надіслати ще раз» going to the same address
 		showCodeStep(stored, { focus: false });
 	} else {
 		writeStored(win, null);
