@@ -2,7 +2,7 @@
 
 > Internal reference for Claude Code sessions working in this repository.
 >
-> **Last verified: 2026-11-16 (story 92 part B, slice SB1: the contract's edition of 2026-11-17 with п. 4.9, the form `third-party-consent`, the invoice's `thirdPartyConsent` line). Before that, 2026-11-15 (issue #57: the guide's two layers — structure from the imported files, areas in the sidebar, the landing at `/editor/`, topic links on every article, the hosted line; the product's header and footer on the guide's pages, `src/styles/chrome.css`).**
+> **Last verified: 2026-11-17 («Спробувати»: the tick hint, the same address within the minute, the stored fields, no «відеотур»). Before that, 2026-11-16 (story 92 part B, slice SB1: the contract's edition of 2026-11-17 with п. 4.9, the form `third-party-consent`, the invoice's `thirdPartyConsent` line). Before that, 2026-11-15 (issue #57: the guide's two layers — structure from the imported files, areas in the sidebar, the landing at `/editor/`, topic links on every article, the hosted line; the product's header and footer on the guide's pages, `src/styles/chrome.css`).**
 >
 > **How to keep this file honest:** every pull request that changes a convention, a command,
 > or the file layout updates the matching section of this file in the same PR.
@@ -439,7 +439,20 @@ happens in each workflow, not in the composite action. Both checkouts pass
   `bindCodeInput()` of `demo-try.js` keep digits only, six at most, on every `input` (the control plane drops white space only);
   `checkTryPage` fails a `maxlength` on it. The
   attempt is kept in sessionStorage (decision 26: a reload keeps the code step); «Надіслати ще раз» waits 60 s and renders a second
-  Turnstile widget for its token; a Turnstile token not given within 20 s shows the Turnstile line. `demo-try.js` loads Turnstile itself
+  Turnstile widget for its token; a Turnstile token not given within 20 s shows the Turnstile line, unless the challenge is waiting
+  for a manual tick (2026-11-17): the widget's `before-/after-interactive-callback` feed `needsTick()`; then a quiet amber hint
+  (`TEXTS.tick`; `<p role="status" data-try-form-tick>` / `data-try-resend-tick` after each Turnstile box, a live region that is
+  never `hidden`: its text is set and cleared and `.try__tick:empty` takes no room; `checkTryPage` holds both) shows at once and
+  the widget is scrolled into view; the wait is up to `TICK_WAIT_MS` (120 s in all; 20 s for a non-interactive challenge); time up
+  with the tick still owed shows no error and frees the button, and the token, whenever it comes, sends by itself (it also hides
+  the hint and clears a stale Turnstile line; a challenge that turns interactive after that line replaces it with the hint); the
+  resend keeps its box and hint while a tick is owed. `tokenVerdict()` decides (`send`/`tick`/`turnstile`). The form stays
+  editable during the wait (the tick is inside it), so its fields are read when the token arrives, not when the button was pressed.
+  «Змінити адресу» then the same address within `RESEND_S` (`sameAttempt()`, the attempts left kept by address in memory) shows
+  the code step it left instead of calling the control plane (it would send no new code and the old one would stop fitting). The
+  attempt is stored with what the visitor typed (`fields`, without `source`; `storedFields()`: a plain object of strings, else
+  none), so «Надіслати ще раз» after a reload sends to the same address. The closed/full states point to the guide only: there
+  is no «відеотур» (`checkTryPage` fails the word). `demo-try.js` loads Turnstile itself
   (`?render=explicit`), so without JavaScript only the line «Демо працює лише з увімкненим JavaScript.» shows and nothing reaches
   Cloudflare; without a site key the page shows the closed state. Texts are the spec's, phase 2: Consent 1 says the demo copy is kept `demoKeepDays` days (check-built holds its exact text), ʼ as the
   apostrophe. The page sets `<meta name="referrer" content="strict-origin-when-cross-origin">` and must never be `no-referrer` (the broker

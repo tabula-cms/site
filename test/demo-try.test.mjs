@@ -9,8 +9,14 @@ import {
 	signinOutcome,
 	codeOutcome,
 	liveAttempt,
+	storedFields,
+	sameAttempt,
+	tokenVerdict,
 	within,
 	ATTEMPT_MS,
+	RESEND_S,
+	TICK_WAIT_MS,
+	TOKEN_WAIT_MS,
 	TEXTS,
 	ACTION,
 	TURNSTILE_API,
@@ -71,6 +77,46 @@ test('liveAttempt: a stored attempt younger than 10 minutes', () => {
 	assert.equal(liveAttempt(stored, 1000 + ATTEMPT_MS), null);
 	assert.equal(liveAttempt(null, 0), null);
 	assert.equal(liveAttempt({ attempt: 1 }, 0), null);
+});
+
+test('liveAttempt: stored fields are kept when a plain object of strings, dropped otherwise', () => {
+	const base = { attempt: 'a'.repeat(22), email: 'x@example.org', sentAt: 1000 };
+	const fields = { email: 'x@example.org', kind: 'school', role: '' };
+	const withFields = { ...base, fields };
+	assert.equal(liveAttempt(withFields, 2000), withFields);
+	assert.equal(liveAttempt(base, 2000), base); // an older tab stored none
+	for (const bad of [[], 'x', 5, { a: 1 }, { a: null }]) {
+		const live = liveAttempt({ ...base, fields: bad }, 2000);
+		assert.deepEqual(live, base, JSON.stringify(bad));
+		assert.equal(storedFields(bad), null);
+	}
+	assert.equal(liveAttempt({ ...withFields, sentAt: 0 }, ATTEMPT_MS + 1), null);
+	assert.equal(storedFields(fields), fields);
+	assert.equal(storedFields(undefined), null);
+});
+
+test('sameAttempt: the same address inside the minute gives the attempt back', () => {
+	const prev = { attempt: 'a'.repeat(22), email: 'Ann@Example.org', sentAt: 10_000 };
+	assert.equal(sameAttempt(prev, ' ann@example.ORG ', 10_000 + 59_000), prev);
+	assert.equal(sameAttempt(prev, 'ann@example.org', 10_000 + RESEND_S * 1000), null);
+	assert.equal(sameAttempt(prev, 'other@example.org', 11_000), null);
+	assert.equal(sameAttempt(prev, '', 11_000), null);
+	assert.equal(sameAttempt(null, 'ann@example.org', 11_000), null);
+	assert.equal(sameAttempt({ ...prev, sentAt: 0 }, 'ann@example.org', ATTEMPT_MS + 1), null); // not live
+});
+
+test('tokenVerdict: send, ask for the tick, or say Turnstile failed', () => {
+	assert.equal(tokenVerdict({ token: 'tok', needsTick: false }), 'send');
+	assert.equal(tokenVerdict({ token: 'tok', needsTick: true }), 'send');
+	assert.equal(tokenVerdict({ token: null, needsTick: true }), 'tick');
+	assert.equal(tokenVerdict({ token: null, needsTick: false }), 'turnstile');
+	assert.equal(TICK_WAIT_MS, 120_000);
+	assert.equal(TOKEN_WAIT_MS, 20_000);
+});
+
+test('TEXTS.tick: the approved line, no straight quote or apostrophe', () => {
+	assert.equal(TEXTS.tick, 'Спершу поставте позначку над кнопкою. Код надішлемо одразу.');
+	assert.ok(!/['"]/.test(TEXTS.tick));
 });
 
 test('the Turnstile action and script', () => {

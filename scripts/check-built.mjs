@@ -974,6 +974,13 @@ export function checkTryPage(html, { demoOpen = offer.demoOpen, demoUrl = offer.
 	if (code && /\bmaxlength=/i.test(code[0])) problems.push('the code field has a maxlength, which cuts a pasted «123 456»');
 	const text = htmlText(html);
 	if (!text.includes('Демо працює лише з увімкненим JavaScript.')) problems.push('no no-JavaScript line');
+	if (/відеотур/i.test(text)) problems.push('promises a «відеотур», which does not exist');
+	for (const marker of ['data-try-form-tick', 'data-try-resend-tick']) {
+		const hint = html.match(new RegExp(`<p\\b[^>]*\\b${marker}\\b[^>]*>`));
+		if (!hint) problems.push(`no tick hint (${marker})`);
+		// A live region must be in the page before its text comes, or a screen reader may not announce it.
+		else if (/\bhidden\b/.test(hint[0]) || !/role="status"/.test(hint[0])) problems.push(`the tick hint (${marker}) is hidden or not role="status"`);
+	}
 	const consent = `Погоджуюся, щоб Tabula надіслала мені код для входу і ${keepDays} днів зберігала мою демо-копію. Докладно — на сторінці «Обробка персональних даних».`;
 	const mainText = htmlText(extractMain(html)).replace(/ /g, ' ').replace(/ ([.,])/g, '$1');
 	if (!mainText.includes(consent)) problems.push('Consent 1 is not the spec\'s phase-2 text');

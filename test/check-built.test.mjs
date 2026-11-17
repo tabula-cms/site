@@ -507,6 +507,7 @@ const CONSENT_1 = 'Погоджуюся, щоб Tabula надіслала мен
 const tryPage = ({ referrer = 'strict-origin-when-cross-origin', robots = true, action = 'https://demo.example.org/__demo/start', consent = CONSENT_1, extra = '' } = {}) =>
 	`<html><head><meta name="referrer" content="${referrer}">${robots ? '<meta name="robots" content="noindex, nofollow">' : ''}</head><body><main>
 <p data-try-nojs>Демо працює лише з увімкненим JavaScript.</p>
+<p role="status" data-try-form-tick></p><p role="status" data-try-resend-tick></p>
 <input id="try-code" inputmode="numeric" autocomplete="one-time-code" data-try-code-input>
 <form data-try-pass method="post" action="${action}" hidden><input type="hidden" name="pass" value=""></form>
 <label>${consent}</label>${extra}
@@ -527,6 +528,10 @@ test('checkTryPage: the referrer policy, the pass form, the code field, noindex 
 	assert.deepEqual(checkTryPage(tryPage({ consent: CONSENT_1.replace('14 днів', '14 днів') }), opts), []);
 	assert.ok(checkTryPage(tryPage().replace('one-time-code', 'off'), opts).some((p) => p.includes('one-time-code')));
 	assert.ok(checkTryPage(tryPage().replace('data-try-code-input', 'maxlength="6" data-try-code-input'), opts).some((p) => p.includes('maxlength')));
+	assert.ok(checkTryPage(tryPage({ extra: '<p>А поки — Відеотур.</p>' }), opts).some((p) => p.includes('відеотур')));
+	assert.ok(checkTryPage(tryPage().replace('data-try-form-tick', 'data-x'), opts).some((p) => p.includes('data-try-form-tick')));
+	assert.ok(checkTryPage(tryPage().replace('data-try-resend-tick', 'data-x'), opts).some((p) => p.includes('data-try-resend-tick')));
+	assert.ok(checkTryPage(tryPage().replace('data-try-form-tick>', 'data-try-form-tick hidden>'), opts).some((p) => p.includes('is hidden')));
 });
 
 test('checkTryLinks: no link while the demo is not public, the footer link once it is', () => {
