@@ -152,6 +152,14 @@ test('includesShort: five lines, each covered by valid, non-empty indexes of inc
 	}
 });
 
+test('includesShort: exactly the assistant line is flagged and covers the assistant item of includes', () => {
+	const flagged = includesShort.filter((item) => item.assistant);
+	assert.equal(flagged.length, 1);
+	assert.match(flagged[0].text, /^ШІ-помічник/);
+	assert.ok(priceIncludes.find((item) => item.assistant), 'priceIncludes flags the same line');
+	for (const item of includesShort.filter((i) => !i.assistant)) assert.doesNotMatch(item.text, /ШІ/);
+});
+
 test('includesShort: the reply time line says «зазвичай» and takes its number from offer', () => {
 	const line = includesShort.find((item) => item.text.startsWith('Відповідь на листи'));
 	assert.equal(line.text, `Відповідь на листи — зазвичай ${withinWorkingDays(offer.supportReplyDays)}`);

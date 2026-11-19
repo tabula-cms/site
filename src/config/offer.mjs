@@ -332,10 +332,12 @@ export function formatUah(n) {
 // Story 80: the short list on the price card of the home page. Each line says in fewer words what
 // `includes` says in full; `coveredBy` lists the indexes into `includes` it summarises, so a line
 // cannot promise something the full list (rendered on «Ціна й оплата») does not
-// (test/offer.test.mjs checks every index is valid and the list is not empty).
+// (test/offer.test.mjs checks every index is valid and the list is not empty). `assistant: true` marks the line about
+// the assistant: the component shows its status («Випробовуємо») while `assistantStatus` is not 'on', so the line
+// cannot promise today what is not on yet (the same flag as on `priceIncludes`).
 export const includesShort = Object.freeze([
 	{ text: 'Сайт, панель і всі вісім шаблонів', coveredBy: [1, 2] },
-	{ text: 'ШІ-помічник у межах ліміту', coveredBy: [6] },
+	{ text: 'ШІ-помічник у межах ліміту', coveredBy: [6], assistant: true },
 	{ text: 'Адреса на tabula.org.ua або власний домен', coveredBy: [0] },
 	{ text: 'Щоденні резервні копії на серверах у ЄС', coveredBy: [3] },
 	{ text: `Відповідь на листи — зазвичай ${withinWorkingDays(offer.supportReplyDays)}`, coveredBy: [5] },

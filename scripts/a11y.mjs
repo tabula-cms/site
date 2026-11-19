@@ -64,6 +64,53 @@ async function homeWithMotion(browser, origin, started) {
 	return count;
 }
 
+// The hero while it appears (issue #71): with motion allowed the load animations of the hero (laptop, phone, card, the
+// typed words of the card's title) are frozen by the Web Animations API at several moments of the first 2 s and axe's
+// color-contrast rule runs on the hero at each one, so a word at partial opacity would be caught. Scroll-linked
+// animations have no time and are left alone. Also fails when an animation of the hero is still running 5 s after
+// load (no idle loops: decorative motion stops). Returns the number of problems.
+async function heroWhileAppearing(browser, origin) {
+	let problems = 0;
+	const moments = [0, 200, 400, 600, 800, 1000, 1200, 1500, 2000];
+	for (const width of [1280]) {
+		const context = await browser.newContext({ viewport: { width, height: 900 }, reducedMotion: 'no-preference' });
+		const tab = await context.newPage();
+		await tab.goto(`${origin}${baseNoSlash}/`, { waitUntil: 'load' });
+		const hero = '.hero';
+		const timed = await tab.evaluate((sel) => {
+			const animations = document.querySelector(sel).getAnimations({ subtree: true }).filter((a) => a.timeline instanceof DocumentTimeline);
+			for (const a of animations) a.pause();
+			return animations.length;
+		}, hero);
+		console.log(`a11y: hero while appearing — ${timed} timed animation(s) frozen for sampling`);
+		for (const ms of moments) {
+			await tab.evaluate(
+				({ sel, ms }) => {
+					for (const a of document.querySelector(sel).getAnimations({ subtree: true })) if (a.timeline instanceof DocumentTimeline) a.currentTime = ms;
+				},
+				{ sel: hero, ms },
+			);
+			const result = await new AxeBuilder({ page: tab }).include(hero).withRules(['color-contrast']).analyze();
+			const bad = result.violations.flatMap((v) => v.nodes.map((n) => n.any.map((c) => `${c.data?.contrastRatio} ${n.target.join(' ')}`).join(' ')));
+			console.log(`a11y: hero at ${ms} ms — ${bad.length} color-contrast violation(s)${bad.length ? `: ${bad.slice(0, 4).join('; ')}` : ''}`);
+			problems += bad.length;
+		}
+		await context.close();
+	}
+	// Nothing in the hero idles: 5 s after load no animation of it is running (infinite or long).
+	const context = await browser.newContext({ viewport: { width: 1280, height: 900 }, reducedMotion: 'no-preference' });
+	const tab = await context.newPage();
+	await tab.goto(`${origin}${baseNoSlash}/`, { waitUntil: 'load' });
+	await new Promise((resolve) => setTimeout(resolve, 5000));
+	const running = await tab.evaluate(() =>
+		document.querySelector('.hero').getAnimations({ subtree: true }).filter((a) => a.timeline instanceof DocumentTimeline && a.playState === 'running').map((a) => a.animationName ?? a.id ?? '?'),
+	);
+	console.log(`a11y: hero 5 s after load — ${running.length} running timed animation(s)${running.length ? `: ${running.join(', ')}` : ''}`);
+	problems += running.length;
+	await context.close();
+	return problems;
+}
+
 // The header is always visible (story 80): after scrolling down 2000 px and after a long anchor jump it is in the
 // viewport and fully shown, at a desktop and a phone width. Motion allowed here (the other contexts use reduced
 // motion). Returns the number of problems.
@@ -184,6 +231,7 @@ async function main() {
 			}
 		}
 		violations += await homeWithMotion(browser, origin, Date.now());
+		violations += await heroWhileAppearing(browser, origin);
 		violations += await visibleHeader(browser, origin);
 		violations += await noSideScroll(browser, origin);
 		violations += await accountingSummaryPrint(browser, origin);

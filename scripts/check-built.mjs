@@ -651,6 +651,8 @@ export function checkHeroButtons(html, { demoOpen = offer.demoOpen, requestOpen 
 	const buttons = links.filter((l) => /(^|\s)btn(\s|$)/.test(l.cls));
 	const request = (b) => b && b.text === 'Подати заявку' && (requestOpen ? pointsAtPage(b.href, REQUEST_SLUG) : pointsAt(b.href, 'request'));
 	const example = links.find((l) => l.text === 'Подивитися приклад сайту');
+	// Next to the «Безкоштовно до …» chip: the quiet way to the price (issue #71).
+	if (!links.some((l) => l.text === 'Умови й ціна →' && /(^|\/)#price$/.test(l.href))) problems.push('the hero has no «Умови й ціна →» link to #price');
 	// With the demo public and no read-only demo site the example link would only repeat «Спробувати демо».
 	if (wantExample && !example) problems.push('the hero has no «Подивитися приклад сайту»');
 	if (!wantExample && example) problems.push('the hero has «Подивитися приклад сайту» although there is no example site beside the demo');
@@ -671,19 +673,57 @@ export function checkHeroButtons(html, { demoOpen = offer.demoOpen, requestOpen 
 	return problems;
 }
 
+/**
+ * Canonical address and Open Graph of a product page (issue #71): exactly one `<link rel="canonical">` equal to the
+ * page's own absolute URL, the Open Graph set, an absolute `og:url` equal to it, an absolute `og:image` whose file is
+ * in dist/ (`exists(url)`), 1200×630, `twitter:card` summary_large_image.
+ */
+export function checkCanonicalOg(html, { url, exists = () => true }) {
+	const problems = [];
+	const head = html.match(/<head\b[\s\S]*?<\/head>/i)?.[0] ?? '';
+	const attr = (tag, name) => tag.match(new RegExp(`\\b${name}="([^"]*)"`, 'i'))?.[1];
+	const metas = [...head.matchAll(/<meta\b[^>]*>/gi)].map((m) => m[0]);
+	const metaAll = (key) => metas.filter((m) => attr(m, 'property') === key || attr(m, 'name') === key).map((m) => attr(m, 'content'));
+	const canon = [...head.matchAll(/<link\b[^>]*\brel="canonical"[^>]*>/gi)].map((m) => attr(m[0], 'href'));
+	if (canon.length !== 1) problems.push(`${canon.length} canonical links, expected exactly 1`);
+	else if (canon[0] !== url) problems.push(`canonical is «${canon[0]}», expected «${url}»`);
+	const one = (key) => {
+		const values = metaAll(key);
+		if (values.length !== 1 || !values[0]) problems.push(`${values.length} «${key}» meta tags (or empty), expected exactly 1`);
+		return values[0];
+	};
+	const want = { 'og:type': 'website', 'og:site_name': 'Tabula', 'og:locale': 'uk_UA', 'twitter:card': 'summary_large_image', 'og:image:width': '1200', 'og:image:height': '630' };
+	for (const [key, value] of Object.entries(want)) {
+		if (one(key) !== value) problems.push(`${key} is not «${value}»`);
+	}
+	one('og:title');
+	one('og:image:alt');
+	const ogUrl = one('og:url');
+	if (ogUrl !== undefined && ogUrl !== url) problems.push(`og:url is «${ogUrl}», expected «${url}»`);
+	const image = one('og:image');
+	if (image !== undefined) {
+		if (!/^https?:\/\//.test(image)) problems.push(`og:image is not absolute: ${image}`);
+		else if (!exists(image)) problems.push(`og:image file is not in dist/: ${image}`);
+	}
+	return problems;
+}
+
 /** The home's «З чого почати» (id `start`): the four cards, each a link to its page, right after the four things. */
 export function checkHomeRoles(html) {
 	const section = sectionById(html, 'start');
 	if (section === null) return ['no <section id="start"> («З чого почати»)'];
 	const want = [...FOR_LINKS];
-	const got = anchorsOf(section).map((a) => ({ ...a, text: a.text.replace(/\s*→$/, '').replace(/Читати$/, '').trim() }));
+	const cardHtml = [...section.matchAll(/<a\b[^>]*\broles__card\b[^>]*>[\s\S]*?<\/a>/gi)].map((m) => m[0]);
+	const got = cardHtml.flatMap((c) => anchorsOf(c)).map((a) => ({ ...a, text: a.text.replace(/\s*→$/, '').replace(/Читати$/, '').trim() }));
 	const problems = [];
 	if (got.length !== want.length) problems.push(`«З чого почати» has ${got.length} links, expected ${want.length}`);
 	want.forEach(([text, slug], i) => {
 		if (!got[i] || !got[i].text.startsWith(text) || !pointsAtPage(got[i].href, slug)) problems.push(`«З чого почати»: card ${i + 1} is not «${text}» -> ${slug}/`);
 	});
 	if (!/<h2\b[^>]*>З чого почати<\/h2>/.test(section)) problems.push('«З чого почати» has no such H2');
-	if (html.indexOf('id="start"') > html.indexOf('id="kinds"')) problems.push('«З чого почати» is not before «Для шкіл, садочків і коледжів»');
+	// The short way to the templates (issue #71): a link to the templates section, not one of the four cards.
+	if (!anchorsOf(section).some((a) => a.text.startsWith('Переглянути шаблони') && /(^|\/)#look$/.test(a.href))) problems.push('«З чого почати» has no «Переглянути шаблони →» link to #look');
+	if (html.indexOf('id="start"') > html.indexOf('id="kinds"')) problems.push('«З чого почати» is not before «Для різних типів закладів освіти»');
 	return problems;
 }
 
@@ -1298,6 +1338,8 @@ function main() {
 					slugs: ownSlugs,
 					base,
 				})) fail(`dist/${rel}`, problem);
+			const pageUrl = `${SITE_ORIGIN}${base.replace(/\/$/, '')}/${rel.replace(/index\.html$/, '').split(path.sep).join('/')}`;
+			for (const problem of checkCanonicalOg(html, { url: pageUrl, exists: (url) => builtFileExists(distDir, base, rel, new URL(url).pathname) })) fail(`dist/${rel}`, problem);
 		} else {
 			for (const problem of checkDocChrome(html, base)) fail(`dist/${rel} header/footer`, problem);
 			for (const problem of checkDocGuide(html)) fail(`dist/${rel}`, problem);
