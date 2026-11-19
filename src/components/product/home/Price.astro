@@ -23,7 +23,14 @@ const root = base.endsWith('/') ? base : `${base}/`;
 			</p>
 			<p class="price-card__sub">{formatUah(offer.priceQuarterUah)} щокварталу · без ПДВ · {formatUah(0)} за створення</p>
 			<ul class="price-card__list">
-				{includesShort.map((item) => <li>{item.text}</li>)}
+				{
+					includesShort.map((item) => (
+						<li>
+							{item.text}
+							{item.assistant && offer.assistantStatus !== 'on' && <span class="price-card__status">Випробовуємо</span>}
+						</li>
+					))
+				}
 			</ul>
 			<a class="btn btn-main btn-block" href="#request">Подати заявку</a>
 		</div>
