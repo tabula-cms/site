@@ -1,7 +1,7 @@
 import { defineCollection, z } from 'astro:content';
 import { glob } from 'astro/loaders';
-import { docsLoader } from '@astrojs/starlight/loaders';
-import { docsSchema } from '@astrojs/starlight/schema';
+import { docsLoader, i18nLoader } from '@astrojs/starlight/loaders';
+import { docsSchema, i18nSchema } from '@astrojs/starlight/schema';
 
 export const collections = {
 	// `lang` is not part of Starlight's default frontmatter schema; it is read by
@@ -14,6 +14,9 @@ export const collections = {
 		// import; src/lib/guide-structure.mjs reads it from the file).
 		schema: docsSchema({ extend: z.object({ lang: z.string().optional(), hosted: z.boolean().optional() }) }),
 	}),
+	// Starlight UI strings for the uk locale (src/content/i18n/uk.json): without it every heading anchor reads
+	// «Section titled “…”» (the English default).
+	i18n: defineCollection({ loader: i18nLoader(), schema: i18nSchema() }),
 	// Story 80, slice S2: the site's own reading pages (src/content/pages/<slug>.md(x)), rendered
 	// at /<slug>/ by src/pages/[slug].astro in the product layout. Not part of Starlight's `docs`.
 	pages: defineCollection({

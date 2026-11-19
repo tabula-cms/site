@@ -461,6 +461,10 @@
 	background: #eceff3;
 	color: #3e4e63;
 }
+.doc-table__pdf {
+	font-weight: 600;
+	white-space: nowrap;
+}
 .doc-table__action {
 	display: block;
 	margin-top: 4px;

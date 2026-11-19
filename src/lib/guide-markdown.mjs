@@ -51,6 +51,9 @@ function singleImage(paragraph) {
 function createPlugin(guide = null, slug = null) {
 	// The heading above the table being visited, for its region's label. Visitors run in document order.
 	let heading = '';
+	// Labels already given on this page: a second table under the same heading gets a number, so no two regions share a
+	// name (landmark-unique).
+	const labels = new Map();
 
 	return {
 		name: 'tabula-guide',
@@ -110,6 +113,12 @@ function createPlugin(guide = null, slug = null) {
 					return;
 				}
 				if (node.tagName === 'table') {
+					const tableLabel = () => {
+						const base = heading ? `: ${heading}` : '';
+						const n = (labels.get(base) ?? 0) + 1;
+						labels.set(base, n);
+						return n === 1 ? `Таблиця${base}` : `Таблиця ${n}${base}`;
+					};
 					ctx.wrapNode(node, {
 						type: 'element',
 						tagName: 'div',
@@ -117,7 +126,7 @@ function createPlugin(guide = null, slug = null) {
 							className: ['guide-table'],
 							role: 'region',
 							tabIndex: 0,
-							ariaLabel: heading ? `Таблиця: ${heading}` : 'Таблиця',
+							ariaLabel: tableLabel(),
 						},
 						children: [],
 					});
