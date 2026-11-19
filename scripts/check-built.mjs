@@ -1023,7 +1023,7 @@ export function checkTryPage(html, { demoOpen = offer.demoOpen, demoUrl = offer.
 		// A live region must be in the page before its text comes, or a screen reader may not announce it.
 		else if (/\bhidden\b/.test(hint[0]) || !/role="status"/.test(hint[0])) problems.push(`the tick hint (${marker}) is hidden or not role="status"`);
 	}
-	const consent = `Погоджуюся, щоб Tabula надіслала мені код для входу і ${keepDays} днів зберігала мою демо-копію. Докладно — на сторінці «Обробка персональних даних».`;
+	const consent = `Погоджуюся, щоб Tabula надіслала мені код для входу і зберігала мою демо-копію протягом ${keepDays} днів після останнього збереження. Докладно — на сторінці «Обробка персональних даних».`;
 	const mainText = htmlText(extractMain(html)).replace(/ /g, ' ').replace(/ ([.,])/g, '$1');
 	if (!mainText.includes(consent)) problems.push('Consent 1 is not the spec\'s phase-2 text');
 	const noindex = /<meta name="robots" content="noindex/.test(html);
@@ -1164,6 +1164,8 @@ export function checkEveryPage(html) {
 		if (!/\salt(?=[\s=/>])/i.test(tag)) problems.push(`an <img> without alt: ${tag.slice(0, 80)}`);
 	}
 	if (/fonts\.googleapis\.com|fonts\.gstatic\.com/i.test(html)) problems.push('refers to Google Fonts');
+	// Starlight's English default for a heading anchor: src/content/i18n/uk.json translates it.
+	if (/Section titled/.test(html)) problems.push('an English «Section titled» label (src/content/i18n/uk.json)');
 	return problems;
 }
 

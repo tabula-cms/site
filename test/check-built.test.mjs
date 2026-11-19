@@ -319,6 +319,11 @@ test('checkAssistantSpelling: «ШІ-помічник», never «помічни�
 
 
 
+test('checkEveryPage: no English «Section titled» anchor label', () => {
+	assert.deepEqual(checkEveryPage('<a aria-label="Посилання на розділ «A»">'), []);
+	assert.equal(checkEveryPage('<a aria-label="Section titled “A”">').length, 1);
+});
+
 test('checkEveryPage: every <img> has alt (also bare or empty), no Google Fonts', () => {
 	assert.deepEqual(checkEveryPage('<img src="a" alt="x"><img src="b" alt=""><img src="c" alt sizes="1">'), []);
 	assert.equal(checkEveryPage('<img src="a">').length, 1);
@@ -514,7 +519,7 @@ test('checkNoBreakSpaces: month and year', () => {
 
 import { checkTryPage, checkTryLinks } from '../scripts/check-built.mjs';
 
-const CONSENT_1 = 'Погоджуюся, щоб Tabula надіслала мені код для входу і 14 днів зберігала мою демо-копію. Докладно — на сторінці <a href="/site/personalni-dani/#demo">«Обробка персональних даних»</a>.';
+const CONSENT_1 = 'Погоджуюся, щоб Tabula надіслала мені код для входу і зберігала мою демо-копію протягом 14 днів після останнього збереження. Докладно — на сторінці <a href="/site/personalni-dani/#demo">«Обробка персональних даних»</a>.';
 const tryPage = ({ referrer = 'strict-origin-when-cross-origin', robots = true, action = 'https://demo.example.org/__demo/start', consent = CONSENT_1, extra = '' } = {}) =>
 	`<html><head><meta name="referrer" content="${referrer}">${robots ? '<meta name="robots" content="noindex, nofollow">' : ''}</head><body><main>
 <p data-try-nojs>Демо працює лише з увімкненим JavaScript.</p>

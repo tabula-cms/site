@@ -23,6 +23,8 @@ const { text } = Astro.props;
 // The server never says which field it refused, and the link back opens an empty form: name the usual causes and
 // the browser's own Back button, which keeps what was typed.
 const invalid = Astro.params.code === 'invalid';
+// «closed»: requests come by e-mail, so the primary button writes the e-mail (the form stays a secondary way back).
+const closed = Astro.params.code === 'closed';
 const base = import.meta.env.BASE_URL;
 const root = base.endsWith('/') ? base : `${base}/`;
 ---
@@ -42,7 +44,16 @@ const root = base.endsWith('/') ? base : `${base}/`;
 				)
 			}
 			<p>Адреса для заявок: <a href={`mailto:${offer.supportEmail}`}>{offer.supportEmail}</a>.</p>
-			<p class="cta-row"><a class="btn btn-main" href={`${root}zaiavka/`}>Повернутися до форми</a></p>
+			{
+				closed ? (
+					<p class="cta-row">
+						<a class="btn btn-main" href={`mailto:${offer.supportEmail}`}>Написати на пошту</a>
+						<a class="btn btn-line" href={`${root}zaiavka/`}>Повернутися до форми</a>
+					</p>
+				) : (
+					<p class="cta-row"><a class="btn btn-main" href={`${root}zaiavka/`}>Повернутися до форми</a></p>
+				)
+			}
 		</div>
 	</Typo>
 </ProductPage>

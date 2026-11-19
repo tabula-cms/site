@@ -5,6 +5,7 @@
 //     contract's text lives in one place, src/content/pages/dohovir.mdx).
 //
 // Run it again whenever the contract, a form or a number of offer.mjs changes, then build and commit the PDFs.
+// The PDFs are tagged (accessible: headings, tables, reading order) and carry an outline of the headings.
 // Needs Chromium: `npx playwright install chromium`.
 
 import { existsSync, mkdirSync } from 'node:fs';
@@ -39,7 +40,7 @@ async function main() {
 		const page = await browser.newPage();
 		for (const doc of DOCUMENTS) {
 			await page.setContent(documentHtml(doc), { waitUntil: 'load' });
-			await page.pdf({ path: path.join(outDir, doc.file), format: 'A4', printBackground: false, preferCSSPageSize: true });
+			await page.pdf({ path: path.join(outDir, doc.file), format: 'A4', printBackground: false, preferCSSPageSize: true, tagged: true, outline: true });
 			console.log(`documents: ${doc.file}`);
 		}
 		await page.goto(`${origin}${baseNoSlash}/dohovir/`, { waitUntil: 'load' });
@@ -49,6 +50,8 @@ async function main() {
 			path: path.join(outDir, 'dohovir.pdf'),
 			format: 'A4',
 			margin: { top: '18mm', bottom: '18mm', left: '22mm', right: '18mm' },
+			tagged: true,
+			outline: true,
 		});
 		console.log('documents: dohovir.pdf');
 	} finally {

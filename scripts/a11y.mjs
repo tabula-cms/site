@@ -147,6 +147,27 @@ async function visibleHeader(browser, origin) {
 	return problems;
 }
 
+// Issue #72: every landmark of a page has its own name (axe's best-practice rule `landmark-unique`, not in TAGS): the own
+// pages and a few guide pages at 1280 px, where the guide's tables are labelled by the heading above them. Returns the count.
+const LANDMARK_GUIDE_PAGES = ['editor/', 'editor/storinky/', 'editor/dokumenty/'];
+async function landmarksUnique(browser, origin) {
+	let problems = 0;
+	const context = await browser.newContext({ viewport: { width: 1280, height: 900 }, reducedMotion: 'reduce' });
+	const tab = await context.newPage();
+	for (const page of [...PAGES, ...LANDMARK_GUIDE_PAGES]) {
+		const response = await tab.goto(`${origin}${baseNoSlash}/${page}`, { waitUntil: 'load' });
+		if (!response || response.status() !== 200) continue; // the guide may be absent in a fresh clone
+		const result = await new AxeBuilder({ page: tab }).withRules(['landmark-unique']).analyze();
+		console.log(`a11y: /${page} @ 1280px, landmark-unique — ${result.violations.length} violation(s)`);
+		for (const violation of result.violations) {
+			problems += 1;
+			for (const node of violation.nodes.slice(0, 5)) console.error(`  - ${node.target.join(' ')}: ${node.html.slice(0, 120)}`);
+		}
+	}
+	await context.close();
+	return problems;
+}
+
 // Spec 83 §11: no product page scrolls sideways at 360 px. Returns the number of pages that do.
 async function noSideScroll(browser, origin) {
 	let problems = 0;
@@ -186,6 +207,12 @@ async function main() {
 	const browser = await chromium.launch();
 	let violations = 0;
 	try {
+		if (process.argv.includes('--landmarks-only')) {
+			violations += await landmarksUnique(browser, origin);
+			await browser.close();
+			server.close();
+			process.exit(violations > 0 ? 1 : 0);
+		}
 		for (const page of PAGES) {
 			for (const width of WIDTHS) {
 				const started = Date.now();
@@ -234,6 +261,7 @@ async function main() {
 		violations += await heroWhileAppearing(browser, origin);
 		violations += await visibleHeader(browser, origin);
 		violations += await noSideScroll(browser, origin);
+		violations += await landmarksUnique(browser, origin);
 		violations += await accountingSummaryPrint(browser, origin);
 	} finally {
 		await browser.close();

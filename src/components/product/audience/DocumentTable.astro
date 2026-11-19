@@ -1,6 +1,7 @@
 ---
 // Spec 83 §7: «Які документи ми надаємо» — offer.documents as a table (document · what for · when · state · action).
-// A sample in preparation offers «Надішлемо, щойно буде готово» (mailto); once `pdf` is set, «Завантажити PDF».
+// A sample in preparation offers «Надішлемо, щойно буде готово» (mailto); once `pdf` is set the document's name in the first column is the link to it
+// (on a phone the last column is off-screen), with a « · PDF» marker in its accessible name.
 import StatusBadge from './StatusBadge.astro';
 import { offer, documents } from '../../../config/offer.mjs';
 import { typo } from '../../../lib/typo.mjs';
@@ -25,16 +26,21 @@ const notify = (name: string) =>
 			{
 				documents.map((doc) => (
 					<tr>
-						<th scope="row">{typo(doc.name)}</th>
+						<th scope="row">
+							{doc.pdf ? (
+								<a class="doc-table__name" href={`${root}${doc.pdf}`}>
+									{typo(doc.name)}
+									<span class="doc-table__pdf"> · PDF</span>
+								</a>
+							) : (
+								typo(doc.name)
+							)}
+						</th>
 						<td>{typo(doc.why)}</td>
 						<td>{typo(doc.when)}</td>
 						<td>
 							<StatusBadge status={doc.status} />
-							{doc.pdf ? (
-								<a class="doc-table__action" href={`${root}${doc.pdf}`}>
-									Завантажити PDF
-								</a>
-							) : doc.status === 'preparing' ? (
+							{!doc.pdf && doc.status === 'preparing' ? (
 								<a class="doc-table__action more" href={notify(doc.name)}>
 									Надішлемо, щойно буде готово
 								</a>

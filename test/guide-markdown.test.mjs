@@ -50,6 +50,12 @@ test('a table is wrapped in a labelled, focusable scroll region named after the 
 	assert.match(render('| a |\n|---|\n| 1 |\n'), /aria-label="Таблиця"/);
 });
 
+test('tables of one page never share a region name (landmark-unique): the next one under a heading gets a number', () => {
+	const t = '| a |\n|---|\n| 1 |\n';
+	const labels = [...render(`## Зміст\n\n${t}\n${t}\n${t}`).matchAll(/aria-label="([^"]*)"/g)].map((m) => m[1]);
+	assert.deepEqual(labels, ['Таблиця: Зміст', 'Таблиця 2: Зміст', 'Таблиця 3: Зміст']);
+});
+
 test('a file outside src/content/docs/ is left alone', () => {
 	const md = '*Нотатка.*\n\n![Опис](a.webp)\n\n<!-- x -->\n';
 	assert.doesNotMatch(render(md, pages), /guide-/);
