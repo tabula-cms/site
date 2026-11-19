@@ -211,6 +211,32 @@
 .hero__text .chip {
 	margin: 0 0 22px;
 }
+/* The chip and, beside it, the quiet way to the price (issue #71). */
+.hero__top {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 0 18px;
+	margin: 0 0 22px;
+}
+.hero__text .hero__top .chip {
+	margin: 0;
+}
+.hero__terms {
+	display: inline-block;
+	padding: 8px 0;
+	font-size: 16px;
+	line-height: 1.45;
+	font-weight: 600;
+	color: var(--text);
+	text-decoration: underline;
+	text-decoration-color: #b9c5c2;
+	text-underline-offset: 4px;
+}
+.hero__terms:hover {
+	color: var(--accent);
+	text-decoration-color: currentColor;
+}
 .hero__title {
 	margin: 0;
 	font-family: var(--display);
@@ -314,6 +340,11 @@
 	font-size: 13px;
 	font-weight: 800;
 	color: var(--accent);
+}
+/* While the assistant is being tested the decorative card says so (amber ink on white: well over 4.5:1). */
+.card-status {
+	color: var(--amber-ink);
+	font-weight: 700;
 }
 .hero__card-title {
 	margin: 8px 0 0;
@@ -453,6 +484,19 @@
 .roles__card .kinds__text {
 	margin-top: 8px;
 	flex: 1 1 auto;
+}
+/* The short way to the templates, under the four cards (issue #71). */
+.roles__templates {
+	margin: 18px 0 0;
+}
+.roles__templates a {
+	display: inline-block;
+	padding: 10px 0;
+	font-size: 16px;
+	font-weight: 800;
+	color: var(--accent);
+	text-decoration: underline;
+	text-underline-offset: 4px;
 }
 .roles__more {
 	margin-top: 12px;
@@ -1746,6 +1790,18 @@
 	line-height: 1.9;
 	font-weight: 600;
 }
+.price-card__status {
+	display: inline-block;
+	margin-left: 8px;
+	padding: 1px 8px;
+	border-radius: 6px;
+	background: var(--amber-bg);
+	color: var(--amber-ink);
+	font-size: 13px;
+	font-weight: 700;
+	line-height: 1.6;
+	white-space: nowrap;
+}
 .price-card .btn-block {
 	margin-top: 26px;
 }
@@ -1911,9 +1967,16 @@
 	.tab,
 	.four a,
 	.hero__kinds a,
+	.hero__terms,
+	.roles__templates a,
 	.law__text a.quiet {
 		min-height: 44px;
 		box-sizing: border-box;
+	}
+	.hero__terms,
+	.roles__templates a {
+		display: inline-flex;
+		align-items: center;
 	}
 	.btn,
 	.tab,
@@ -2382,6 +2445,14 @@
 		opacity: 1;
 	}
 }
+@keyframes word-show {
+	from {
+		visibility: hidden;
+	}
+	to {
+		visibility: visible;
+	}
+}
 @keyframes arrow-draw {
 	from {
 		stroke-dashoffset: 70;
@@ -2476,38 +2547,10 @@
 }
 @keyframes card-pop {
 	from {
-		opacity: 0;
 		transform: translateY(12px) scale(0.88);
 	}
 	to {
-		opacity: 1;
 		transform: none;
-	}
-}
-@keyframes float-a {
-	0%,
-	100% {
-		transform: translateY(0);
-	}
-	50% {
-		transform: translateY(-4px);
-	}
-}
-@keyframes float-b {
-	0%,
-	100% {
-		transform: translateY(-2px);
-	}
-	50% {
-		transform: translateY(3px);
-	}
-}
-@keyframes blob-drift {
-	from {
-		transform: translate(0, 0) scale(1);
-	}
-	to {
-		transform: translate(-3%, 4%) scale(1.08);
 	}
 }
 @keyframes par-hero {
@@ -2644,84 +2687,69 @@
 		animation: was-out 0.35s ease-in-out calc(var(--out-at, 1650ms) + 380ms) both;
 	}
 
-	/* 2. The hero: on load the laptop rises, the phone slides in, the card pops and types its title; then the
-	 * phone and the card float (±4 px, 6.5 s and 7 s, out of phase) and the mint blob drifts (26 s). The idle
-	 * loops are transform-only (compositor) and are left running off screen: they cost no layout or paint. The
-	 * first frames are as static: the laptop (the LCP image) is never transparent. */
+	/* 2. The hero: on load the laptop rises, the phone slides in, the card pops (by transform only) and its title is
+	 * shown word by word. Every one of these ends within 2 s of load and nothing idles afterwards (issue #71: no
+	 * decorative motion longer than 5 s). Text never renders at partial opacity: the card does not fade, and a word
+	 * is hidden, then visible, by `visibility` (`word-show`). The first frames are as static: the laptop (the LCP
+	 * image) is never transparent. */
 	.hero__visual .laptop {
 		animation: hero-rise 0.6s cubic-bezier(0.2, 0.7, 0.2, 1) both;
 	}
 	.hero__phone {
-		animation-name: phone-in, float-a;
-		animation-duration: 0.5s, 6.5s;
-		animation-delay: 0.15s, 0.8s;
-		animation-timing-function: ease-out, ease-in-out;
-		animation-iteration-count: 1, infinite;
-		animation-fill-mode: both, none;
+		animation: phone-in 0.5s ease-out 0.15s both;
 	}
 	.hero__card {
-		animation-name: card-pop, float-b;
-		animation-duration: 0.4s, 7s;
-		animation-delay: 0.4s, 1s;
-		animation-timing-function: ease-out, ease-in-out;
-		animation-iteration-count: 1, infinite;
-		animation-fill-mode: both, none;
+		animation: card-pop 0.4s ease-out 0.4s both;
 	}
 	.hero__card-title .w {
-		animation: word-in 0.2s linear calc(0.62s + var(--w, 0) * 40ms) both;
-	}
-	.hero__glow {
-		animation: blob-drift 26s ease-in-out infinite alternate;
+		animation: word-show 1ms step-end calc(0.62s + var(--w, 0) * 40ms) both;
 	}
 
 	@supports (animation-timeline: scroll()) {
 		/* 3. Depth in the hero: the phone and the card drift up to 24 px against the laptop over the first
 		 * 700 px of scrolling; the blob drifts slower the other way. The lists keep the load animations. */
 		.hero__phone {
-			animation-name: phone-in, float-a, par-hero;
-			animation-duration: 0.5s, 6.5s, auto;
-			animation-delay: 0.15s, 0.8s, 0s;
-			animation-timing-function: ease-out, ease-in-out, linear;
-			animation-iteration-count: 1, infinite, 1;
-			animation-fill-mode: both, none, both;
+			animation-name: phone-in, par-hero;
+			animation-duration: 0.5s, auto;
+			animation-delay: 0.15s, 0s;
+			animation-timing-function: ease-out, linear;
+			animation-iteration-count: 1, 1;
+			animation-fill-mode: both, both;
 		}
 		.hero__phone {
-			animation-timeline: auto, auto, scroll(root);
-		}
-		.hero__phone {
-			animation-range-start: normal, normal, 0px;
-			animation-range-end: normal, normal, 700px;
-		}
-		.hero__card {
-			animation-name: card-pop, float-b, par-hero;
-			animation-duration: 0.4s, 7s, auto;
-			animation-delay: 0.4s, 1s, 0s;
-			animation-timing-function: ease-out, ease-in-out, linear;
-			animation-iteration-count: 1, infinite, 1;
-			animation-fill-mode: both, none, both;
-		}
-		.hero__card {
-			animation-timeline: auto, auto, scroll(root);
-		}
-		.hero__card {
-			animation-range-start: normal, normal, 0px;
-			animation-range-end: normal, normal, 700px;
-		}
-		.hero__glow {
-			animation-name: blob-drift, par-blob;
-			animation-duration: 26s, auto;
-			animation-delay: 0s, 0s;
-			animation-timing-function: ease-in-out, linear;
-			animation-iteration-count: infinite, 1;
-			animation-direction: alternate, normal;
-			animation-fill-mode: none, both;
-		}
-		.hero__glow {
 			animation-timeline: auto, scroll(root);
 		}
-		.hero__glow {
+		.hero__phone {
 			animation-range-start: normal, 0px;
 			animation-range-end: normal, 700px;
+		}
+		.hero__card {
+			animation-name: card-pop, par-hero;
+			animation-duration: 0.4s, auto;
+			animation-delay: 0.4s, 0s;
+			animation-timing-function: ease-out, linear;
+			animation-iteration-count: 1, 1;
+			animation-fill-mode: both, both;
+		}
+		.hero__card {
+			animation-timeline: auto, scroll(root);
+		}
+		.hero__card {
+			animation-range-start: normal, 0px;
+			animation-range-end: normal, 700px;
+		}
+		.hero__glow {
+			animation-name: par-blob;
+			animation-duration: auto;
+			animation-timing-function: linear;
+			animation-fill-mode: both;
+		}
+		.hero__glow {
+			animation-timeline: scroll(root);
+		}
+		.hero__glow {
+			animation-range-start: 0px;
+			animation-range-end: 700px;
 		}
 	}
 

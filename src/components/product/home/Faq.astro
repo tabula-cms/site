@@ -1,10 +1,16 @@
 ---
 // Section 11: Часті запитання. Five, as in the mockup; «Коли запрацює ШІ-помічник?» is dropped
 // when `offer.assistantStatus` is 'on'.
+import { existsSync } from 'node:fs';
+import path from 'node:path';
 import { offer, exitText, formatDateLongYear, formatUah, nextDay } from '../../../config/offer.mjs';
 
 const base = import.meta.env.BASE_URL;
 const root = base.endsWith('/') ? base : `${base}/`;
+// The guide's page «Помічник і ваші дані» is imported at build time and may be missing from the released guide: the
+// link is rendered only when it was imported (same rule as Assistant.astro). The path is taken from the working
+// directory: in a build `import.meta.url` points into the bundled chunks, not into src/.
+const dataGuide = existsSync(path.join(process.cwd(), 'src/content/docs/editor/pomichnyk-i-dani.md'));
 const paidFrom = nextDay(offer.pilotUntil);
 ---
 
@@ -29,7 +35,10 @@ const paidFrom = nextDay(offer.pilotUntil);
 		}
 		<details class="faq-item">
 			<summary>Що бачить ШІ-помічник?<span class="plus" aria-hidden="true">+</span></summary>
-			<p>Лише те, що ви йому даєте для чернетки. Дані учнів ми йому не передаємо, а тексти запитів не зберігаємо.</p>
+			<p>
+				Лише те, що ви йому даєте для чернетки. Дані учнів ми йому не передаємо. Запит іде через наш сервер у ЄС до постачальника мовної моделі, який може обробляти його й поза ЄС; ми зберігаємо лише час запиту, дію й обсяг, а не його текст. Пропозиція помічника лежить у базі вашого сайту до {offer.assistantProposalDays}&#160;днів, поки ви її переглянете.
+				{dataGuide && <> <a href={`${root}editor/pomichnyk-i-dani/`}>Помічник і ваші дані</a></>}
+			</p>
 		</details>
 		<details class="faq-item">
 			<summary>Де зберігаються дані?<span class="plus" aria-hidden="true">+</span></summary>

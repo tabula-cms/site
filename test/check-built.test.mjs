@@ -237,8 +237,13 @@ function hero({ demoOpen = false, requestOpen = false, swap = false, withExample
 	const demo = '<a class="btn btn-main btn-lg" href="/site/sprobuvaty/">Спробувати демо</a>';
 	const example = demoOpen ? (withExample ? '</div><p class="hero__kinds hero__example"><a href="https://demo.example.test/">Подивитися приклад сайту</a></p>' : '</div>') : '<a class="btn btn-line btn-lg" href="/site/demo/">Подивитися приклад сайту</a></div>';
 	const buttons = demoOpen ? (swap ? request + demo : demo + request) : request;
-	return `<section id="top" class="hero"><div class="hero__buttons">${buttons}${example}</section>`;
+	return `<section id="top" class="hero"><div class="hero__top"><p class="chip">Безкоштовно</p><a class="hero__terms" href="#price">Умови й ціна <span aria-hidden="true">→</span></a></div><div class="hero__buttons">${buttons}${example}</section>`;
 }
+
+test('checkHeroButtons: «Умови й ціна →» to #price stands beside the chip', () => {
+	assert.ok(checkHeroButtons(hero().replace('#price', '#look'), { demoOpen: false, requestOpen: false }).some((p) => p.includes('Умови й ціна')));
+	assert.ok(checkHeroButtons(hero().replace(/<a class="hero__terms".*?<\/a>/, ''), { demoOpen: false, requestOpen: false }).some((p) => p.includes('Умови й ціна')));
+});
 
 test('checkHeroButtons: demo closed — «Подати заявку» first, the example outlined, no link to «Спробувати»', () => {
 	assert.deepEqual(checkHeroButtons(hero({ demoOpen: false, requestOpen: false }), { demoOpen: false, requestOpen: false }), []);
@@ -262,7 +267,7 @@ test('checkHeroButtons: demo open — «Спробувати демо» primary 
 
 function rolesSection({ order = true } = {}) {
 	const cards = FOR_LINKS.map(([text, slug]) => `<a class="kinds__tile roles__card" href="/site/${slug}/"><h3>${text}</h3><p>x</p><span>Читати <span aria-hidden="true">→</span></span></a>`).join('');
-	const roles = `<section id="start"><h2 class="h2" id="start-title">З чого почати</h2>${cards}</section>`;
+	const roles = `<section id="start"><h2 class="h2" id="start-title">З чого почати</h2>${cards}<p class="roles__templates"><a href="#look">Переглянути шаблони <span aria-hidden="true">→</span></a></p></section>`;
 	return order ? `${roles}<section id="kinds"></section>` : `<section id="kinds"></section>${roles}`;
 }
 
@@ -271,6 +276,7 @@ test('checkHomeRoles: four cards in order, the H2, before «kinds»', () => {
 	assert.ok(checkHomeRoles(rolesSection({ order: false })).some((p) => p.includes('not before')));
 	assert.ok(checkHomeRoles(rolesSection().replace('/site/dlia-bukhhalterii/', '/site/pidtrymka/')).length > 0);
 	assert.ok(checkHomeRoles('<section id="kinds"></section>').length > 0);
+	assert.ok(checkHomeRoles(rolesSection().replace('#look', '#price')).some((p) => p.includes('Переглянути шаблони')));
 });
 
 test('checkAssistantMore: three H3, three steps; the link to the guide is optional', () => {
@@ -815,4 +821,38 @@ test('checkContractEditions: the earlier edition kept and linked, the current on
 	assert.equal(checkContractEditions({ ...args, read: (rel) => (rel.includes('2026-11-17') ? null : files[rel]) }).length, 1);
 	assert.equal(checkContractEditions({ ...args, read: (rel) => (rel.includes('2026-11-14') ? null : files[rel]) }).length, 1);
 	assert.equal(checkContractEditions({ ...args, contractHtml: product('<p>Редакція.</p>') }).length, 2);
+});
+
+import { checkCanonicalOg } from '../scripts/check-built.mjs';
+
+function ogHead({ url = 'https://tabula.example.test/site/x/', canon = [url], extra = '', drop = [] } = {}) {
+	const metas = {
+		'og:type': 'website',
+		'og:site_name': 'Tabula',
+		'og:locale': 'uk_UA',
+		'og:title': 'T',
+		'og:description': 'D',
+		'og:url': url,
+		'og:image': 'https://tabula.example.test/site/_astro/og.abc.jpg',
+		'og:image:width': '1200',
+		'og:image:height': '630',
+		'og:image:alt': 'A',
+		'twitter:card': 'summary_large_image',
+	};
+	for (const key of drop) delete metas[key];
+	const tags = Object.entries(metas).map(([k, v]) => `<meta property="${k}" content="${v}" />`).join('');
+	return `<html><head>${canon.map((c) => `<link rel="canonical" href="${c}" />`).join('')}${tags}${extra}</head><body></body></html>`;
+}
+const OG_URL = 'https://tabula.example.test/site/x/';
+
+test('checkCanonicalOg: one canonical equal to the page URL, the Open Graph set, the image exists', () => {
+	assert.deepEqual(checkCanonicalOg(ogHead(), { url: OG_URL }), []);
+	assert.ok(checkCanonicalOg(ogHead({ canon: [] }), { url: OG_URL }).length > 0);
+	assert.ok(checkCanonicalOg(ogHead({ canon: [OG_URL, OG_URL] }), { url: OG_URL }).length > 0);
+	assert.ok(checkCanonicalOg(ogHead({ canon: ['https://tabula.example.test/site/y/'] }), { url: OG_URL }).some((p) => p.includes('canonical')));
+	assert.ok(checkCanonicalOg(ogHead(), { url: OG_URL.replace('/x/', '/z/') }).some((p) => p.includes('og:url')));
+	assert.ok(checkCanonicalOg(ogHead({ drop: ['og:title'] }), { url: OG_URL }).length > 0);
+	assert.ok(checkCanonicalOg(ogHead({ drop: ['twitter:card'] }), { url: OG_URL }).length > 0);
+	assert.ok(checkCanonicalOg(ogHead(), { url: OG_URL, exists: () => false }).some((p) => p.includes('not in dist')));
+	assert.ok(checkCanonicalOg(ogHead().replace('https://tabula.example.test/site/_astro/og.abc.jpg', '/site/_astro/og.abc.jpg'), { url: OG_URL }).some((p) => p.includes('not absolute')));
 });
