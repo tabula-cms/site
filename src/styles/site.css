@@ -1,6 +1,6 @@
 /* Tabula documentation styling: the school guide (Starlight pages) in the same language as the product pages
- * (src/styles/product.css): the teal brand, Manrope for text, Unbounded for the page title and the sidebar group
- * labels, rounded surfaces on a quiet mint-grey ground, the 3 px blue focus ring. Registered via `customCss`
+ * (src/styles/product.css, «Аркуш»: the admin panel's look): the green accent, Fixel Text for text, Fixel Display for the
+ * page title and the sidebar group labels, a white sheet with hairlines, 8 px corners, the 3 px blue focus ring. Registered via `customCss`
  * in astro.config.mjs, followed by src/styles/guide.css (the article typography). Starlight's own hooks only:
  * its `--sl-*` custom properties and, where a property has no variable, a rule outside Starlight's cascade
  * layers (which wins over its layered rules). The product pages never load this file.
@@ -14,37 +14,39 @@
 
 /* ---------------------------------------------------------------------------------------------
  * 1. Palette. Dark mode is Starlight's default `data-theme` (a scale in `:root`); light mode overrides it in
- * `:root[data-theme='light']`. The light values are the product tokens (--ink #17283a, --text #3e4e63, --line
- * #e2e8e6, --bg #f7f9f8, --accent #1f6f66, --mint #ddf0ea). The product has no dark mode: the dark scale is the
- * same teal-tinted ink, lighter step by step.
+ * `:root[data-theme='light']`. The light values are the product tokens (--ink #1d2125, --text #4a5157, --line
+ * #dee2df, --bg #ffffff, --accent #1e6a52, --mint #e8f2ee). The product has no dark mode: the dark scale is the
+ * admin panel's dark values (paper #1b1b19, ink #ecebe6, link #86cfb0, rule #3d3c37).
  *
  * Contrast (WCAG AA 4.5:1 for text): axe (wcag2aa, 2.2 AA) reports no colour-contrast violation on the guide's index, a how-to
  * and a long page, light and dark, at 1280 and 320 px.
  * --------------------------------------------------------------------------------------------- */
 :root {
 	/* Dark mode. */
-	--sl-color-white: #ffffff;
-	--sl-color-gray-1: #e3ecec;
-	--sl-color-gray-2: #c0cecf;
-	--sl-color-gray-3: #92a5a8;
-	--sl-color-gray-4: #5c7175;
-	--sl-color-gray-5: #2c4045;
-	--sl-color-gray-6: #172529;
-	--sl-color-black: #0f1b1d;
+	--sl-color-white: #ecebe6;
+	--sl-color-gray-1: #dddcd6;
+	--sl-color-gray-2: #bdbcb5;
+	--sl-color-gray-3: #8f8e87;
+	--sl-color-gray-4: #5a5953;
+	--sl-color-gray-5: #35342f;
+	--sl-color-gray-6: #262522;
+	--sl-color-black: #1b1b19;
 
-	--sl-color-accent-low: #123c38;
-	--sl-color-accent: #2f9a8b;
-	--sl-color-accent-high: #8fdccd;
+	--sl-color-accent-low: #173a2e;
+	--sl-color-accent: #3f9a78;
+	--sl-color-accent-high: #86cfb0;
 
-	--sl-color-hairline: #223439;
-	--sl-color-hairline-light: #2c4045;
-	--sl-color-hairline-shade: #0b1416;
+	--sl-color-hairline: #3d3c37;
+	--sl-color-hairline-light: #3d3c37;
+	--sl-color-hairline-shade: #131311;
 
-	/* The product's fonts. Manrope is Starlight's text font; Unbounded is wide, so it is used for the page title
-	 * and the sidebar group labels only (see below), never for H2 and H3. */
-	--sl-font: 'Manrope', 'Manrope Fallback', system-ui;
-	--guide-display: 'Unbounded', 'Unbounded Fallback', sans-serif;
+	/* The product's fonts. Fixel Text is Starlight's text font; Fixel Display is for the page title, the sidebar group
+	 * labels and the landing's headings (see below). */
+	--sl-font: 'Fixel Text', 'Fixel Text Fallback', 'Segoe UI', system-ui, sans-serif;
+	--guide-display: 'Fixel Display', 'Fixel Display Fallback', 'Segoe UI', system-ui, sans-serif;
 	--guide-focus: #2f7fd6;
+	/* A control's edge (the product's `--edge`; the header and footer declare their own). */
+	--edge: #6b6a63;
 
 	/* Reading sizes: Starlight's default headings are too large for a how-to article. */
 	--sl-text-body: 1.0625rem;
@@ -57,28 +59,30 @@
 }
 
 :root[data-theme='light'] {
-	--sl-color-white: #17283a;
-	--sl-color-gray-1: #22344a;
-	--sl-color-gray-2: #3e4e63;
-	--sl-color-gray-3: #56677d;
-	--sl-color-gray-4: #8493a5;
-	--sl-color-gray-5: #c5d0cc;
-	--sl-color-gray-6: #e2e8e6;
-	--sl-color-gray-7: #eef3f1;
-	--sl-color-black: #f7f9f8;
+	--sl-color-white: #1d2125;
+	--sl-color-gray-1: #2d3338;
+	--sl-color-gray-2: #4a5157;
+	--sl-color-gray-3: #5c636a;
+	--sl-color-gray-4: #7a8087;
+	--sl-color-gray-5: #c9ceca;
+	--sl-color-gray-6: #dee2df;
+	--sl-color-gray-7: #eef0ee;
+	--sl-color-black: #ffffff;
 
-	--sl-color-accent-high: #14514b;
-	--sl-color-accent: #1f6f66;
-	--sl-color-accent-low: #ddf0ea;
+	--edge: #868c93;
 
-	--sl-color-text-accent: #1f6f66;
+	--sl-color-accent-high: #124f3d;
+	--sl-color-accent: #1e6a52;
+	--sl-color-accent-low: #e8f2ee;
+
+	--sl-color-text-accent: #1e6a52;
 	--sl-color-text-invert: #ffffff;
-	--sl-color-bg-nav: #f7f9f8;
-	--sl-color-bg-sidebar: #f7f9f8;
-	--sl-color-bg-inline-code: #e7eeeb;
-	--sl-color-hairline: #e2e8e6;
-	--sl-color-hairline-light: #e2e8e6;
-	--sl-color-hairline-shade: #e2e8e6;
+	--sl-color-bg-nav: #ffffff;
+	--sl-color-bg-sidebar: #ffffff;
+	--sl-color-bg-inline-code: #eef0ee;
+	--sl-color-hairline: #dee2df;
+	--sl-color-hairline-light: #dee2df;
+	--sl-color-hairline-shade: #dee2df;
 }
 
 /* ---------------------------------------------------------------------------------------------
@@ -132,18 +136,24 @@ header.header .site-header summary:focus-visible {
 	outline: 3px solid var(--focus);
 	outline-offset: 2px;
 }
-/* The «Посібник» marker beside the mark: a quiet link to the guide's landing, the product's mint chip. */
+/* The «Посібник» marker beside the mark: a quiet link to the guide's landing, a dot and a word (state, never a plate). */
 .guide-marker {
 	flex: none;
-	margin-inline-start: -16px;
-	padding: 4px 10px;
-	border-radius: 999px;
-	background: var(--mint);
 	color: var(--accent);
 	font-size: 14px;
-	font-weight: 700;
+	font-weight: 600;
 	text-decoration: none;
 	white-space: nowrap;
+}
+.guide-marker::before {
+	content: '';
+	display: inline-block;
+	width: 8px;
+	height: 8px;
+	margin-right: 8px;
+	border-radius: 50%;
+	background: currentColor;
+	vertical-align: 0.1em;
 }
 .guide-marker:hover {
 	color: var(--accent-hover);
@@ -212,8 +222,8 @@ header.header .site-header summary:focus-visible {
 	gap: 0.4rem;
 	height: 2.5rem;
 	padding: 0 0.9rem;
-	border: 1.5px solid var(--sl-color-hairline-light);
-	border-radius: 999px;
+	border: 1px solid var(--edge);
+	border-radius: 8px;
 	background: var(--guide-surface);
 	color: var(--sl-color-white);
 	font: inherit;
@@ -242,7 +252,7 @@ body:has(.nav-menu[open]) .guide-menu-button {
 .sl-container .site-footer,
 .content-panel .site-footer {
 	margin-top: 2.5rem;
-	border-radius: 16px;
+	border-radius: 8px;
 	border: 1px solid var(--line);
 	font-family: var(--body);
 	line-height: normal;
@@ -263,42 +273,46 @@ body:has(.nav-menu[open]) .guide-menu-button {
 	margin-bottom: 0;
 }
 /* Dark: the product has no dark mode; the guide follows the reader's system setting, so its header and footer take the
- * guide's dark scale (site.css §1). The buttons keep the product's teal (white text on it passes AA). */
+ * guide's dark scale (site.css §1). The buttons keep the product's green (white text on it passes AA). */
 :root:not([data-theme='light']) :is(.site-header, .site-footer) {
-	--bg: #0f1b1d;
-	--surface: #172529;
-	--ink: #e3ecec;
-	--text: #c0cecf;
-	--line: #2c4045;
-	--mint: #123c38;
+	--bg: #1b1b19;
+	--surface: #232321;
+	--ink: #ecebe6;
+	--text: #bdbcb5;
+	--line: #3d3c37;
+	--edge: #6b6a63;
+	--mint: #173a2e;
 }
 :root:not([data-theme='light']) .site-header {
-	background: rgba(15, 27, 29, 0.94);
+	background: rgba(27, 27, 25, 0.94);
 }
 :root:not([data-theme='light']) .guide-marker {
-	color: #8fdccd;
+	color: #86cfb0;
 }
 /* The product's hover rules are scoped to its pages (`[data-product-page] …:hover`); the same hovers here. */
 header.header .site-header :is(.nav-links a:hover, .nav-menu__panel a:hover, .nav-for > summary:hover) {
 	color: var(--accent);
 }
 header.header .site-header .nav-for__panel a:hover {
-	background: #eef4f2;
+	background: var(--mint);
 }
 :root:not([data-theme='light']) .site-header :is(.nav-links a:hover, .nav-menu__panel a:hover, .nav-for > summary:hover, .nav-for[open] > summary, .nav-for__panel a[aria-current='page'], .nav-menu__panel a[aria-current='page']) {
-	color: #8fdccd;
+	color: #86cfb0;
 }
 :root:not([data-theme='light']) header.header .site-header .nav-for__panel a:hover {
-	background: #123c38;
+	background: #173a2e;
 }
 :root:not([data-theme='light']) .site-header .nav-menu__heading {
-	color: #92a5a8;
+	color: #8f8e87;
 }
 :root:not([data-theme='light']) .site-header :is(.nav-menu > summary, .btn-line) {
-	border-color: #3d5257;
+	border-color: #6b6a63;
+}
+:root:not([data-theme='light']) .site-header .btn-line {
+	color: #86cfb0;
 }
 :root:not([data-theme='light']) .site-header :is(.nav-menu__panel a, .nav-menu__panel .nav-menu__main) {
-	border-color: #223439;
+	border-color: #3d3c37;
 }
 
 /* The product's focus ring. */
@@ -313,12 +327,12 @@ select:focus-visible,
 }
 
 /* ---------------------------------------------------------------------------------------------
- * 3. Sidebar: group labels in Unbounded (small), a quiet hover, a teal pill for the current page.
+ * 3. Sidebar: group labels in Fixel Display (small), a quiet hover, a mint chip for the current page.
  * --------------------------------------------------------------------------------------------- */
 .sidebar-content summary .large {
 	font-family: var(--guide-display);
 	font-size: 0.8125rem;
-	font-weight: 600;
+	font-weight: 650;
 	letter-spacing: -0.01em;
 	line-height: 1.35;
 }
@@ -352,13 +366,13 @@ select:focus-visible,
 }
 
 /* ---------------------------------------------------------------------------------------------
- * 4. Page title: Unbounded, as on the product pages. Headings below it stay in Manrope, bold.
+ * 4. Page title: Fixel Display, as on the product pages. Headings below it stay in Fixel Text, bold.
  * --------------------------------------------------------------------------------------------- */
 #_top {
 	font-family: var(--guide-display);
-	font-weight: 600;
-	letter-spacing: -0.02em;
-	line-height: 1.2;
+	font-weight: 650;
+	letter-spacing: -0.025em;
+	line-height: 1.15;
 	text-wrap: balance;
 }
 
@@ -377,7 +391,7 @@ select:focus-visible,
 /* Starlight's scroll lock (search modal, mobile sidebar) relies on `<html>`'s `overflow` staying `visible`:
  * never set `overflow` on `:root`/`html` in this file. */
 
-/* The two-layer guide (issue #57): the areas are the sidebar's first level (Unbounded, as above); a topic inside an
+/* The two-layer guide (issue #57): the areas are the sidebar's first level (Fixel Display, as above); a topic inside an
  * area is a second-level group, labelled in the text font so the two levels read apart. */
 .sidebar-content ul ul summary .large {
 	font-family: var(--sl-font);
@@ -405,23 +419,20 @@ select:focus-visible,
 	color: var(--sl-color-accent-high);
 }
 
-/* «Назад / Далі»: the product's tile (`.kinds__tile`: surface, a 1 px line, 16 px radius, the lift on hover), the label
- * quiet and the title in bold Manrope instead of Starlight's large light type. */
+/* «Назад / Далі»: the product's tile (surface, a 1 px line, 8 px radius, no lift), the label
+ * quiet and the title in bold Fixel Text instead of Starlight's large light type. */
 .pagination-links a {
 	border: 1px solid var(--guide-tile-line);
-	border-radius: 16px;
+	border-radius: 8px;
 	background: var(--guide-surface);
 	box-shadow: none;
 	padding: 1rem 1.125rem;
 	font-size: 0.875rem;
 	color: var(--sl-color-gray-3);
-	transition:
-		box-shadow 0.2s ease-out,
-		border-color 0.2s ease-out;
+	transition: border-color 0.2s ease-out;
 }
 .pagination-links a:hover {
 	border-color: var(--sl-color-accent);
-	box-shadow: var(--guide-tile-hover);
 }
 .pagination-links .link-title {
 	font-size: 1rem;

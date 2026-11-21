@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { sep } from 'node:path';
 import { clipFigure } from '../scripts/lib/docs-transform.mjs';
 import {
+	checkBuiltCss,
 	findForbidden,
 	checkOwnSource,
 	checkAsOfDate,
@@ -265,15 +266,13 @@ test('checkHeroButtons: demo open — «Спробувати демо» primary 
 	assert.ok(checkHeroButtons(hero({ demoOpen: false }), { demoOpen: true, requestOpen: false }).length > 0);
 });
 
-function rolesSection({ order = true } = {}) {
-	const cards = FOR_LINKS.map(([text, slug]) => `<a class="kinds__tile roles__card" href="/site/${slug}/"><h3>${text}</h3><p>x</p><span>Читати <span aria-hidden="true">→</span></span></a>`).join('');
-	const roles = `<section id="start"><h2 class="h2" id="start-title">З чого почати</h2>${cards}<p class="roles__templates"><a href="#look">Переглянути шаблони <span aria-hidden="true">→</span></a></p></section>`;
-	return order ? `${roles}<section id="kinds"></section>` : `<section id="kinds"></section>${roles}`;
+function rolesSection() {
+	const cards = FOR_LINKS.map(([text, slug]) => `<a class="roles__card" href="/site/${slug}/"><h3 class="roles__title">${text}</h3><p class="roles__text">x</p></a>`).join('');
+	return `<section id="start"><h2 class="h2" id="start-title">З чого почати</h2>${cards}<p class="roles__templates"><a href="#look">Переглянути шаблони <span aria-hidden="true">→</span></a></p></section>`;
 }
 
-test('checkHomeRoles: four cards in order, the H2, before «kinds»', () => {
+test('checkHomeRoles: four cards in order, the H2', () => {
 	assert.deepEqual(checkHomeRoles(rolesSection()), []);
-	assert.ok(checkHomeRoles(rolesSection({ order: false })).some((p) => p.includes('not before')));
 	assert.ok(checkHomeRoles(rolesSection().replace('/site/dlia-bukhhalterii/', '/site/pidtrymka/')).length > 0);
 	assert.ok(checkHomeRoles('<section id="kinds"></section>').length > 0);
 	assert.ok(checkHomeRoles(rolesSection().replace('#look', '#price')).some((p) => p.includes('Переглянути шаблони')));
@@ -855,4 +854,11 @@ test('checkCanonicalOg: one canonical equal to the page URL, the Open Graph set,
 	assert.ok(checkCanonicalOg(ogHead({ drop: ['twitter:card'] }), { url: OG_URL }).length > 0);
 	assert.ok(checkCanonicalOg(ogHead(), { url: OG_URL, exists: () => false }).some((p) => p.includes('not in dist')));
 	assert.ok(checkCanonicalOg(ogHead().replace('https://tabula.example.test/site/_astro/og.abc.jpg', '/site/_astro/og.abc.jpg'), { url: OG_URL }).some((p) => p.includes('not absolute')));
+});
+
+test('checkBuiltCss: the old brand faces and Google Fonts fail, Fixel passes', () => {
+	assert.deepEqual(checkBuiltCss("@font-face{font-family:'Fixel Display'}body{font-family:'Fixel Text',Arial}"), []);
+	assert.ok(checkBuiltCss("h1{font-family:'Unbounded',sans-serif}").some((p) => p.includes('Unbounded')));
+	assert.ok(checkBuiltCss("body{font-family:Manrope}").length > 0);
+	assert.ok(checkBuiltCss("@import url('https://fonts.googleapis.com/css2')").some((p) => p.includes('Google Fonts')));
 });

@@ -19,14 +19,13 @@ const assistantOn = offer.assistantStatus === 'on';
 ---
 
 <section id="top" class="hero">
-	<div class="hero__glow" aria-hidden="true"></div>
 	<div class="wrap hero__inner">
 		<div class="hero__text">
 			<div class="hero__top">
 				<p class="chip">Безкоштовно до {formatDateLongYear(offer.pilotUntil)}</p>
 				<a class="hero__terms" href="#price">Умови й ціна <span aria-hidden="true">→</span></a>
 			</div>
-			<h1 class="hero__title">Сайт <span class="nw">закладу освіти</span> <span class="marker marker--load">без рутини</span></h1>
+			<h1 class="hero__title">Сайт <span class="nw">закладу освіти</span> <span class="nw">без рутини</span></h1>
 			<p class="hero__sub">
 				{
 					assistantOn
@@ -34,9 +33,7 @@ const assistantOn = offer.assistantStatus === 'on';
 						: 'Готові розділи за законом, меню дня з телефона й документи з КЕП. Ви лише додаєте зміст.'
 				}
 			</p>
-			<p class="hero__kinds">
-				<a href="#kinds">Для шкіл, садочків, коледжів і закладів професійної <span class="nw">освіти&#160;<span aria-hidden="true">→</span></span></a>
-			</p>
+			<p class="hero__kinds">Для шкіл, садочків, коледжів і закладів професійної освіти.</p>
 			{
 				tryOpen ? (
 					<>
@@ -80,11 +77,6 @@ const assistantOn = offer.assistantStatus === 'on';
 					sizes="(min-width: 1030px) 130px, 25vw"
 					eager
 				/>
-			</div>
-			<div class="hero__card hide-sm">
-				<p class="card-kicker"><span class="ai-tag">ШІ</span><span>Чернетка новини{!assistantOn && <span class="card-status"> · випробовуємо</span>}</span></p>
-				<p class="hero__card-title">Пʼятикласники й шестикласники показали виставу до Дня писемності</p>
-				<p class="hero__card-note">Перевірте й опублікуйте</p>
 			</div>
 		</div>
 	</div>

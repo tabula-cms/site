@@ -64,8 +64,7 @@ async function homeWithMotion(browser, origin, started) {
 	return count;
 }
 
-// The hero while it appears (issue #71): with motion allowed the load animations of the hero (laptop, phone, card, the
-// typed words of the card's title) are frozen by the Web Animations API at several moments of the first 2 s and axe's
+// The hero while it appears (issue #71): with motion allowed the load animations of the hero (laptop and phone) are frozen by the Web Animations API at several moments of the first 2 s and axe's
 // color-contrast rule runs on the hero at each one, so a word at partial opacity would be caught. Scroll-linked
 // animations have no time and are left alone. Also fails when an animation of the hero is still running 5 s after
 // load (no idle loops: decorative motion stops). Returns the number of problems.

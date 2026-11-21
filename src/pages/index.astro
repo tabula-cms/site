@@ -3,9 +3,7 @@
 import { getImage } from 'astro:assets';
 import Product from '../layouts/Product.astro';
 import Hero from '../components/product/home/Hero.astro';
-import Four from '../components/product/home/Four.astro';
 import Roles from '../components/product/home/Roles.astro';
-import Kinds from '../components/product/home/Kinds.astro';
 import Assistant from '../components/product/home/Assistant.astro';
 import Meals from '../components/product/home/Meals.astro';
 import Docs from '../components/product/home/Docs.astro';
@@ -18,7 +16,6 @@ import Faq from '../components/product/home/Faq.astro';
 import Contact from '../components/product/home/Contact.astro';
 import Request from '../components/product/home/Request.astro';
 import NextStep from '../components/product/home/NextStep.astro';
-import { offer, formatDateLongYear } from '../config/offer.mjs';
 import { shots, HERO } from '../components/product/shots';
 
 // The LCP image: the hero's laptop. Same widths, sizes and quality as Hero.astro's <img>, so the
@@ -46,11 +43,8 @@ const hero = await getImage({
 		fetchpriority="high"
 	/>
 	<Hero />
-	<Four />
 	<Roles />
-	<Kinds />
 	<Assistant />
-	<NextStep text={`Спробуйте на своєму закладі: до ${formatDateLongYear(offer.pilotUntil)} безкоштовно.`} moreText="Скільки це коштує потім" moreHref="#price" />
 	<Meals />
 	<Docs />
 	<Law />

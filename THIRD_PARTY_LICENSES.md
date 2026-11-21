@@ -4,16 +4,17 @@ What the site ships that is not written here, and under which licence.
 
 ## Fonts (self-hosted)
 
-The product pages (the home, and from slice S2 of story 80 the other pages of the site's own) use three
-typefaces. They are served from this site's own files, taken from the `@fontsource/*` packages
-(Cyrillic and Latin subsets of the weights used only); the visitor's browser makes no request to Google
-Fonts. Each family is licensed under the **SIL Open Font License 1.1** (https://openfontlicense.org);
-the licence text ships in each package's `LICENSE` file.
+The pages of the site (the home, the reading pages, the guide) use the panel's own faces, **Fixel Display** (headings,
+section numbers, big figures) and **Fixel Text** (everything else), plus **Caveat** for the hand notes. Fixel is two
+variable WOFF2 files (weights 100-900) copied from tabula's `public/fonts/` into `src/assets/fonts/fixel/`, with its
+licence text `OFL-Fixel.txt`; © MacPaw, **SIL Open Font License 1.1** (https://openfontlicense.org). Caveat comes from the
+`@fontsource/caveat` package (Cyrillic and Latin subsets of the weight used). They are served from this site's own files;
+the visitor's browser makes no request to Google Fonts.
 
-| Family | Weights | Package | Licence |
+| Family | Weights | Source | Licence |
 | --- | --- | --- | --- |
-| Unbounded | 600 | `@fontsource/unbounded` | SIL OFL 1.1 |
-| Manrope | 400, 500, 600, 700, 800 | `@fontsource/manrope` | SIL OFL 1.1 |
+| Fixel Display | 100-900 (variable) | `src/assets/fonts/fixel/FixelDisplay-Variable.woff2` | SIL OFL 1.1, `OFL-Fixel.txt` |
+| Fixel Text | 100-900 (variable) | `src/assets/fonts/fixel/FixelText-Variable.woff2` | SIL OFL 1.1, `OFL-Fixel.txt` |
 | Caveat | 600 | `@fontsource/caveat` | SIL OFL 1.1 |
 | Tinos (Latin and Cyrillic) | 400, 700 | `@fontsource/tinos` | SIL OFL 1.1 (Apache-2.0 upstream) |
 

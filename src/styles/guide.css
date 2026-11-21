@@ -7,24 +7,23 @@
 
 :root {
 	--guide-surface: #ffffff;
-	--guide-shadow: 0 1px 2px rgba(23, 40, 58, 0.06), 0 8px 24px rgba(23, 40, 58, 0.08);
-	--guide-zebra: #f3f7f5;
-	--guide-step-bg: #3fb5a4;
-	--guide-step-fg: #0b1d1b;
+	--guide-shadow: none;
+	--guide-zebra: #232321;
+	--guide-step-bg: #86cfb0;
+	--guide-step-fg: #11261d;
 	--guide-image-filter: brightness(0.93);
 }
 /* Dark mode is Starlight's default (no `data-theme` in the CSS before the script runs), light overrides. */
 :root[data-theme='light'] {
 	--guide-surface: #ffffff;
-	--guide-zebra: #f3f7f5;
-	--guide-step-bg: #1f6f66;
+	--guide-zebra: #f6f8f6;
+	--guide-step-bg: #1e6a52;
 	--guide-step-fg: #ffffff;
 	--guide-image-filter: none;
 }
 :root:not([data-theme='light']) {
-	--guide-surface: #172529;
-	--guide-shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 24px rgba(0, 0, 0, 0.35);
-	--guide-zebra: #132125;
+	--guide-surface: #232321;
+	--guide-zebra: #1f1f1d;
 }
 
 /* ---------------------------------------------------------------------------------------------
@@ -47,7 +46,7 @@
 	position: relative;
 	margin-block: 1.25rem;
 	padding: 0.8rem 1rem 0.8rem 2.9rem;
-	border-radius: 0.75rem;
+	border-radius: 0.5rem;
 	background: var(--sl-color-accent-low);
 	color: var(--sl-color-white);
 	font-size: 0.9688rem;
@@ -70,7 +69,7 @@
 	font-weight: 700;
 }
 :root[data-theme='light'] .sl-markdown-content .guide-where strong {
-	color: #14514b;
+	color: #124f3d;
 }
 
 /* ---------------------------------------------------------------------------------------------
@@ -134,7 +133,7 @@
 	max-height: min(70vh, 40rem);
 	margin-inline: auto;
 	border: 1px solid var(--sl-color-hairline-light);
-	border-radius: 0.75rem;
+	border-radius: 0.5rem;
 	background: var(--guide-surface);
 	box-shadow: var(--guide-shadow);
 	filter: var(--guide-image-filter);
@@ -163,7 +162,7 @@
 	height: auto;
 	aspect-ratio: 16 / 9;
 	border: 1px solid var(--sl-color-hairline-light);
-	border-radius: 0.75rem;
+	border-radius: 0.5rem;
 	background: var(--guide-surface);
 	box-shadow: var(--guide-shadow);
 }
@@ -183,7 +182,7 @@
 	overflow-x: auto;
 	margin-block: 1.25rem;
 	border: 1px solid var(--sl-color-hairline-light);
-	border-radius: 0.75rem;
+	border-radius: 0.5rem;
 	background: var(--guide-surface);
 }
 .sl-markdown-content .guide-table table {
@@ -265,28 +264,26 @@
 /* ---------------------------------------------------------------------------------------------
  * 7. The two layers (issue #57): the landing, the task block of a long page, the back link, the hosted line and
  * «Інші статті розділу» of a short article. The HTML is src/lib/guide-layout.mjs (and the landing's title and search,
- * src/components/PageTitle.astro). The look is the product's (src/styles/product.css): the kinds/roles tiles (a
- * surface, a 1 px line, 16 px radius, the lift on hover), the Unbounded section headings, the mint chip, the amber
- * chip, pill buttons; the colours are Starlight's `--sl-*`, which site.css sets to the product's tokens in light mode
- * (and to the teal-tinted dark scale in dark mode). Every block is `not-content`, so Starlight's prose spacing and
+ * src/components/PageTitle.astro). The look is the product's (src/styles/product.css): the home's role entries and tiles (a
+ * surface, a 1 px line, 8 px radius, no lift), the Fixel Display section headings, dots and words for
+ * state, 8 px buttons; the colours are Starlight's `--sl-*`, which site.css sets to the product's tokens in light mode
+ * (and to the panel's dark scale in dark mode). Every block is `not-content`, so Starlight's prose spacing and
  * link styles stay out of it.
  * --------------------------------------------------------------------------------------------- */
 :root {
 	--guide-tile-line: var(--sl-color-hairline-light);
-	--guide-tile-radius: 16px;
-	--guide-tile-hover: 0 14px 30px rgba(0, 0, 0, 0.3);
+	--guide-tile-radius: 8px;
 	--guide-amber-bg: #3b2f10;
 	--guide-amber-ink: #ffdf9a;
 }
 :root[data-theme='light'] {
-	/* The product's tile border (`.kinds__tile`), its hover shadow (`.card-hover`) and its amber chip (`.chip`). */
-	--guide-tile-line: #dce5e2;
-	--guide-tile-hover: 0 14px 30px rgba(23, 40, 58, 0.08);
-	--guide-amber-bg: #fff3cc;
-	--guide-amber-ink: #6b4a00;
+	/* The product's tile line and its «not final» ink (`.chip`). */
+	--guide-tile-line: #dee2df;
+	--guide-amber-bg: #fbf1e1;
+	--guide-amber-ink: #8a4a00;
 }
 
-/* A tile: the product's `.kinds__tile`. */
+/* A tile: surface, a 1 px line, 8 px radius, no shadow. */
 .guide-card,
 .guide-area,
 .guide-tasks,
@@ -303,12 +300,21 @@
 .guide-hero__label {
 	display: inline-block;
 	margin: 0 0 0.25rem;
-	padding: 0.3rem 0.75rem;
-	border-radius: 999px;
-	background: var(--sl-color-accent-low);
 	color: var(--sl-color-text-accent);
 	font-size: 0.875rem;
-	font-weight: 700;
+	font-weight: 600;
+}
+.guide-hero__label::before,
+.guide-clip-mark::before,
+.sl-markdown-content .guide-hosted::before {
+	content: '';
+	display: inline-block;
+	width: 8px;
+	height: 8px;
+	margin-inline-end: 8px;
+	border-radius: 50%;
+	background: currentColor;
+	vertical-align: 0.1em;
 }
 .guide-hero #_top {
 	font-size: clamp(1.625rem, 1.1rem + 2.2vw, 2.5rem);
@@ -323,15 +329,14 @@
 	min-height: 3.5rem;
 	margin-top: 1.5rem;
 	padding: 0 1.25rem;
-	border: 1.5px solid var(--guide-tile-line);
-	border-radius: 999px;
+	border: 1px solid var(--edge, #868c93);
+	border-radius: 8px;
 	background: var(--guide-surface);
 	color: var(--sl-color-gray-3);
 	font: inherit;
 	font-size: 1.0625rem;
 	text-align: start;
 	cursor: pointer;
-	box-shadow: var(--guide-shadow);
 	transition: border-color 0.15s ease-out;
 }
 .guide-search[hidden] {
@@ -357,12 +362,12 @@
 	color: var(--sl-color-gray-3);
 }
 
-/* The landing's section headings: the product's `.h2` (Unbounded), sized for the guide's column. */
+/* The landing's section headings: the product's `.h2` (Fixel Display), sized for the guide's column. */
 .sl-markdown-content h2.guide-landing-h2 {
 	font-family: var(--guide-display);
-	font-weight: 600;
+	font-weight: 650;
 	font-size: clamp(1.375rem, 1.1rem + 1.2vw, 1.75rem);
-	letter-spacing: -0.02em;
+	letter-spacing: -0.025em;
 	line-height: 1.2;
 }
 
@@ -389,20 +394,11 @@
 	padding: 1rem 1.125rem;
 	color: var(--sl-color-white);
 	text-decoration: none;
-	transition:
-		box-shadow 0.2s ease-out,
-		transform 0.2s ease-out,
-		border-color 0.2s ease-out;
+	transition: border-color 0.2s ease-out;
 }
 .guide-card:hover {
 	border-color: var(--sl-color-accent);
-	box-shadow: var(--guide-tile-hover);
 	color: var(--sl-color-white);
-}
-@media (prefers-reduced-motion: no-preference) {
-	.guide-card:hover {
-		transform: translateY(-2px);
-	}
 }
 .guide-card__topic {
 	font-size: 0.8125rem;
@@ -548,25 +544,24 @@
 	text-underline-offset: 0.2em;
 }
 
-/* The clip mark: the product's mint chip. */
+/* The clip mark: a dot and a word (the play triangle in the markup is not drawn). */
 .guide-clip-mark {
 	display: inline-flex;
 	align-items: center;
-	gap: 0.25rem;
-	padding: 0.1rem 0.5rem 0.1rem 0.4rem;
-	border-radius: 999px;
-	background: var(--sl-color-accent-low);
 	color: var(--sl-color-text-accent);
 	font-size: 0.8125rem;
-	font-weight: 700;
+	font-weight: 600;
 	line-height: 1.5;
 	white-space: nowrap;
+}
+.guide-clip-mark svg {
+	display: none;
 }
 .guide-card .guide-clip-mark {
 	align-self: flex-start;
 }
 
-/* A short article: «← <topic>» above its text, the hosted line as the product's amber chip. */
+/* A short article: «← <topic>» above its text, the hosted line as a dot and a word in amber ink. */
 .sl-markdown-content .guide-topic {
 	margin: 0 0 0.75rem;
 }
@@ -585,12 +580,9 @@
 .sl-markdown-content .guide-hosted {
 	display: inline-block;
 	margin: 0 0 1rem;
-	padding: 0.4rem 0.75rem;
-	border-radius: 8px;
-	background: var(--guide-amber-bg);
 	color: var(--guide-amber-ink);
 	font-size: 0.9375rem;
-	font-weight: 700;
+	font-weight: 600;
 }
 .sl-markdown-content .guide-hosted + .guide-role {
 	margin-top: 0;

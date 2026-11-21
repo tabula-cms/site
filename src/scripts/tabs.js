@@ -286,13 +286,6 @@ export function initTabs(root, { onActivate } = {}) {
 }
 
 if (typeof document !== 'undefined') {
-	// The hero's AI card types its title word by word on load (product.css §18): the words are wrapped here, not in
-	// the markup, so the static page (no script, reduced motion) is byte-for-byte today's and renders identically.
-	if (globalThis.matchMedia?.('(prefers-reduced-motion: no-preference)').matches) {
-		for (const title of document.querySelectorAll('.hero__card-title')) {
-			splitWords(title, document).forEach((span, i) => span.style.setProperty('--w', String(i)));
-		}
-	}
 	for (const group of document.querySelectorAll('[data-tabs]')) {
 		const player = group.classList.contains('tabs--assistant') ? createPlayer(group) : null;
 		initTabs(group, { onActivate: player?.onActivate });

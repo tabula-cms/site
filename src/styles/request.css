@@ -12,8 +12,8 @@
 	min-width: 0;
 	margin: 0 0 24px;
 	padding: 18px 20px 4px;
-	border: 1.5px solid #c5d0cc;
-	border-radius: 16px;
+	border: 1px solid var(--line);
+	border-radius: 8px;
 	background: var(--surface);
 }
 .req__group > legend {
@@ -52,8 +52,8 @@
 	width: 100%;
 	min-height: 48px;
 	padding: 10px 14px;
-	border: 1.5px solid #8c9b97;
-	border-radius: 12px;
+	border: 1px solid var(--edge);
+	border-radius: 8px;
 	background: #fff;
 	color: var(--ink);
 	font: inherit;
@@ -182,7 +182,7 @@
 	margin-left: 6px;
 	padding: 6px 14px;
 	border: 1.5px solid var(--accent);
-	border-radius: 999px;
+	border-radius: 8px;
 	background: var(--surface);
 	color: var(--accent);
 	font: inherit;

@@ -11,15 +11,11 @@ import { shots } from '../components/product/shots';
 import Header from '../components/product/Header.astro';
 import Footer from '../components/product/Footer.astro';
 import PreFooterCta from '../components/product/PreFooterCta.astro';
-// The five font files the first screen needs most (the heading, the wordmark, the text, the nav links, the buttons): preloaded, and
-// `font-display: optional` in product.css §1, so they are either there for the first paint or never swap in (no
-// layout shift from a late font).
-import unboundedCyrillic600 from '@fontsource/unbounded/files/unbounded-cyrillic-600-normal.woff2?url';
-import unboundedLatin600 from '@fontsource/unbounded/files/unbounded-latin-600-normal.woff2?url';
-import manropeCyrillic400 from '@fontsource/manrope/files/manrope-cyrillic-400-normal.woff2?url';
-import manropeCyrillic600 from '@fontsource/manrope/files/manrope-cyrillic-600-normal.woff2?url';
-import manropeCyrillic700 from '@fontsource/manrope/files/manrope-cyrillic-700-normal.woff2?url';
-const preloadFonts = [unboundedCyrillic600, unboundedLatin600, manropeCyrillic400, manropeCyrillic600, manropeCyrillic700];
+// The two Fixel files (headings, text): preloaded, and `font-display: optional` in src/styles/fonts.css, so they are either
+// there for the first paint or never swap in (no layout shift from a late font).
+import fixelDisplay from '../assets/fonts/fixel/FixelDisplay-Variable.woff2?url';
+import fixelText from '../assets/fonts/fixel/FixelText-Variable.woff2?url';
+const preloadFonts = [fixelDisplay, fixelText];
 
 interface Props {
 	title: string;
@@ -68,7 +64,7 @@ const ogImageAlt = 'Демонстраційний сайт ліцею в шаб
 		<a class="skip-link" href="#main">Перейти до вмісту</a>
 		<div class="page">
 			<Header home={home} />
-			<main id="main">
+			<main id="main" data-home={home || undefined}>
 				<slot />
 			</main>
 			{cta && <PreFooterCta home={home} />}
