@@ -26,7 +26,7 @@
 	color: var(--accent);
 }
 :where([data-product-page] a:hover) {
-	color: #16534c;
+	color: var(--accent-hover);
 }
 [data-product-page] input {
 	font: inherit;
@@ -53,7 +53,7 @@
 	top: -100px;
 	z-index: 40;
 	padding: 12px 18px;
-	border-radius: 10px;
+	border-radius: 8px;
 	background: var(--ink);
 	color: #ffffff !important;
 	font-weight: 700;
@@ -82,15 +82,16 @@
 		scroll-margin-top: 96px;
 	}
 }
-/* The sizes below are the mockup's at desktop width; the clamp() only shrinks them on phones, where the
- * real Unbounded (wide) would otherwise not fit a word on the line. */
+/* Headings are Fixel Display, weight 650, tight, ink («Аркуш», the admin panel's look). The home's H2 also carries its section number
+ * (section 20 below). */
 .h2 {
 	margin: 0;
 	font-family: var(--display);
-	font-weight: 600;
-	font-size: clamp(25px, 7.2vw, 40px);
-	line-height: 1.15;
-	letter-spacing: -0.02em;
+	font-weight: 650;
+	font-size: clamp(28px, 7.6vw, 44px);
+	line-height: 1.1;
+	letter-spacing: -0.025em;
+	color: var(--ink);
 }
 .lead {
 	margin: 14px 0 0;
@@ -98,29 +99,28 @@
 	line-height: 1.55;
 	color: var(--text);
 }
+/* State is a small dot and a word, never a coloured plate (the amber ink is the «not final yet» state; the dot is the
+ * word's own colour). */
 .chip {
 	display: inline-block;
-	padding: 6px 12px;
-	border-radius: 8px;
-	background: var(--amber-bg);
 	color: var(--amber-ink);
-	font-weight: 700;
+	font-weight: 600;
 	font-size: 15px;
+}
+.chip::before {
+	content: '';
+	display: inline-block;
+	width: 8px;
+	height: 8px;
+	margin-right: 8px;
+	border-radius: 50%;
+	background: currentColor;
+	vertical-align: 0.1em;
 }
 .ai-tag {
 	padding: 2px 6px;
 	border-radius: 6px;
 	background: var(--mint);
-}
-
-.card-hover {
-	transition:
-		box-shadow 0.2s ease-out,
-		transform 0.2s ease-out;
-}
-.card-hover:hover {
-	box-shadow: 0 14px 30px rgba(23, 40, 58, 0.08);
-	transform: translateY(-2px);
 }
 
 /* ---------------------------------------------------------------------------------------------
@@ -165,15 +165,6 @@
 	isolation: isolate;
 	overflow: hidden;
 }
-.hero__glow {
-	position: absolute;
-	z-index: -1;
-	right: -10%;
-	top: -20%;
-	width: 70%;
-	height: 120%;
-	background: radial-gradient(closest-side, #ddf0ea 0%, rgba(221, 240, 234, 0) 100%);
-}
 .hero__inner {
 	padding-top: 64px;
 	padding-bottom: 88px;
@@ -210,6 +201,7 @@
 }
 .hero__text .chip {
 	margin: 0 0 22px;
+	color: var(--accent);
 }
 /* The chip and, beside it, the quiet way to the price (issue #71). */
 .hero__top {
@@ -237,18 +229,15 @@
 	color: var(--accent);
 	text-decoration-color: currentColor;
 }
+/* Fixel Display is narrow enough that the clamp fits `закладу освіти` on a line from 320 px: «Сайт / закладу освіти / без рутини». */
 .hero__title {
 	margin: 0;
 	font-family: var(--display);
-	font-weight: 600;
-	font-size: clamp(26px, 8.6vw, 52px);
-	line-height: 1.08;
-	letter-spacing: -0.03em;
-}
-@media (min-width: 1180px) {
-	.hero__title {
-		font-size: 44px;
-	}
+	font-weight: 650;
+	font-size: clamp(34px, 10.4vw, 54px);
+	line-height: 1.04;
+	letter-spacing: -0.025em;
+	color: var(--ink);
 }
 .hero__sub {
 	margin: 22px 0 0;
@@ -256,10 +245,13 @@
 	line-height: 1.55;
 	color: var(--text);
 }
-/* The quiet line under the hero sentence: what kinds of institution Tabula is for, a link to #kinds. Secondary text,
- * not a button; a 44 px tap target on phones (§15). */
+/* The quiet line under the hero sentence: what kinds of institution Tabula is for (plain text), and the same box for the
+ * quiet link to the example site when there is one (a 44 px tap target on phones, §15). */
 .hero__kinds {
 	margin: 12px 0 0;
+	font-size: 16px;
+	line-height: 1.45;
+	color: var(--text);
 	text-wrap: balance;
 }
 .hero__kinds a {
@@ -272,13 +264,6 @@
 	text-decoration: underline;
 	text-decoration-color: #b9c5c2;
 	text-underline-offset: 4px;
-}
-.hero__kinds .nw {
-	white-space: nowrap;
-}
-.hero__kinds .nw span {
-	display: inline-block;
-	text-decoration: none;
 }
 .hero__kinds a:hover {
 	color: var(--accent);
@@ -314,152 +299,10 @@
 	aspect-ratio: 9 / 18;
 	border-radius: 20px;
 }
-.hero__card {
-	position: absolute;
-	left: 4%;
-	bottom: 8px;
-	width: 270px;
-	background: var(--surface);
-	border: 1px solid var(--line);
-	border-radius: 16px;
-	padding: 14px 16px;
-	box-shadow: 0 16px 34px rgba(23, 40, 58, 0.14);
-}
-/* The card hangs below the laptop (72 px of extra room under it) so it never covers the school name at the foot of the
- * laptop's screen; it is hidden below 900 px (hide-sm). */
-@media (min-width: 901px) {
-	.hero__visual {
-		padding-bottom: 112px;
-	}
-}
-.card-kicker {
-	margin: 0;
-	display: flex;
-	gap: 8px;
-	align-items: center;
-	font-size: 13px;
-	font-weight: 800;
-	color: var(--accent);
-}
-/* While the assistant is being tested the decorative card says so (amber ink on white: well over 4.5:1). */
-.card-status {
-	color: var(--amber-ink);
-	font-weight: 700;
-}
-.hero__card-title {
-	margin: 8px 0 0;
-	font-size: 15px;
-	font-weight: 700;
-	line-height: 1.35;
-}
-.hero__card-note {
-	margin: 8px 0 0;
-	font-size: 14px;
-	color: var(--text);
-}
-
-/* The marker under «без рутини» and under the price, and under a key phrase of three headings. It is
- * drawn in full by default; section 16 animates it (on load for the hero, on scroll for the others). */
-.marker {
-	white-space: nowrap;
-	background-image: linear-gradient(transparent 60%, var(--marker) 60%);
-	background-repeat: no-repeat;
-	background-size: 100% 100%;
-}
-
 /* ---------------------------------------------------------------------------------------------
- * 7. Four things.
+ * 7. «З чого почати» (issue #76 removed the four-things strip and the kinds tiles).
  * --------------------------------------------------------------------------------------------- */
-.four {
-	border-top: 1px solid var(--line);
-	border-bottom: 1px solid var(--line);
-	background: var(--surface);
-}
-.four__inner {
-	padding-top: 28px;
-	padding-bottom: 28px;
-	display: grid;
-	grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-	gap: 16px 32px;
-}
-.four a {
-	display: flex;
-	gap: 12px;
-	align-items: center;
-	text-decoration: none;
-	color: var(--ink);
-	font-weight: 800;
-	font-size: 17px;
-}
-[data-product-page] .four a:hover {
-	color: var(--ink);
-}
-.four__icon {
-	flex: none;
-	width: 40px;
-	height: 40px;
-	border-radius: 12px;
-	display: grid;
-	place-items: center;
-}
-.four__icon--ai {
-	background: var(--mint);
-	color: var(--accent);
-	font-size: 14px;
-}
-.four__icon--meals {
-	background: var(--amber-bg);
-}
-.four__icon--docs {
-	background: #e6edf8;
-}
-.four__icon--law {
-	background: #eef1f0;
-}
-
-/* The four kinds of institution (section 2b). */
-.kinds__inner {
-	padding-top: 72px;
-	padding-bottom: 24px;
-}
-.kinds__head .lead {
-	max-width: 760px;
-}
-.kinds__grid {
-	margin-top: 32px;
-	display: grid;
-	grid-template-columns: repeat(4, minmax(0, 1fr));
-	gap: 20px;
-}
-.kinds__tile {
-	background: var(--surface);
-	border: 1px solid #dce5e2;
-	border-radius: 16px;
-	padding: 22px;
-}
-.kinds__icon {
-	display: grid;
-	place-items: center;
-	width: 40px;
-	height: 40px;
-	border-radius: 12px;
-	background: var(--mint);
-}
-.kinds__title {
-	margin: 16px 0 0;
-	font-family: var(--display);
-	font-weight: 600;
-	font-size: 17px;
-	line-height: 1.3;
-	color: var(--ink);
-}
-.kinds__text {
-	margin: 10px 0 0;
-	font-size: 15px;
-	line-height: 1.55;
-	color: var(--text);
-}
-/* «З чого почати» (section 2c): four whole-card links, the kinds tiles' grid made compact. */
+/* «З чого почати» (section 2c): four entries, each a whole link with a rule above it, no box. */
 .roles__inner {
 	padding-top: 48px;
 	padding-bottom: 8px;
@@ -470,22 +313,35 @@
 }
 .roles__grid {
 	margin-top: 24px;
+	display: grid;
+	grid-template-columns: repeat(4, minmax(0, 1fr));
+	gap: 0 32px;
 }
 .roles__card {
 	display: flex;
 	flex-direction: column;
-	padding: 18px 20px;
+	padding: 16px 0 8px;
+	border-top: 1px solid var(--ink);
 	text-decoration: none;
 	color: inherit;
 }
-.roles__card .kinds__title {
-	margin-top: 0;
+.roles__title {
+	margin: 0;
+	font-family: var(--display);
+	font-weight: 650;
+	font-size: 18px;
+	line-height: 1.3;
+	letter-spacing: -0.01em;
+	color: var(--ink);
 }
-.roles__card .kinds__text {
-	margin-top: 8px;
+.roles__text {
+	margin: 8px 0 0;
 	flex: 1 1 auto;
+	font-size: 15px;
+	line-height: 1.55;
+	color: var(--text);
 }
-/* The short way to the templates, under the four cards (issue #71). */
+/* The short way to the templates, under the four entries (issue #71). */
 .roles__templates {
 	margin: 18px 0 0;
 }
@@ -493,32 +349,26 @@
 	display: inline-block;
 	padding: 10px 0;
 	font-size: 16px;
-	font-weight: 800;
+	font-weight: 700;
 	color: var(--accent);
 	text-decoration: underline;
 	text-underline-offset: 4px;
 }
-.roles__more {
-	margin-top: 12px;
-	font-size: 15px;
-	font-weight: 800;
-	color: var(--accent);
-}
 [data-product-page] a.roles__card:hover {
 	color: inherit;
-	border-color: #b9c5c1;
 }
-[data-product-page] a.roles__card:hover .roles__more {
+[data-product-page] a.roles__card:hover .roles__title {
+	color: var(--accent);
 	text-decoration: underline;
 	text-underline-offset: 4px;
 }
 @media (max-width: 1000px) {
-	.kinds__grid {
+	.roles__grid {
 		grid-template-columns: repeat(2, minmax(0, 1fr));
 	}
 }
 @media (max-width: 600px) {
-	.kinds__grid {
+	.roles__grid {
 		grid-template-columns: minmax(0, 1fr);
 	}
 }
@@ -531,7 +381,8 @@
 .tablist {
 	display: flex;
 	flex-wrap: wrap;
-	gap: 8px;
+	gap: 0 28px;
+	border-bottom: 1px solid var(--line);
 }
 .tablist[hidden],
 .tabpanel[hidden],
@@ -539,36 +390,31 @@
 [data-note][hidden] {
 	display: none;
 }
+/* Tabs are words over a hairline; the current one is ink, 600, with a 3 px green rule under it. No pills. */
 .tab {
 	font: inherit;
-	font-weight: 700;
+	font-weight: 500;
 	font-size: 15px;
-	padding: 11px 18px;
-	border-radius: 999px;
-	border: 1.5px solid #cbd5d2;
-	background: var(--surface);
-	color: var(--ink);
+	padding: 12px 0;
+	border: 0;
+	border-radius: 0;
+	background: none;
+	color: #5c636a;
 	cursor: pointer;
-	transition:
-		background-color 0.15s ease-out,
-		border-color 0.15s ease-out,
-		transform 0.15s ease-out;
+	transition: color 0.15s ease-out;
 }
 .tab:hover {
-	border-color: var(--ink);
-}
-.tab:active {
-	transform: scale(0.98);
+	color: var(--ink);
 }
 .tab[aria-selected='true'] {
-	border-color: var(--accent);
-	background: var(--accent);
-	color: #ffffff;
+	color: var(--ink);
+	font-weight: 600;
+	box-shadow: inset 0 -3px var(--accent);
 }
 .tab-heading {
 	margin: 0 0 16px;
 	font-family: var(--display);
-	font-weight: 600;
+	font-weight: 650;
 	font-size: 20px;
 	line-height: 1.25;
 }
@@ -582,7 +428,7 @@
 		grid-template-columns: 1fr 1fr;
 	}
 	.tabs--assistant .tab {
-		padding: 9px 10px;
+		padding: 10px 6px;
 		font-size: 14px;
 		line-height: 1.2;
 		text-align: center;
@@ -597,13 +443,14 @@
 	justify-content: space-between;
 	gap: 14px 24px;
 	padding: 22px 28px;
-	border-radius: 20px;
-	background: var(--mint);
+	border: 1px solid var(--line);
+	border-radius: 8px;
+	background: var(--surface);
 }
 .nextstep__text {
 	margin: 0;
 	flex: 1 1 320px;
-	font-weight: 700;
+	font-weight: 600;
 	font-size: 18px;
 	line-height: 1.35;
 	color: var(--ink);
@@ -627,13 +474,6 @@
 		padding: 20px;
 	}
 }
-.tabs--look .tab {
-	padding: 10px 18px;
-}
-.tabs--look .tab[aria-selected='true'] {
-	border-color: var(--ink);
-	background: var(--ink);
-}
 
 /* ---------------------------------------------------------------------------------------------
  * 9. ШІ-помічник.
@@ -653,9 +493,17 @@
 }
 .assistant__status span {
 	margin-right: 3px;
-	padding: 3px 8px;
-	border-radius: 6px;
-	background: var(--amber-bg);
+	font-weight: 600;
+}
+.assistant__status span::before {
+	content: '';
+	display: inline-block;
+	width: 8px;
+	height: 8px;
+	margin-right: 8px;
+	border-radius: 50%;
+	background: currentColor;
+	vertical-align: 0.1em;
 }
 /* Under the assistant's tabs (2026-11-14): the panel's three steps, what else the assistant does, the data lines. A is a
  * strip of three numbered cards; B and C sit side by side from 900 px and stack below it. Static, light, `.reveal` only. */
@@ -667,7 +515,7 @@
 .assist-more__h {
 	margin: 0;
 	font-family: var(--display);
-	font-weight: 600;
+	font-weight: 650;
 	font-size: 20px;
 	line-height: 1.25;
 	letter-spacing: -0.01em;
@@ -690,8 +538,8 @@
 }
 .assist-flow__step {
 	background: var(--surface);
-	border: 1px solid #dce5e2;
-	border-radius: 16px;
+	border: 1px solid var(--line);
+	border-radius: 8px;
 	padding: 18px 20px 20px;
 }
 .assist-flow__n {
@@ -708,7 +556,7 @@
 .assist-flow__title {
 	margin: 12px 0 0;
 	font-family: var(--display);
-	font-weight: 600;
+	font-weight: 650;
 	font-size: 16px;
 	line-height: 1.3;
 	color: var(--ink);
@@ -782,8 +630,8 @@
 .assistant-panel {
 	margin-top: 20px;
 	position: relative;
-	border: 1px solid #dce5e2;
-	border-radius: 24px;
+	border: 1px solid var(--line);
+	border-radius: 8px;
 	padding: 32px;
 	background-color: var(--surface);
 	background-image:
@@ -909,7 +757,7 @@
 	padding: 8px 10px;
 	border-radius: 8px;
 	background: var(--surface);
-	border: 1px solid #dce5e2;
+	border: 1px solid var(--line);
 	font-size: 14px;
 	font-weight: 600;
 }
@@ -930,8 +778,8 @@
 }
 .quote-box {
 	background: var(--surface);
-	border: 1px solid #dce5e2;
-	border-radius: 12px;
+	border: 1px solid var(--line);
+	border-radius: 6px;
 	padding: 14px 16px;
 	font-size: 15px;
 	line-height: 1.55;
@@ -949,15 +797,15 @@
 }
 .out-card {
 	background: var(--surface);
-	border: 1px solid #dce5e2;
-	border-radius: 16px;
+	border: 1px solid var(--line);
+	border-radius: 8px;
 	padding: 16px;
 	font-size: 15px;
 }
 .news-card {
 	background: var(--surface);
-	border: 1px solid #dce5e2;
-	border-radius: 16px;
+	border: 1px solid var(--line);
+	border-radius: 8px;
 	overflow: hidden;
 	display: flex;
 	flex-wrap: wrap;
@@ -1054,8 +902,8 @@
 }
 .table-wrap {
 	background: var(--surface);
-	border: 1px solid #dce5e2;
-	border-radius: 16px;
+	border: 1px solid var(--line);
+	border-radius: 8px;
 	overflow-x: auto;
 }
 .table-wrap table {
@@ -1071,7 +919,7 @@
 .table-wrap th,
 .table-wrap td {
 	padding: 10px 12px;
-	border-bottom: 1px solid #eef1f0;
+	border-bottom: 1px solid var(--line);
 }
 .table-wrap tr:last-child td {
 	border-bottom: 0;
@@ -1082,8 +930,8 @@
 .alt-list {
 	margin: 0;
 	background: var(--surface);
-	border: 1px solid #dce5e2;
-	border-radius: 16px;
+	border: 1px solid var(--line);
+	border-radius: 8px;
 	padding: 14px 14px 14px 34px;
 	font-size: 15px;
 	line-height: 1.6;
@@ -1151,14 +999,6 @@
 		opacity: 1;
 	}
 }
-@keyframes draw {
-	from {
-		background-size: 0 100%;
-	}
-	to {
-		background-size: 100% 100%;
-	}
-}
 .thinking {
 	display: none;
 	position: absolute;
@@ -1183,8 +1023,6 @@
  * --------------------------------------------------------------------------------------------- */
 .band {
 	background: var(--surface);
-	border-top: 1px solid var(--line);
-	border-bottom: 1px solid var(--line);
 }
 .split {
 	display: flex;
@@ -1221,9 +1059,9 @@
 }
 .chat {
 	background: #f1f5f4;
-	border-radius: 18px;
+	border-radius: 8px;
 	padding: 12px;
-	box-shadow: 0 10px 24px rgba(23, 40, 58, 0.08);
+	border: 1px solid var(--line);
 }
 .chat__name {
 	margin: 0 0 8px;
@@ -1233,7 +1071,7 @@
 }
 .chat__bubble {
 	background: var(--surface);
-	border-radius: 14px 14px 14px 4px;
+	border-radius: 8px 8px 8px 2px;
 	overflow: hidden;
 	border: 1px solid var(--line);
 }
@@ -1275,8 +1113,7 @@
 .docs-card {
 	background: var(--surface);
 	border: 1px solid var(--line);
-	border-radius: 18px;
-	box-shadow: 0 20px 44px rgba(23, 40, 58, 0.08);
+	border-radius: 8px;
 }
 .docs-card--pad {
 	padding: 18px;
@@ -1320,10 +1157,11 @@
 .law__title {
 	margin: 0;
 	font-family: var(--display);
-	font-weight: 600;
-	font-size: clamp(22px, 6vw, 30px);
-	line-height: 1.2;
-	letter-spacing: -0.02em;
+	font-weight: 650;
+	font-size: clamp(24px, 6.4vw, 32px);
+	line-height: 1.15;
+	letter-spacing: -0.025em;
+	color: var(--ink);
 }
 .law__text p {
 	margin: 12px 0 0;
@@ -1341,9 +1179,11 @@
 	flex: 0 0 auto;
 	margin: 0;
 	font-family: var(--display);
-	font-weight: 600;
-	font-size: 44px;
-	color: var(--accent);
+	font-weight: 650;
+	font-size: 72px;
+	line-height: 1;
+	letter-spacing: -0.03em;
+	color: var(--ink);
 }
 .law__figure span {
 	display: block;
@@ -1365,10 +1205,8 @@
 }
 .why__table {
 	margin-top: 32px;
-	background: var(--surface);
-	border: 1px solid var(--line);
-	border-radius: 24px;
-	padding: 8px 30px;
+	border-top: 1px solid var(--ink);
+	padding: 0;
 }
 .why__row {
 	display: flex;
@@ -1376,7 +1214,7 @@
 	gap: 6px 28px;
 	align-items: baseline;
 	padding: 18px 0;
-	border-bottom: 1px solid #eef1f0;
+	border-bottom: 1px solid var(--line);
 }
 .why__row:last-child {
 	border-bottom: 0;
@@ -1388,32 +1226,37 @@
 	font-weight: 700;
 	color: var(--text);
 }
+/* No crosses or ticks: the plain text on the left is the usual way, on the right the product's. Below 700 px the three
+ * columns stack and the hidden «Зазвичай:» / «У Tabula:» become small labels. */
 .why__usual {
 	flex: 1 1 240px;
 	margin: 0;
-	display: flex;
-	gap: 8px;
-	align-items: baseline;
 	font-size: 16px;
 	color: var(--text);
-}
-.why__usual svg {
-	flex: none;
-	color: var(--pen);
-	transform: translateY(2px);
 }
 .why__ours {
 	flex: 1 1 300px;
 	margin: 0;
-	display: flex;
-	gap: 8px;
-	align-items: baseline;
 	font-size: 17px;
-	font-weight: 700;
+	font-weight: 600;
 }
-.why__ours svg {
-	flex: none;
-	transform: translateY(3px);
+@media (max-width: 700px) {
+	.why__usual,
+	.why__ours {
+		flex-basis: 100%;
+	}
+	.why__row .sr {
+		position: static;
+		display: block;
+		width: auto;
+		height: auto;
+		overflow: visible;
+		clip: auto;
+		white-space: normal;
+		font-size: 13px;
+		font-weight: 600;
+		color: #5c636a;
+	}
 }
 
 /* ---------------------------------------------------------------------------------------------
@@ -1525,10 +1368,10 @@
 	font: inherit;
 	background: none;
 	border: 0;
-	border-left: 3px solid #d3dcd9;
-	border-radius: 0 12px 12px 0;
+	border-left: 3px solid var(--line);
+	border-radius: 0 8px 8px 0;
 	padding: 12px 16px;
-	color: #5f6e83;
+	color: #5c636a;
 	cursor: pointer;
 	transition:
 		color 0.2s ease-out,
@@ -1537,17 +1380,17 @@
 }
 .showcase__tab:hover {
 	color: var(--ink);
-	border-left-color: #9fb0ab;
+	border-left-color: var(--edge);
 }
 .showcase__tab[aria-selected='true'] {
 	color: var(--ink);
-	background: rgba(31, 111, 102, 0.07);
+	background: var(--mint);
 	border-left-color: var(--accent);
 }
 .showcase__tab-title {
 	display: block;
 	font-family: var(--display);
-	font-weight: 600;
+	font-weight: 650;
 	font-size: 17px;
 	line-height: 1.3;
 }
@@ -1661,12 +1504,11 @@
 .meals__sheet-out {
 	margin-top: 16px;
 	background: var(--surface);
-	border: 1px solid #dce5e2;
-	border-radius: 14px;
+	border: 1px solid var(--line);
+	border-radius: 8px;
 	padding: 12px 16px;
 	font-size: 15px;
 	line-height: 1.5;
-	box-shadow: 0 10px 24px rgba(23, 40, 58, 0.08);
 }
 .meals__sheet-out p {
 	margin: 0;
@@ -1746,13 +1588,12 @@
 	min-width: 0;
 	background: var(--surface);
 	border: 1px solid var(--line);
-	border-radius: 26px;
+	border-radius: 8px;
 	padding: 36px;
-	box-shadow: 0 24px 50px rgba(23, 40, 58, 0.06);
 }
 .price-card .chip {
-	padding: 5px 10px;
 	margin: 0;
+	color: var(--accent);
 }
 .price-card__sum {
 	margin: 18px 0 0;
@@ -1761,18 +1602,16 @@
 	gap: 10px;
 	flex-wrap: wrap;
 }
-.price-card__sum .marker {
+.price-card__sum {
 	font-family: var(--display);
-	font-weight: 600;
+	font-weight: 650;
 	font-size: clamp(40px, 12vw, 62px);
 	letter-spacing: -0.03em;
-}
-/* The price's marker is a thin band under the digits, never over them. */
-.price-card__sum .marker--price {
-	background-image: linear-gradient(transparent 80%, var(--marker) 80%);
-	padding-bottom: 2px;
+	color: var(--ink);
 }
 .price-card__sum > span:last-child {
+	font-family: var(--body);
+	letter-spacing: 0;
 	font-size: 18px;
 	color: var(--text);
 	font-weight: 600;
@@ -1785,7 +1624,7 @@
 .price-card__list {
 	margin: 24px 0 0;
 	padding: 22px 0 0 20px;
-	border-top: 1px solid #eef1f0;
+	border-top: 1px solid var(--line);
 	font-size: 16px;
 	line-height: 1.9;
 	font-weight: 600;
@@ -1793,14 +1632,21 @@
 .price-card__status {
 	display: inline-block;
 	margin-left: 8px;
-	padding: 1px 8px;
-	border-radius: 6px;
-	background: var(--amber-bg);
 	color: var(--amber-ink);
 	font-size: 13px;
-	font-weight: 700;
+	font-weight: 600;
 	line-height: 1.6;
 	white-space: nowrap;
+}
+.price-card__status::before {
+	content: '';
+	display: inline-block;
+	width: 8px;
+	height: 8px;
+	margin-right: 8px;
+	border-radius: 50%;
+	background: currentColor;
+	vertical-align: 0.05em;
 }
 .price-card .btn-block {
 	margin-top: 26px;
@@ -1814,14 +1660,8 @@
 	margin-bottom: 28px;
 }
 .faq-item {
-	background: var(--surface);
-	border: 1px solid var(--line);
-	border-radius: 16px;
-	padding: 20px 22px;
-	margin-bottom: 10px;
-}
-.faq-item:last-child {
-	margin-bottom: 0;
+	border-bottom: 1px solid var(--line);
+	padding: 20px 0;
 }
 .faq-item > summary {
 	cursor: pointer;
@@ -1853,15 +1693,16 @@
 .contact__inner {
 	max-width: 820px;
 	margin: 0 auto;
-	padding: 0 24px 72px;
+	padding: 40px 24px 72px;
 }
 .contact__box {
 	display: flex;
 	flex-wrap: wrap;
 	gap: 16px 32px;
 	align-items: center;
-	background: #eaf4f1;
-	border-radius: 20px;
+	border: 1px solid var(--line);
+	background: var(--surface);
+	border-radius: 8px;
 	padding: 26px 28px;
 }
 .contact__box > div:first-child {
@@ -1890,13 +1731,12 @@
 .request__box {
 	background: var(--surface);
 	border: 1px solid var(--line);
-	border-radius: 28px;
+	border-radius: 8px;
 	padding: 44px;
 	display: flex;
 	flex-wrap: wrap;
 	gap: 40px 56px;
 	align-items: flex-start;
-	box-shadow: 0 30px 60px rgba(23, 40, 58, 0.06);
 }
 .request__text {
 	flex: 1 1 320px;
@@ -1905,7 +1745,7 @@
 .request__title {
 	margin: 0;
 	font-family: var(--display);
-	font-weight: 600;
+	font-weight: 650;
 	font-size: clamp(25px, 7.2vw, 38px);
 	line-height: 1.15;
 	letter-spacing: -0.02em;
@@ -1965,7 +1805,6 @@
 @media (max-width: 900px) {
 	.btn,
 	.tab,
-	.four a,
 	.hero__kinds a,
 	.hero__terms,
 	.roles__templates a,
@@ -1980,14 +1819,10 @@
 	}
 	.btn,
 	.tab,
-	.four a,
 	.law__text a.quiet {
 		display: inline-flex;
 		align-items: center;
 		justify-content: center;
-	}
-	.four a {
-		justify-content: flex-start;
 	}
 	.law__text a.quiet {
 		justify-content: flex-start;
@@ -2005,9 +1840,6 @@
 	}
 	.assistant-panel {
 		padding: 22px 18px;
-	}
-	.why__table {
-		padding: 8px 20px;
 	}
 }
 
@@ -2061,12 +1893,12 @@
 }
 
 /* Staggering without time delays: each item's index (--i) shifts its own scroll range. */
-:is(.ticks, .panel__notes, .price-card__list, .why__table, .four__inner, .kinds__grid, .steps) > :nth-child(1) { --i: 0; }
-:is(.ticks, .panel__notes, .price-card__list, .why__table, .four__inner, .kinds__grid, .steps) > :nth-child(2) { --i: 1; }
-:is(.ticks, .panel__notes, .price-card__list, .why__table, .four__inner, .kinds__grid, .steps) > :nth-child(3) { --i: 2; }
-:is(.ticks, .panel__notes, .price-card__list, .why__table, .four__inner, .kinds__grid, .steps) > :nth-child(4) { --i: 3; }
-:is(.ticks, .panel__notes, .price-card__list, .why__table, .four__inner, .kinds__grid, .steps) > :nth-child(5) { --i: 4; }
-:is(.ticks, .panel__notes, .price-card__list, .why__table, .four__inner, .kinds__grid, .steps) > :nth-child(6) { --i: 5; }
+:is(.ticks, .panel__notes, .price-card__list, .why__table, .roles__grid, .steps) > :nth-child(1) { --i: 0; }
+:is(.ticks, .panel__notes, .price-card__list, .why__table, .roles__grid, .steps) > :nth-child(2) { --i: 1; }
+:is(.ticks, .panel__notes, .price-card__list, .why__table, .roles__grid, .steps) > :nth-child(3) { --i: 2; }
+:is(.ticks, .panel__notes, .price-card__list, .why__table, .roles__grid, .steps) > :nth-child(4) { --i: 3; }
+:is(.ticks, .panel__notes, .price-card__list, .why__table, .roles__grid, .steps) > :nth-child(5) { --i: 4; }
+:is(.ticks, .panel__notes, .price-card__list, .why__table, .roles__grid, .steps) > :nth-child(6) { --i: 5; }
 .faq__inner > .faq-item:nth-of-type(1) { --i: 0; }
 .faq__inner > .faq-item:nth-of-type(2) { --i: 1; }
 .faq__inner > .faq-item:nth-of-type(3) { --i: 2; }
@@ -2077,19 +1909,12 @@
 	html[data-product-page] {
 		scroll-behavior: smooth;
 	}
-	/* The hero's «без рутини»: drawn once on load. */
-	.marker--load {
-		animation: draw 0.8s ease-out 0.3s both;
-	}
 	/* The hero's devices settle once, by time, on load (transform only: the LCP image never starts
 	 * invisible). At most 600 ms in all. */
 	.hero__visual .laptop {
 		animation: hero-settle 0.5s ease-out both;
 	}
 	.hero__phone {
-		animation: hero-settle 0.5s ease-out 0.1s both;
-	}
-	.hero__card {
 		animation: hero-settle 0.5s ease-out 0.1s both;
 	}
 	@supports (animation-timeline: view()) {
@@ -2100,14 +1925,14 @@
 
 		/* 1. Reveal: sections rise ~24 px with a fade over entry 0–40 %; items follow one after another. */
 		.reveal,
-		:is(.ticks, .panel__notes, .price-card__list, .why__table, .four__inner, .kinds__grid, .steps) > *,
+		:is(.ticks, .panel__notes, .price-card__list, .why__table, .roles__grid, .steps) > *,
 		.faq__inner > .faq-item {
 			animation-name: rise;
 			animation-timing-function: linear;
 			animation-fill-mode: both;
 		}
 		.reveal,
-		:is(.ticks, .panel__notes, .price-card__list, .why__table, .four__inner, .kinds__grid, .steps) > *,
+		:is(.ticks, .panel__notes, .price-card__list, .why__table, .roles__grid, .steps) > *,
 		.faq__inner > .faq-item {
 			animation-timeline: view();
 		}
@@ -2115,7 +1940,7 @@
 			animation-range-start: entry 0%;
 			animation-range-end: entry 40%;
 		}
-		:is(.ticks, .panel__notes, .price-card__list, .why__table, .four__inner, .kinds__grid, .steps) > *,
+		:is(.ticks, .panel__notes, .price-card__list, .why__table, .roles__grid, .steps) > *,
 		.faq__inner > .faq-item {
 			animation-range-start: entry calc(var(--i, 0) * 5%);
 			animation-range-end: entry calc(40% + var(--i, 0) * 5%);
@@ -2155,42 +1980,6 @@
 			animation-range-end: entry 40%;
 		}
 
-		/* 4. The marker draws when its phrase (or, for the price, the whole card) enters. */
-		.marker--scroll {
-			animation-name: draw;
-			animation-timing-function: linear;
-			animation-fill-mode: both;
-		}
-		.marker--scroll {
-			animation-timeline: view();
-		}
-		.marker--scroll {
-			animation-range-start: entry 10%;
-			animation-range-end: entry 60%;
-		}
-		/* The price: the digits never change, but the sum comes into focus as the card scrolls in (semi-transparent
-		 * and soft, fully sharp and opaque at 40 % of the card's entry, end state = the static page), then the
-		 * marker under it draws (entry 40–70 %). Both ride on the card's own view timeline. */
-		.price-card {
-			view-timeline-name: --price-card;
-		}
-		.price-focus {
-			display: inline-block;
-			animation-name: price-focus;
-			animation-timing-function: linear;
-			animation-fill-mode: both;
-			animation-timeline: --price-card;
-			animation-range-start: entry 0%;
-			animation-range-end: entry 40%;
-		}
-		.marker--price {
-			animation-name: draw;
-			animation-timing-function: linear;
-			animation-fill-mode: both;
-			animation-timeline: --price-card;
-			animation-range-start: entry 40%;
-			animation-range-end: entry 70%;
-		}
 	}
 
 	.tabs--js .tabpanel--demo:not([hidden]) .thinking {
@@ -2228,14 +2017,12 @@
 }
 @media (prefers-reduced-motion: reduce) {
 	.btn,
-	.card-hover,
 	.tab,
 	.faq-item .plus {
 		transition: none;
 	}
 	.btn:hover,
 	.btn:active,
-	.card-hover:hover,
 	.tab:active {
 		transform: none;
 	}
@@ -2248,7 +2035,7 @@
 
 /* ---------------------------------------------------------------------------------------------
  * 17. Reading pages (slice S2 of story 80): src/layouts/ProductPage.astro. One narrow column
- * (at most 720 px), the H1 in Unbounded, the text in Manrope at 18 px. No reveal effects.
+ * (at most 720 px), the H1 in Fixel Display, the text in Fixel Text at 18 px. No reveal effects.
  * --------------------------------------------------------------------------------------------- */
 .reading {
 	max-width: 720px;
@@ -2262,7 +2049,7 @@
 .reading h1 {
 	margin: 0 0 24px;
 	font-family: var(--display);
-	font-weight: 600;
+	font-weight: 650;
 	font-size: clamp(26px, 7vw, 38px);
 	line-height: 1.15;
 	letter-spacing: -0.02em;
@@ -2271,7 +2058,7 @@
 .reading h2,
 .reading h3 {
 	font-family: var(--display);
-	font-weight: 600;
+	font-weight: 650;
 	color: var(--ink);
 	line-height: 1.25;
 	letter-spacing: -0.01em;
@@ -2321,7 +2108,7 @@
 .reading blockquote {
 	padding: 14px 18px;
 	border-left: 4px solid var(--accent);
-	border-radius: 0 12px 12px 0;
+	border-radius: 0 8px 8px 0;
 	background: var(--surface);
 	font-size: 17px;
 }
@@ -2339,7 +2126,7 @@
 	margin: 0 0 1em;
 	padding: 12px 16px;
 	border: 1px solid var(--line);
-	border-radius: 12px;
+	border-radius: 8px;
 	background: var(--surface);
 }
 .reading summary {
@@ -2350,8 +2137,8 @@
 .reading-table {
 	margin: 0 0 1.4em;
 	background: var(--surface);
-	border: 1px solid #dce5e2;
-	border-radius: 16px;
+	border: 1px solid var(--line);
+	border-radius: 8px;
 	overflow-x: auto;
 }
 .reading-table table {
@@ -2372,11 +2159,11 @@
 	padding: 10px 14px;
 	text-align: left;
 	vertical-align: top;
-	border-bottom: 1px solid #eef1f0;
+	border-bottom: 1px solid var(--line);
 }
 .reading-table thead th {
 	color: var(--ink);
-	border-bottom: 1px solid #dce5e2;
+	border-bottom: 1px solid var(--line);
 }
 .reading-table tbody th {
 	color: var(--ink);
@@ -2443,14 +2230,6 @@
 	}
 	to {
 		opacity: 1;
-	}
-}
-@keyframes word-show {
-	from {
-		visibility: hidden;
-	}
-	to {
-		visibility: visible;
 	}
 }
 @keyframes arrow-draw {
@@ -2545,28 +2324,12 @@
 		transform: none;
 	}
 }
-@keyframes card-pop {
-	from {
-		transform: translateY(12px) scale(0.88);
-	}
-	to {
-		transform: none;
-	}
-}
 @keyframes par-hero {
 	from {
 		translate: 0 0;
 	}
 	to {
 		translate: 0 -24px;
-	}
-}
-@keyframes par-blob {
-	from {
-		translate: 0 0;
-	}
-	to {
-		translate: 0 18px;
 	}
 }
 @keyframes par-mid {
@@ -2583,18 +2346,6 @@
 	}
 	to {
 		--n: var(--to);
-	}
-}
-@keyframes price-focus {
-	from {
-		opacity: 0.35;
-		filter: blur(6px);
-		transform: scale(0.96);
-	}
-	to {
-		opacity: 1;
-		filter: none;
-		transform: none;
 	}
 }
 .count,
@@ -2698,16 +2449,10 @@
 	.hero__phone {
 		animation: phone-in 0.5s ease-out 0.15s both;
 	}
-	.hero__card {
-		animation: card-pop 0.4s ease-out 0.4s both;
-	}
-	.hero__card-title .w {
-		animation: word-show 1ms step-end calc(0.62s + var(--w, 0) * 40ms) both;
-	}
 
 	@supports (animation-timeline: scroll()) {
-		/* 3. Depth in the hero: the phone and the card drift up to 24 px against the laptop over the first
-		 * 700 px of scrolling; the blob drifts slower the other way. The lists keep the load animations. */
+		/* 3. Depth in the hero: the phone drifts up to 24 px against the laptop over the first
+		 * 700 px of scrolling. The lists keep the load animations. */
 		.hero__phone {
 			animation-name: phone-in, par-hero;
 			animation-duration: 0.5s, auto;
@@ -2722,34 +2467,6 @@
 		.hero__phone {
 			animation-range-start: normal, 0px;
 			animation-range-end: normal, 700px;
-		}
-		.hero__card {
-			animation-name: card-pop, par-hero;
-			animation-duration: 0.4s, auto;
-			animation-delay: 0.4s, 0s;
-			animation-timing-function: ease-out, linear;
-			animation-iteration-count: 1, 1;
-			animation-fill-mode: both, both;
-		}
-		.hero__card {
-			animation-timeline: auto, scroll(root);
-		}
-		.hero__card {
-			animation-range-start: normal, 0px;
-			animation-range-end: normal, 700px;
-		}
-		.hero__glow {
-			animation-name: par-blob;
-			animation-duration: auto;
-			animation-timing-function: linear;
-			animation-fill-mode: both;
-		}
-		.hero__glow {
-			animation-timeline: scroll(root);
-		}
-		.hero__glow {
-			animation-range-start: 0px;
-			animation-range-end: 700px;
 		}
 	}
 
@@ -2901,7 +2618,7 @@
  * --------------------------------------------------------------------------------------------- */
 .prefooter {
 	border-top: 1px solid var(--line);
-	background: var(--mint);
+	background: var(--surface);
 }
 .prefooter__inner {
 	max-width: 1200px;
@@ -2916,7 +2633,7 @@
 .prefooter__text {
 	margin: 0;
 	font-family: var(--display);
-	font-weight: 600;
+	font-weight: 650;
 	font-size: clamp(19px, 5vw, 24px);
 	line-height: 1.25;
 	color: var(--ink);
@@ -2939,4 +2656,72 @@
 	.prefooter {
 		display: none;
 	}
+}
+
+/* ---------------------------------------------------------------------------------------------
+ * 20. The home's rhythm («Аркуш», issue #76): a hairline over every section after the hero, its number on the left
+ * margin (above the heading below 1180 px), and a light tint behind three moments only («Харчування», «Розділи за
+ * статтею 30», «Ціна»; two tinted sections never touch). The numbers are a CSS counter on the home's <main>
+ * (`data-home`), hidden from assistive technology; the other pages have none.
+ * --------------------------------------------------------------------------------------------- */
+main[data-home] {
+	counter-reset: point;
+}
+main[data-home] > section:not(.hero) {
+	border-top: 1px solid var(--line);
+}
+main[data-home] > #request {
+	border-top: 0;
+}
+/* The number stands above the heading (15 px, 600) up to 1359 px; from 1360 px the page's left margin is wide enough for it
+ * (28 px gap and « 10 »/« 11 ») and it moves there. «Документи з КЕП» (`#docs`, text column on the right) keeps the
+ * above-the-heading form at every width. */
+main[data-home] > section:not(.hero) h2.h2::before,
+main[data-home] > section:not(.hero) h2.law__title::before {
+	counter-increment: point;
+	content: counter(point) / '';
+	display: block;
+	margin-bottom: 6px;
+	font-family: var(--body);
+	font-size: 15px;
+	font-weight: 600;
+	line-height: 1.4;
+	letter-spacing: 0;
+	color: #5c636a;
+}
+@media (min-width: 1360px) {
+	main[data-home] > section:not(.hero):not(#docs) h2.h2,
+	main[data-home] > section:not(.hero) h2.law__title {
+		position: relative;
+	}
+	main[data-home] > section:not(.hero):not(#docs) h2.h2::before,
+	main[data-home] > section:not(.hero) h2.law__title::before {
+		position: absolute;
+		right: calc(100% + 28px);
+		top: 0;
+		display: block;
+		margin: 0;
+		font-family: var(--display);
+		font-size: inherit;
+		font-weight: 650;
+		line-height: 1.1;
+		color: #b4bab6;
+	}
+}
+main[data-home] > #meals,
+main[data-home] > #law,
+main[data-home] > #price {
+	background: var(--tint);
+}
+main[data-home] > #meals,
+main[data-home] > #law,
+main[data-home] > #price,
+main[data-home] > #meals + section,
+main[data-home] > #law + section,
+main[data-home] > #price + section {
+	border-top-color: transparent;
+}
+#price .price-card,
+#meals .showcase__tab[aria-selected='true'] {
+	background: #ffffff;
 }

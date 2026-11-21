@@ -27,8 +27,8 @@
 	width: 100%;
 	min-height: 48px;
 	padding: 10px 14px;
-	border: 1.5px solid #8c9b97;
-	border-radius: 12px;
+	border: 1px solid var(--edge);
+	border-radius: 8px;
 	background: var(--surface);
 	color: var(--ink);
 	font: inherit;
@@ -88,7 +88,7 @@
 .try__tick {
 	margin: 0 0 16px;
 	padding: 12px 16px;
-	border-radius: 12px;
+	border-radius: 8px;
 	background: var(--amber-bg);
 	color: var(--amber-ink);
 	font-size: 16px;

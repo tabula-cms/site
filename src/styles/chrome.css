@@ -12,22 +12,25 @@
 :root[data-product-page],
 .site-header,
 .site-footer {
-	--bg: #f7f9f8;
+	--bg: #ffffff;
 	--surface: #ffffff;
-	--ink: #17283a;
-	--text: #3e4e63;
-	--line: #e2e8e6;
-	--accent: #1f6f66;
-	--accent-hover: #185a53;
-	--mint: #ddf0ea;
-	--amber-bg: #fff3cc;
-	--amber-ink: #6b4a00;
-	--marker: #ffe58a;
+	--ink: #1d2125;
+	--text: #4a5157;
+	--line: #dee2df;
+	/* A control's edge (an outlined button, a field): at least 3:1 on white. */
+	--edge: #868c93;
+	--accent: #1e6a52;
+	--accent-hover: #175641;
+	--mint: #e8f2ee;
+	--amber-bg: #fbf1e1;
+	--amber-ink: #8a4a00;
+	/* The light tint behind three moments of the home (#meals, #law, #price). */
+	--tint: #eef4f0;
 	--hand: #2b4c9b;
 	--pen: #b8432a;
 	--focus: #2f7fd6;
-	--display: 'Unbounded', 'Unbounded Fallback', sans-serif;
-	--body: 'Manrope', 'Manrope Fallback', system-ui, sans-serif;
+	--display: 'Fixel Display', 'Fixel Display Fallback', 'Segoe UI', system-ui, sans-serif;
+	--body: 'Fixel Text', 'Fixel Text Fallback', 'Segoe UI', system-ui, sans-serif;
 }
 
 /* ---------------------------------------------------------------------------------------------
@@ -36,16 +39,12 @@
 .btn {
 	display: inline-block;
 	text-decoration: none;
-	font-weight: 700;
-	border-radius: 999px;
+	font-weight: 600;
+	border-radius: 8px;
 	cursor: pointer;
 	transition:
 		background-color 0.15s ease-out,
-		box-shadow 0.15s ease-out,
-		transform 0.15s ease-out;
-}
-.btn:hover {
-	transform: translateY(-1px);
+		border-color 0.15s ease-out;
 }
 .btn:active {
 	transform: scale(0.98);
@@ -61,24 +60,22 @@
 	color: #ffffff;
 }
 .btn-line {
-	color: var(--ink);
+	color: var(--accent);
 	background: var(--surface);
-	border: 1.5px solid #b9c5c1;
+	border: 1px solid var(--edge);
 }
 [data-product-page] a.btn-line:hover,
 .btn-line:hover {
-	border-color: var(--ink);
-	color: var(--ink);
+	background: #f0f2ef;
+	border-color: var(--edge);
+	color: var(--accent-hover);
 }
 .btn-lg {
 	font-size: 17px;
 	padding: 17px 28px;
 }
 .btn-lg.btn-line {
-	padding: 15.5px 24px;
-}
-.btn-main.btn-lg {
-	box-shadow: 0 10px 22px rgba(31, 111, 102, 0.22);
+	padding: 16px 27px;
 }
 .btn-md {
 	font-size: 16px;
@@ -98,11 +95,11 @@
 	position: sticky;
 	top: 0;
 	z-index: 20;
-	background: rgba(247, 249, 248, 0.94);
+	background: rgba(255, 255, 255, 0.96);
 	border-bottom: 1px solid var(--line);
 }
 .site-header.is-scrolled {
-	box-shadow: 0 6px 18px rgba(23, 40, 58, 0.08);
+	box-shadow: 0 6px 18px rgba(29, 33, 37, 0.08);
 	/* Compact once scrolled. The header is in the flow (sticky), so its 12 px of lost padding come back as a
 	 * margin: the document keeps its height and nothing below it moves. */
 	margin-bottom: 12px;
@@ -136,8 +133,9 @@
 }
 .brand__name {
 	font-family: var(--display);
-	font-weight: 600;
-	font-size: 19px;
+	font-weight: 650;
+	letter-spacing: -0.02em;
+	font-size: 20px;
 }
 .nav-links {
 	display: flex;
@@ -176,11 +174,11 @@
 	align-items: center;
 	gap: 6px;
 	color: var(--ink);
-	font-weight: 700;
+	font-weight: 600;
 	font-size: 15px;
 	padding: 10px 14px;
-	border: 1.5px solid #cbd5d2;
-	border-radius: 999px;
+	border: 1px solid var(--edge);
+	border-radius: 8px;
 	background: var(--surface);
 }
 .nav-menu > summary::-webkit-details-marker {
@@ -198,7 +196,7 @@
 	top: 100%;
 	background: var(--surface);
 	border-bottom: 1px solid var(--line);
-	box-shadow: 0 18px 30px rgba(23, 40, 58, 0.1);
+	box-shadow: 0 18px 30px rgba(29, 33, 37, 0.1);
 	padding: 8px 24px 20px;
 }
 .nav-menu__panel ul {
@@ -211,9 +209,9 @@
 .nav-menu__panel a {
 	display: block;
 	padding: 13px 0;
-	font-weight: 700;
+	font-weight: 600;
 	font-size: 17px;
-	border-bottom: 1px solid #eef1f0;
+	border-bottom: 1px solid var(--line);
 }
 .nav-menu__panel li:last-child a {
 	border-bottom: 0;
@@ -265,17 +263,17 @@
 	list-style: none;
 	background: var(--surface);
 	border: 1px solid var(--line);
-	border-radius: 14px;
-	box-shadow: 0 18px 30px rgba(23, 40, 58, 0.12);
+	border-radius: 8px;
+	box-shadow: 0 18px 30px rgba(29, 33, 37, 0.12);
 }
 .nav-for__panel a {
 	display: block;
 	padding: 12px 14px;
-	border-radius: 10px;
-	font-weight: 700;
+	border-radius: 6px;
+	font-weight: 600;
 }
 [data-product-page] .nav-for__panel a:hover {
-	background: #eef4f2;
+	background: var(--mint);
 }
 .nav-for__panel a[aria-current='page'],
 .nav-menu__panel a[aria-current='page'] {
@@ -285,13 +283,13 @@
 .nav-menu__heading {
 	margin: 12px 0 0;
 	font-size: 13px;
-	font-weight: 800;
+	font-weight: 700;
 	letter-spacing: 0.02em;
-	color: #5f6e83;
+	color: #5c636a;
 }
 .nav-menu__panel .nav-menu__main {
 	margin-top: 6px;
-	border-top: 1px solid #eef1f0;
+	border-top: 1px solid var(--line);
 }
 /* «Спробувати» (only while the demo is public): a secondary button from desktop widths, never on phones. */
 .site-header .btn-try {
@@ -400,9 +398,10 @@
 	gap: 10px;
 	margin: 0;
 	font-family: var(--display);
-	font-weight: 600;
+	font-weight: 650;
+	letter-spacing: -0.02em;
 	color: var(--ink);
-	font-size: 18px;
+	font-size: 19px;
 	text-decoration: none;
 	min-height: 44px;
 }
@@ -458,7 +457,7 @@
 }
 .site-footer__title {
 	margin: 0 0 12px;
-	font-weight: 800;
+	font-weight: 700;
 	color: var(--ink);
 }
 .site-footer ul {

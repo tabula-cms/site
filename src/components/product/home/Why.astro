@@ -1,7 +1,6 @@
 ---
-// Section 7: Чому Tabula, а не звичні варіанти. Six rows: category, the usual way (a red cross
-// and muted text: struck-through text was hard to read), ours. «Зазвичай:» / «У Tabula:» are visually hidden, for screen readers.
-import Tick from '../Tick.astro';
+// Section 7: Чому Tabula, а не звичні варіанти. Six rows: category, the usual way, ours. No crosses or ticks
+// («Аркуш», issue #76). «Зазвичай:» / «У Tabula:» are visually hidden for screen readers and shown as small labels below 700 px.
 import { offer, withinWorkingDays, formatUah } from '../../../config/offer.mjs';
 
 const rows = [
@@ -47,14 +46,12 @@ const rows = [
 					<div class="why__row">
 						<p class="why__who">{row.who}</p>
 						<p class="why__usual">
-							<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" /></svg>
 							<span>
 								<span class="sr">Зазвичай: </span>
 								{row.usual}
 							</span>
 						</p>
 						<p class="why__ours">
-							<Tick size={18} width={2.8} />
 							<span>
 								<span class="sr">У Tabula: </span>
 								{row.ours}

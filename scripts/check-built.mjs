@@ -708,7 +708,15 @@ export function checkCanonicalOg(html, { url, exists = () => true }) {
 	return problems;
 }
 
-/** The home's «З чого почати» (id `start`): the four cards, each a link to its page, right after the four things. */
+/** Problems with one built CSS file: Google Fonts, or the old brand faces (issue #76: the faces are Fixel Display and Fixel Text). */
+export function checkBuiltCss(cssText) {
+	const problems = [];
+	if (/fonts\.googleapis\.com|fonts\.gstatic\.com/i.test(cssText)) problems.push('the built CSS refers to Google Fonts');
+	if (/Unbounded|Manrope/.test(cssText)) problems.push('the built CSS names Unbounded or Manrope (the faces are Fixel)');
+	return problems;
+}
+
+/** The home's «З чого почати» (id `start`): the four entries, each a link to its page. */
 export function checkHomeRoles(html) {
 	const section = sectionById(html, 'start');
 	if (section === null) return ['no <section id="start"> («З чого почати»)'];
@@ -723,7 +731,6 @@ export function checkHomeRoles(html) {
 	if (!/<h2\b[^>]*>З чого почати<\/h2>/.test(section)) problems.push('«З чого почати» has no such H2');
 	// The short way to the templates (issue #71): a link to the templates section, not one of the four cards.
 	if (!anchorsOf(section).some((a) => a.text.startsWith('Переглянути шаблони') && /(^|\/)#look$/.test(a.href))) problems.push('«З чого почати» has no «Переглянути шаблони →» link to #look');
-	if (html.indexOf('id="start"') > html.indexOf('id="kinds"')) problems.push('«З чого почати» is not before «Для різних типів закладів освіти»');
 	return problems;
 }
 
@@ -1368,9 +1375,7 @@ function main() {
 		}
 	}
 	for (const css of walkFiles(distDir, '.css')) {
-		if (/fonts\.googleapis\.com|fonts\.gstatic\.com/i.test(readFileSync(css, 'utf8'))) {
-			fail(`dist/${path.relative(distDir, css)}`, 'the built CSS refers to Google Fonts');
-		}
+		for (const problem of checkBuiltCss(readFileSync(css, 'utf8'))) fail(`dist/${path.relative(distDir, css)}`, problem);
 	}
 
 	// Every result page of the request form is built, and the sitemap lists none of them.

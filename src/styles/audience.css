@@ -27,7 +27,7 @@
 	box-sizing: border-box;
 	padding: 0 16px;
 	border: 1px solid var(--line);
-	border-radius: 999px;
+	border-radius: 8px;
 	color: var(--text);
 	font-weight: 600;
 	font-size: 15px;
@@ -35,13 +35,14 @@
 	white-space: nowrap;
 }
 .role-switch a:hover {
-	border-color: var(--accent);
+	border-color: var(--edge);
 	color: var(--ink);
 }
 .role-switch a[aria-current='page'] {
-	border-color: var(--ink);
-	background: var(--ink);
-	color: #ffffff;
+	border-color: var(--accent);
+	background: var(--surface);
+	color: var(--ink);
+	font-weight: 600;
 }
 @media (max-width: 600px) {
 	.role-switch ul {
@@ -67,20 +68,27 @@
 .role-hero__label {
 	display: inline-block;
 	margin: 0 0 14px;
-	padding: 4px 12px;
-	border-radius: 8px;
-	background: var(--mint);
-	color: var(--ink);
-	font-weight: 700;
+	color: var(--accent);
+	font-weight: 600;
 	font-size: 15px;
+}
+.role-hero__label::before {
+	content: '';
+	display: inline-block;
+	width: 8px;
+	height: 8px;
+	margin-right: 8px;
+	border-radius: 50%;
+	background: currentColor;
+	vertical-align: 0.1em;
 }
 .role-hero h1 {
 	margin: 0 0 18px;
 	font-family: var(--display);
-	font-weight: 600;
-	font-size: clamp(24px, 6.4vw, 40px);
-	line-height: 1.18;
-	letter-spacing: -0.02em;
+	font-weight: 650;
+	font-size: clamp(28px, 7.4vw, 44px);
+	line-height: 1.1;
+	letter-spacing: -0.025em;
 	color: var(--ink);
 	overflow-wrap: break-word;
 }
@@ -116,8 +124,8 @@
 }
 .facts__item {
 	padding: 16px 18px;
-	border: 1px solid #dce5e2;
-	border-radius: 14px;
+	border: 1px solid var(--line);
+	border-radius: 8px;
 	background: var(--surface);
 	font-size: 16px;
 	line-height: 1.5;
@@ -150,7 +158,7 @@
 	margin: 0;
 	font-size: 15px;
 	line-height: 1.6;
-	color: #5f6e83;
+	color: #5c636a;
 }
 
 /* ---- «На цій сторінці» and the body: one column; from 1100 px the list stands right of the text and stays in view. ---- */
@@ -178,7 +186,7 @@
 	margin: 0 0 8px;
 	padding: 4px 16px;
 	border: 1px solid var(--line);
-	border-radius: 12px;
+	border-radius: 8px;
 	background: var(--surface);
 }
 .toc--narrow summary {
@@ -318,8 +326,8 @@
 .timeline__stage {
 	margin: 0 0 1.6em;
 	padding: 18px 18px 6px;
-	border: 1px solid #dce5e2;
-	border-radius: 16px;
+	border: 1px solid var(--line);
+	border-radius: 8px;
 	background: var(--surface);
 }
 .reading .timeline__title {
@@ -331,8 +339,8 @@
 .answers,
 .requisites {
 	margin: 0 0 1.2em;
-	border: 1px solid #dce5e2;
-	border-radius: 16px;
+	border: 1px solid var(--line);
+	border-radius: 8px;
 	background: var(--surface);
 	font-size: 16px;
 	line-height: 1.5;
@@ -340,7 +348,7 @@
 .answers__row,
 .requisites__row {
 	padding: 10px 16px;
-	border-bottom: 1px solid #eef1f0;
+	border-bottom: 1px solid var(--line);
 }
 .answers__row:last-child,
 .requisites__row:last-child {
@@ -388,8 +396,8 @@
 .reading .card + .card {
 	margin: 0;
 	padding: 16px 18px;
-	border: 1px solid #dce5e2;
-	border-radius: 14px;
+	border: 1px solid var(--line);
+	border-radius: 8px;
 	background: var(--surface);
 	font-size: 16px;
 	line-height: 1.55;
@@ -420,7 +428,7 @@
 	margin: 0 0 1.2em;
 	padding: 14px 18px;
 	border-left: 4px solid var(--accent);
-	border-radius: 0 12px 12px 0;
+	border-radius: 0 8px 8px 0;
 	background: var(--surface);
 	font-size: 17px;
 }
@@ -438,28 +446,34 @@
 .callout > :last-child {
 	margin-bottom: 0;
 }
+/* State is a dot and a word, never a plate. */
 .badge {
 	display: inline-block;
-	padding: 1px 8px;
-	border-radius: 8px;
-	font-weight: 700;
+	font-weight: 600;
 	font-size: 13px;
 	line-height: 1.6;
 	white-space: nowrap;
 	vertical-align: 0.1em;
 }
+.badge::before {
+	content: '';
+	display: inline-block;
+	width: 8px;
+	height: 8px;
+	margin-right: 6px;
+	border-radius: 50%;
+	background: currentColor;
+	vertical-align: 0.05em;
+}
 .badge--ready {
-	background: var(--mint);
-	color: #134a43;
+	color: var(--accent);
 }
 .badge--preparing,
 .badge--onRequest {
-	background: var(--amber-bg);
 	color: var(--amber-ink);
 }
 .badge--off {
-	background: #eceff3;
-	color: #3e4e63;
+	color: #5c636a;
 }
 .doc-table__pdf {
 	font-weight: 600;
@@ -518,8 +532,8 @@
 .price-box {
 	margin: 0 0 1.6em;
 	padding: 22px 24px;
-	border: 1px solid #dce5e2;
-	border-radius: 18px;
+	border: 1px solid var(--line);
+	border-radius: 8px;
 	background: var(--surface);
 }
 .reading .price-box__sum {
@@ -563,8 +577,8 @@
 }
 .related__card {
 	padding: 16px 18px;
-	border: 1px solid #dce5e2;
-	border-radius: 14px;
+	border: 1px solid var(--line);
+	border-radius: 8px;
 	background: var(--surface);
 	font-size: 16px;
 	line-height: 1.5;
@@ -744,8 +758,8 @@
 }
 .duties__col {
 	padding: 16px 18px 4px;
-	border: 1px solid #dce5e2;
-	border-radius: 14px;
+	border: 1px solid var(--line);
+	border-radius: 8px;
 	background: var(--surface);
 	font-size: 16px;
 	line-height: 1.55;
@@ -764,8 +778,8 @@
 	gap: 10px;
 }
 .checklist__group {
-	border: 1px solid #dce5e2;
-	border-radius: 14px;
+	border: 1px solid var(--line);
+	border-radius: 8px;
 	background: var(--surface);
 }
 .reading .checklist__group summary {
